@@ -1,0 +1,14 @@
+User-agent: *
+
+# Block administrative and auth pages from being indexed
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /login
+Disallow: /register
+Disallow: /password/
+
+# Allow all other content to be crawled
+Allow: /
+
+# XML sitemap
+Sitemap: http://localhost/sitemap.xml
