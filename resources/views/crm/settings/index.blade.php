@@ -29,22 +29,39 @@
         </div>
         <button wire:click="saveChanges" class="px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-semibold">Save Changes</button>
     @else
-        <div class="flex justify-end mb-4">
-            <button wire:click="$set('showInvite', true)" class="px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-semibold">Invite Member</button>
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h2 class="text-lg font-bold text-white">Team Members</h2>
+                <p class="text-sm text-zinc-500 mt-1">A list of all users in your workspace.</p>
+            </div>
+            <button wire:click="$set('showInvite', true)" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-semibold">
+                <x-heroicon-o-plus-circle class="w-4 h-4" /> Invite Member
+            </button>
         </div>
         <div class="rounded-xl border border-white/10 bg-zinc-800 overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="text-left text-zinc-500 text-xs uppercase border-b border-white/10">
-                        <th class="p-3">Name</th><th class="p-3">Email</th><th class="p-3">Role</th><th class="p-3">Status</th>
+                        <th class="px-6 py-3">Name</th><th class="px-6 py-3">Email</th><th class="px-6 py-3">Role</th><th class="px-6 py-3">Status</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-white/10">
                     @foreach ($users as $user)
-                        <tr>
-                            <td class="p-3 text-white">{{ $user->name }}</td>
-                            <td class="p-3 text-zinc-400">{{ $user->email }}</td>
-                            <td class="p-3">
+                        <tr class="hover:bg-zinc-700/40">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    @if ($user->avatar)
+                                        <img src="{{ $user->avatar }}" alt="{{ $user->name }}" class="h-9 w-9 rounded-full object-cover shrink-0" />
+                                    @else
+                                        <div class="h-9 w-9 rounded-full bg-accent/20 text-accent flex items-center justify-center font-semibold shrink-0">
+                                            {{ mb_substr($user->name, 0, 1) }}
+                                        </div>
+                                    @endif
+                                    <span class="text-white font-medium">{{ $user->name }}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-zinc-400">{{ $user->email }}</td>
+                            <td class="px-6 py-4">
                                 <select wire:change="updateUserRole({{ $user->id }}, $event.target.value)" class="rounded-lg bg-zinc-700 border-white/10 text-white text-xs">
                                     <option value="admin" @selected($user->role === 'admin')>Admin</option>
                                     <option value="member" @selected($user->role === 'member')>Member</option>
@@ -52,10 +69,14 @@
                                     <option value="viewer" @selected($user->role === 'viewer')>Viewer</option>
                                 </select>
                             </td>
-                            <td class="p-3">
-                                <button wire:click="toggleUserStatus({{ $user->id }})">
-                                    <x-badge :color="$user->status === 'active' ? 'green' : 'gray'">{{ ucfirst($user->status) }}</x-badge>
-                                </button>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-2">
+                                    <button wire:click="toggleUserStatus({{ $user->id }})"
+                                            class="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors {{ $user->status === 'active' ? 'bg-accent' : 'bg-zinc-600' }}">
+                                        <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform {{ $user->status === 'active' ? 'translate-x-4' : 'translate-x-0.5' }}"></span>
+                                    </button>
+                                    <span class="text-sm {{ $user->status === 'active' ? 'text-zinc-200' : 'text-zinc-500' }}">{{ ucfirst($user->status) }}</span>
+                                </div>
                             </td>
                         </tr>
                     @endforeach

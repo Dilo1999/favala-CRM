@@ -65,13 +65,6 @@
             </nav>
 
             <div class="border-t border-white/10 py-4 w-full flex flex-col items-center gap-3">
-                <div class="flex flex-col-reverse -space-y-2 -space-y-reverse">
-                    @foreach (\App\Models\User::crmStaff()->limit(5)->get() as $member)
-                        <div title="{{ $member->name }}" class="h-7 w-7 rounded-full bg-accent/20 text-accent text-xs font-semibold flex items-center justify-center ring-2 ring-zinc-800">
-                            {{ mb_substr($member->name, 0, 1) }}
-                        </div>
-                    @endforeach
-                </div>
                 @if (auth()->user()->isAdmin())
                     @php $settingsActive = request()->routeIs('crm.settings*'); @endphp
                     <a href="{{ route('crm.settings') }}"
