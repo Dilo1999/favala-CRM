@@ -1,50 +1,50 @@
 <div x-data="priceCalculator()" class="max-w-4xl">
     <h1 class="text-2xl font-bold text-white mb-1">Quick Price Calculator</h1>
-    <p class="text-sm text-gray-500 mb-6">Standalone tool — works instantly, no data dependency.</p>
+    <p class="text-sm text-zinc-500 mb-6">Standalone tool — works instantly, no data dependency.</p>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="rounded-xl bg-gray-900 border border-gray-800 p-5 space-y-4">
+        <div class="rounded-xl bg-zinc-800 border border-white/10 p-5 space-y-4">
             <h2 class="font-bold text-white mb-2">Inputs</h2>
             <div>
-                <label class="block text-xs text-gray-400 mb-1">Cost</label>
-                <input type="number" step="0.01" x-model.number="cost" class="w-full rounded-lg bg-gray-800 border-gray-700 text-white text-sm" />
+                <label class="block text-xs text-zinc-400 mb-1">Cost</label>
+                <input type="number" step="0.01" x-model.number="cost" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
             </div>
             <div>
-                <label class="block text-xs text-gray-400 mb-1">Markup %</label>
-                <input type="number" step="0.01" x-model.number="markup" class="w-full rounded-lg bg-gray-800 border-gray-700 text-white text-sm" />
+                <label class="block text-xs text-zinc-400 mb-1">Markup %</label>
+                <input type="number" step="0.01" x-model.number="markup" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
             </div>
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-xs text-gray-400 mb-1">Discount Type</label>
-                    <select x-model="discountType" class="w-full rounded-lg bg-gray-800 border-gray-700 text-white text-sm">
+                    <label class="block text-xs text-zinc-400 mb-1">Discount Type</label>
+                    <select x-model="discountType" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm">
                         <option value="percent">Percentage</option>
                         <option value="flat">Flat</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs text-gray-400 mb-1">Discount Value</label>
-                    <input type="number" step="0.01" x-model.number="discountValue" class="w-full rounded-lg bg-gray-800 border-gray-700 text-white text-sm" />
+                    <label class="block text-xs text-zinc-400 mb-1">Discount Value</label>
+                    <input type="number" step="0.01" x-model.number="discountValue" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
                 </div>
             </div>
             <div>
-                <label class="block text-xs text-gray-400 mb-1">GST Rate %</label>
-                <input type="number" step="0.01" x-model.number="gst" class="w-full rounded-lg bg-gray-800 border-gray-700 text-white text-sm" />
+                <label class="block text-xs text-zinc-400 mb-1">GST Rate %</label>
+                <input type="number" step="0.01" x-model.number="gst" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
             </div>
         </div>
 
-        <div class="rounded-xl bg-gray-900 border border-gray-800 p-5 space-y-2 text-sm">
+        <div class="rounded-xl bg-zinc-800 border border-white/10 p-5 space-y-2 text-sm">
             <h2 class="font-bold text-white mb-2">Results</h2>
-            <div class="flex justify-between text-gray-400"><span>Cost Price</span><span class="text-white" x-text="fmt(cost)"></span></div>
-            <div class="flex justify-between text-gray-400"><span>Markup Amount</span><span class="text-white" x-text="fmt(markupAmount())"></span></div>
-            <div class="flex justify-between text-gray-400"><span>Selling Price (w/o GST)</span><span class="text-white" x-text="fmt(sellingPrice())"></span></div>
-            <div class="flex justify-between text-gray-400"><span>Discount Amount</span><span class="text-red-400" x-text="'- ' + fmt(discountAmount())"></span></div>
-            <div class="flex justify-between text-gray-400"><span>Price after Discount</span><span class="text-white" x-text="fmt(priceAfterDiscount())"></span></div>
-            <div class="flex justify-between text-gray-400"><span>GST Amount</span><span class="text-white" x-text="fmt(gstAmount())"></span></div>
-            <div class="flex justify-between text-white font-bold text-base border-t border-gray-800 pt-2">
+            <div class="flex justify-between text-zinc-400"><span>Cost Price</span><span class="text-white" x-text="fmt(cost)"></span></div>
+            <div class="flex justify-between text-zinc-400"><span>Markup Amount</span><span class="text-white" x-text="fmt(markupAmount())"></span></div>
+            <div class="flex justify-between text-zinc-400"><span>Selling Price (w/o GST)</span><span class="text-white" x-text="fmt(sellingPrice())"></span></div>
+            <div class="flex justify-between text-zinc-400"><span>Discount Amount</span><span class="text-red-400" x-text="'- ' + fmt(discountAmount())"></span></div>
+            <div class="flex justify-between text-zinc-400"><span>Price after Discount</span><span class="text-white" x-text="fmt(priceAfterDiscount())"></span></div>
+            <div class="flex justify-between text-zinc-400"><span>GST Amount</span><span class="text-white" x-text="fmt(gstAmount())"></span></div>
+            <div class="flex justify-between text-white font-bold text-base border-t border-white/10 pt-2">
                 <span>Final Selling Price (w/ GST)</span><span x-text="fmt(finalPrice())"></span>
             </div>
-            <div class="flex justify-between text-gray-400 pt-2"><span>Profit</span><span class="text-emerald-400" x-text="fmt(profit())"></span></div>
-            <div class="flex justify-between text-gray-400"><span>Profit Margin</span><span class="text-emerald-400" x-text="margin() + '%'"></span></div>
+            <div class="flex justify-between text-zinc-400 pt-2"><span>Profit</span><span class="text-green-400" x-text="fmt(profit())"></span></div>
+            <div class="flex justify-between text-zinc-400"><span>Profit Margin</span><span class="text-green-400" x-text="margin() + '%'"></span></div>
         </div>
     </div>
 </div>

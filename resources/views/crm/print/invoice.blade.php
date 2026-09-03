@@ -11,13 +11,13 @@
 </head>
 <body class="p-10 max-w-3xl mx-auto text-sm">
     <div class="no-print text-right mb-4">
-        <button onclick="window.print()" class="px-4 py-2 rounded-lg bg-orange-600 text-white text-sm font-semibold">Print</button>
+        <button onclick="window.print()" class="px-4 py-2 rounded-lg bg-accent text-white text-sm font-semibold">Print</button>
     </div>
 
     <div class="flex items-start justify-between mb-8">
         <div>
             <div class="flex items-center gap-2 mb-1">
-                <div class="h-8 w-8 rounded-lg bg-orange-600 flex items-center justify-center font-bold text-white">F</div>
+                <div class="h-8 w-8 rounded-lg bg-accent flex items-center justify-center font-bold text-white">F</div>
                 <span class="font-bold text-lg">FAVALA</span>
             </div>
             <p class="text-gray-500 text-xs">Construction & Hardware Supply — Maldives</p>
