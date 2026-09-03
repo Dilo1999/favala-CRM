@@ -30,6 +30,81 @@
   font-family: var(--font-sans);
 }
 
+/* Form controls — consistent modern styling app-wide: every input/select/
+   textarea gets a real (visible) border, breathing-room padding, and an
+   accent focus ring, instead of relying on ad-hoc per-element classes. */
+.crm-app input:not([type='checkbox']):not([type='radio']):not([type='file']),
+.crm-app select,
+.crm-app textarea {
+  border-width: 1px;
+  padding: 0.5rem 0.75rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.crm-app input:not([type='checkbox']):not([type='radio']):not([type='file'])::placeholder,
+.crm-app textarea::placeholder {
+  color: #71717a; /* zinc-500 */
+}
+
+.crm-app input:not([type='checkbox']):not([type='radio']):not([type='file']):focus,
+.crm-app select:focus,
+.crm-app textarea:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(224, 122, 95, 0.25);
+}
+
+.crm-app input:disabled,
+.crm-app select:disabled,
+.crm-app textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Native <select>: swap the default browser arrow for a themed chevron. */
+.crm-app select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%2371717a' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.55rem center;
+  background-size: 0.85rem;
+  padding-right: 1.9rem;
+}
+
+/* Date/time inputs: force the light calendar/clock glyph so it's actually
+   visible against the dark background (browsers pick a dark glyph by
+   default when following prefers-color-scheme, which this app ignores). */
+.crm-app input[type='date'],
+.crm-app input[type='time'],
+.crm-app input[type='datetime-local'] {
+  color-scheme: dark;
+}
+
+/* Checkboxes / radios: tint the native check mark with the accent color. */
+.crm-app input[type='checkbox'],
+.crm-app input[type='radio'] {
+  accent-color: var(--color-accent);
+  border-width: 1px;
+}
+
+/* File inputs: theme the native picker button to match the rest of the UI. */
+.crm-app input[type='file']::file-selector-button {
+  margin-right: 0.75rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: #3f3f46; /* zinc-700 */
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.crm-app input[type='file']::file-selector-button:hover {
+  background-color: #52525b; /* zinc-600 */
+}
+
 /* Sidebar nav icon animations */
 @keyframes crm-nav-pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(224, 122, 95, 0.45); }
