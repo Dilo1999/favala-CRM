@@ -1,0 +1,51 @@
+<div>
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-white">Invoices</h1>
+        <a href="{{ route('crm.invoices.create') }}" class="flex items-center gap-1 px-4 py-2 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-sm font-semibold">
+            <x-heroicon-o-plus class="w-4 h-4" /> New Manual Invoice
+        </a>
+    </div>
+
+    <div class="relative mb-4 max-w-md">
+        <x-heroicon-o-search class="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+        <input type="text" wire:model.debounce.400ms="search" placeholder="Search by invoice ID or customer…" class="w-full pl-9 rounded-lg bg-gray-900 border-gray-700 text-white text-sm" />
+    </div>
+
+    <div class="rounded-xl border border-gray-800 bg-gray-900 overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="text-left text-gray-500 text-xs uppercase border-b border-gray-800">
+                    <th class="p-3">Invoice ID</th><th class="p-3">Customer</th><th class="p-3">Last Payment</th>
+                    <th class="p-3">Payment Status</th><th class="p-3">Amount</th><th class="p-3">Balance Due</th><th class="p-3"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-800">
+                @forelse ($invoices as $invoice)
+                    @php($last = $invoice->payments->sortByDesc('date')->first())
+                    <tr class="hover:bg-gray-800/40">
+                        <td class="p-3 text-white font-medium">{{ $invoice->friendly_id }}</td>
+                        <td class="p-3 text-gray-300">{{ $invoice->customer?->company_name }}</td>
+                        <td class="p-3 text-gray-400">{{ $last ? $last->date->format('d M Y') : 'N/A' }}</td>
+                        <td class="p-3">
+                            <x-badge :color="$invoice->payment_status === 'paid' ? 'green' : ($invoice->payment_status === 'partial' ? 'orange' : 'gray')">
+                                {{ ucfirst($invoice->payment_status) }}
+                            </x-badge>
+                        </td>
+                        <td class="p-3 text-white">MVR {{ number_format($invoice->grand_total, 2) }}</td>
+                        <td class="p-3 text-gray-300">MVR {{ number_format($invoice->balance_due, 2) }}</td>
+                        <td class="p-3 text-right">
+                            <x-row-menu>
+                                <a href="{{ route('crm.invoices.show', $invoice) }}" class="block px-3 py-1.5 text-gray-200 hover:bg-gray-700">View Details</a>
+                                <a href="{{ route('print.invoice', $invoice) }}" target="_blank" class="block px-3 py-1.5 text-gray-200 hover:bg-gray-700">Print</a>
+                                <button wire:click="delete({{ $invoice->id }})" wire:confirm="Delete this invoice?" class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-gray-700">Delete</button>
+                            </x-row-menu>
+                        </td>
+                    </tr>
+                @empty
+                    <tr><td colspan="7" class="p-6 text-center text-gray-500">No invoices found.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+    <div class="mt-4">{{ $invoices->links() }}</div>
+</div>

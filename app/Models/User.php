@@ -15,6 +15,8 @@ class User extends Authenticatable implements FilamentUser
 
     public const ROLE_ADMIN = 'admin';
 
+    public const ROLE_MEMBER = 'member';
+
     public const ROLE_EDITOR = 'editor';
 
     public const ROLE_VIEWER = 'viewer';
@@ -29,6 +31,8 @@ class User extends Authenticatable implements FilamentUser
         'email',
         'password',
         'role',
+        'status',
+        'avatar',
     ];
 
     /**
@@ -53,12 +57,19 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessFilament(): bool
     {
-        return in_array($this->role, [self::ROLE_ADMIN, self::ROLE_EDITOR, self::ROLE_VIEWER], true);
+        return $this->status === 'active' && in_array($this->role, [
+            self::ROLE_ADMIN, self::ROLE_MEMBER, self::ROLE_EDITOR, self::ROLE_VIEWER,
+        ], true);
     }
 
     public function isAdmin(): bool
     {
         return $this->role === self::ROLE_ADMIN;
+    }
+
+    public function isMember(): bool
+    {
+        return $this->role === self::ROLE_MEMBER;
     }
 
     public function isEditor(): bool
@@ -69,5 +80,16 @@ class User extends Authenticatable implements FilamentUser
     public function isViewer(): bool
     {
         return $this->role === self::ROLE_VIEWER;
+    }
+
+    /** CRM staff = anyone who can be assigned deals/leads/tasks (admins + members). */
+    public function scopeCrmStaff($query)
+    {
+        return $query->whereIn('role', [self::ROLE_ADMIN, self::ROLE_MEMBER]);
+    }
+
+    public function canAccessCrm(): bool
+    {
+        return $this->status === 'active' && in_array($this->role, [self::ROLE_ADMIN, self::ROLE_MEMBER], true);
     }
 }

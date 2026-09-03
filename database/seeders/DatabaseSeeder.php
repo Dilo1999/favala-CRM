@@ -13,13 +13,16 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(SuperAdminSeeder::class);
-        $this->call(BlogPostSeeder::class);
-        $this->call(PageSeoSeeder::class);
-        // \App\Models\User::factory(10)->create();
 
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+        foreach (['BlogPostSeeder', 'PageSeoSeeder'] as $legacySeeder) {
+            $class = "Database\\Seeders\\{$legacySeeder}";
+            if (class_exists($class)) {
+                $this->call($class);
+            }
+        }
+
+        $this->call(SettingOptionSeeder::class);
+        $this->call(AtollIslandSeeder::class);
+        $this->call(CrmDemoSeeder::class);
     }
 }

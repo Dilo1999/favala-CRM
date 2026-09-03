@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Deal;
+use App\Observers\DealObserver;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
@@ -20,6 +22,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Deal::observe(DealObserver::class);
+
         // MySQL (e.g. MariaDB / older MySQL) has a 1000-byte index limit with utf8mb4.
         // Default string length 191 keeps unique indexes under that limit.
         Schema::defaultStringLength(191);
