@@ -27,6 +27,9 @@
             <p class="text-gray-600">{{ $record->friendly_id }}</p>
             <p class="text-gray-500 text-xs">Date: {{ $record->invoice_date->format('d M Y') }}</p>
             <p class="text-gray-500 text-xs">Expiry: {{ optional($record->expiry_date)->format('d M Y') }}</p>
+            @if ($record->reference_number)
+                <p class="text-gray-500 text-xs">Ref: {{ $record->reference_number }}</p>
+            @endif
         </div>
     </div>
 

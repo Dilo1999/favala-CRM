@@ -66,6 +66,13 @@
         </div>
     </div>
 
+    @if ($record->terms_conditions)
+        <div class="mb-6">
+            <p class="text-xs text-gray-500 uppercase font-semibold mb-1">Terms & Conditions</p>
+            <p class="text-gray-700 whitespace-pre-line">{{ $record->terms_conditions }}</p>
+        </div>
+    @endif
+
     <p class="text-xs text-gray-400 border-t border-gray-200 pt-4">This quotation is valid until the expiry date shown above. Prices include applicable GST as stated.</p>
 </body>
 </html>

@@ -15,7 +15,10 @@ class Formulate extends Component
 {
     public ?int $recordId = null;
 
-    public ?int $dealId = null;
+    // Deliberately untyped, same reason as $record in mount(): this is bound
+    // directly via wire:model to a <select> whose "None" option submits "",
+    // and PHP's typed-property coercion rejects "" => ?int with a TypeError.
+    public $dealId = null;
 
     public ?int $customer_id = null;
 
@@ -28,6 +31,8 @@ class Formulate extends Component
     public ?string $bill_to_phone = null;
 
     public ?string $bill_to_address = null;
+
+    public ?string $terms_conditions = null;
 
     public array $items = [];
 
@@ -57,6 +62,7 @@ class Formulate extends Component
             $this->bill_to_name = $record->bill_to_name;
             $this->bill_to_phone = $record->bill_to_phone;
             $this->bill_to_address = $record->bill_to_address;
+            $this->terms_conditions = $record->terms_conditions;
             $this->discount_type = $record->discount_type;
             $this->discount_value = (float) $record->discount_value;
             $this->gst_percent = (float) $record->gst_percent;
@@ -71,27 +77,59 @@ class Formulate extends Component
 
         if ($dealId = request()->query('dealId')) {
             $this->dealId = (int) $dealId;
-            $deal = Deal::with('products.product')->find($dealId);
-
-            if ($deal) {
-                $this->customer_id = $deal->customer_id;
-                $this->bill_to_name = $deal->customer?->contact_person;
-                $this->bill_to_phone = $deal->customer?->phone;
-                $this->bill_to_address = $deal->customer?->address;
-                $this->items = $deal->products->map(function ($dp) {
-                    $best = $dp->product?->cheapestCurrentPrice();
-
-                    return [
-                        'product_id' => $dp->product_id, 'vendor_id' => $best?->vendor_id, 'cost' => (float) ($best?->price ?? 0),
-                        'qty' => (float) $dp->qty, 'markup_percent' => (float) config('crm.default_markup_percent'),
-                        'discount_type' => 'flat', 'discount_value' => 0,
-                    ];
-                })->all();
-            }
+            $this->populateFromDeal($this->dealId);
         }
 
         if (empty($this->items)) {
             $this->addItem();
+        }
+    }
+
+    /**
+     * Fill customer + line items from a deal's requested products. Used both when
+     * arriving via ?dealId= (e.g. "Convert to Quotation" from the deal page) and
+     * when picking a deal from the "Populate from Deal" dropdown on this page.
+     */
+    protected function populateFromDeal(int $dealId): void
+    {
+        $deal = Deal::with('products.product')->find($dealId);
+
+        if (! $deal) {
+            return;
+        }
+
+        $this->customer_id = $deal->customer_id;
+        $this->bill_to_name = $deal->customer?->contact_person;
+        $this->bill_to_phone = $deal->customer?->phone;
+        $this->bill_to_address = $deal->customer?->address;
+        $this->items = $deal->products->map(function ($dp) {
+            $best = $dp->product?->cheapestCurrentPrice();
+
+            return [
+                'product_id' => $dp->product_id, 'vendor_id' => $best?->vendor_id, 'cost' => (float) ($best?->price ?? 0),
+                'qty' => (float) $dp->qty, 'markup_percent' => (float) config('crm.default_markup_percent'),
+                'discount_type' => 'flat', 'discount_value' => 0,
+            ];
+        })->all();
+
+        if (empty($this->items)) {
+            $this->addItem();
+        }
+    }
+
+    public function updatedDealId($value): void
+    {
+        if ($this->recordId) {
+            return;
+        }
+
+        if ($value) {
+            $this->dealId = (int) $value;
+            $this->populateFromDeal($this->dealId);
+        } else {
+            // Normalize the <select>'s "" (None) back to null so it never
+            // ends up as an empty string in $data['deal_id'] on save().
+            $this->dealId = null;
         }
     }
 
@@ -179,6 +217,7 @@ class Formulate extends Component
             'bill_to_name' => $this->bill_to_name,
             'bill_to_phone' => $this->bill_to_phone,
             'bill_to_address' => $this->bill_to_address,
+            'terms_conditions' => $this->terms_conditions,
             'discount_type' => $this->discount_type,
             'discount_value' => $this->discount_value,
             'gst_percent' => $this->gst_percent,
@@ -219,6 +258,8 @@ class Formulate extends Component
         return view('crm.quotations.formulate', [
             'customers' => Customer::orderBy('company_name')->limit(300)->pluck('company_name', 'id'),
             'productOptions' => Product::orderBy('description')->pluck('description', 'id'),
+            'deals' => $this->recordId ? collect() : Deal::whereDoesntHave('quotations')
+                ->with('customer')->orderByDesc('created_at')->limit(100)->get(),
         ])->layout('layouts.crm');
     }
 }

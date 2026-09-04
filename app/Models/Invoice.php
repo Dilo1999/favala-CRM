@@ -19,7 +19,7 @@ class Invoice extends Model
     public const STATUS_PAID = 'paid';
 
     protected $fillable = [
-        'quotation_id', 'customer_id', 'staff_id', 'invoice_date', 'expiry_date',
+        'quotation_id', 'customer_id', 'staff_id', 'reference_number', 'invoice_date', 'expiry_date',
         'bill_to_name', 'bill_to_phone', 'bill_to_address',
         'subtotal', 'discount_type', 'discount_value', 'gst_percent', 'gst_amount',
         'grand_total', 'amount_paid', 'balance_due', 'payment_status',

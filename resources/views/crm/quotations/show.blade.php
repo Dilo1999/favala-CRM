@@ -49,9 +49,16 @@
                     </tbody>
                 </table>
             </div>
+
+            @if ($record->terms_conditions)
+                <div class="rounded-xl bg-zinc-800 border border-white/10 p-5">
+                    <h3 class="font-bold text-white mb-3">Terms & Conditions</h3>
+                    <p class="text-sm text-zinc-300 whitespace-pre-line">{{ $record->terms_conditions }}</p>
+                </div>
+            @endif
         </div>
 
-        <div class="rounded-xl bg-zinc-800 border border-white/10 p-5 text-sm space-y-2 h-fit">
+        <div class="rounded-xl bg-zinc-800 border border-white/10 p-5 text-sm space-y-2 h-fit lg:sticky lg:top-6">
             <h3 class="font-bold text-white mb-2">Summary</h3>
             <div class="flex justify-between text-zinc-400"><span>Subtotal</span><span class="text-white">MVR {{ number_format($record->subtotal, 2) }}</span></div>
             <div class="flex justify-between text-zinc-400"><span>GST ({{ $record->gst_percent }}%)</span><span class="text-white">MVR {{ number_format($record->gst_amount, 2) }}</span></div>

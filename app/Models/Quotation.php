@@ -19,7 +19,7 @@ class Quotation extends Model
 
     protected $fillable = [
         'deal_id', 'customer_id', 'quotation_date', 'expiry_date', 'staff_id', 'status',
-        'bill_to_name', 'bill_to_phone', 'bill_to_address',
+        'bill_to_name', 'bill_to_phone', 'bill_to_address', 'terms_conditions',
         'subtotal', 'discount_type', 'discount_value', 'gst_percent', 'gst_amount',
         'grand_total', 'total_profit', 'profit_margin',
     ];

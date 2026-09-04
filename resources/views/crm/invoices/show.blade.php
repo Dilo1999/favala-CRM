@@ -28,12 +28,16 @@
         <div class="lg:col-span-2 space-y-6">
             <div class="rounded-xl bg-zinc-800 border border-white/10 p-5">
                 <dl class="grid grid-cols-2 gap-4 text-sm">
-                    <div><dt class="text-zinc-500">Billed To</dt><dd class="text-white">{{ $record->bill_to_name }} — {{ $record->bill_to_phone }}</dd></div>
+                    <div><dt class="text-zinc-500">Billed To</dt><dd class="text-white">{{ $record->bill_to_name ?? $record->customer?->company_name }} @if($record->bill_to_phone) — {{ $record->bill_to_phone }} @endif</dd></div>
                     <div><dt class="text-zinc-500">Date</dt><dd class="text-white">{{ $record->invoice_date->format('d M Y') }}</dd></div>
-                    <div><dt class="text-zinc-500">Expiry</dt><dd class="text-white">{{ optional($record->expiry_date)->format('d M Y') }}</dd></div>
+                    <div><dt class="text-zinc-500">Expiry</dt><dd class="text-white">{{ optional($record->expiry_date)->format('d M Y') ?? '—' }}</dd></div>
                     <div><dt class="text-zinc-500">Source Quotation</dt><dd class="text-white">
                         @if ($record->quotation)<a href="{{ route('crm.quotations.show', $record->quotation) }}" class="text-accent hover:underline">{{ $record->quotation->friendly_id }}</a>@else — @endif
                     </dd></div>
+                    @if ($record->reference_number)
+                        <div><dt class="text-zinc-500">Reference Number</dt><dd class="text-white">{{ $record->reference_number }}</dd></div>
+                    @endif
+                    <div><dt class="text-zinc-500">Sales Staff</dt><dd class="text-white">{{ $record->staff?->name ?? '—' }}</dd></div>
                 </dl>
             </div>
 
