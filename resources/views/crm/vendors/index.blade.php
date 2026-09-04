@@ -1,6 +1,9 @@
 <div>
     <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-white">Vendors</h1>
+        <div>
+            <h1 class="text-2xl font-bold text-white">Vendors</h1>
+            <p class="text-sm text-zinc-500 mt-1">Manage your suppliers and their details.</p>
+        </div>
         <button wire:click="create" class="flex items-center gap-1 px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-semibold">
             <x-heroicon-o-plus class="w-4 h-4" /> Add Vendor
         </button>
@@ -8,7 +11,7 @@
 
     <div class="relative mb-4 max-w-md">
         <x-heroicon-o-search class="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
-        <input type="text" wire:model.debounce.400ms="search" placeholder="Search by name, contact or phone…"
+        <input type="text" wire:model.debounce.400ms="search" placeholder="Search by name, contact, phone…"
             class="w-full pl-9 rounded-lg bg-zinc-800 border-white/10 text-white text-sm" />
     </div>
 

@@ -18,7 +18,7 @@ class Index extends Component
 
     public ?int $editingId = null;
 
-    public array $form = ['code' => '', 'legacy_code' => '', 'description' => '', 'category' => null, 'brand' => ''];
+    public array $form = ['code' => '', 'legacy_code' => '', 'description' => '', 'category' => null, 'brand' => '', 'unit_of_measure' => ''];
 
     public $importFile;
 
@@ -30,6 +30,7 @@ class Index extends Component
             'form.description' => 'required|string|max:191',
             'form.category' => 'nullable|string',
             'form.brand' => 'nullable|string|max:100',
+            'form.unit_of_measure' => 'nullable|string|max:30',
         ];
     }
 
@@ -69,7 +70,7 @@ class Index extends Component
     protected function resetForm(): void
     {
         $this->editingId = null;
-        $this->form = ['code' => '', 'legacy_code' => '', 'description' => '', 'category' => null, 'brand' => ''];
+        $this->form = ['code' => '', 'legacy_code' => '', 'description' => '', 'category' => null, 'brand' => '', 'unit_of_measure' => ''];
     }
 
     public function importProducts(): void

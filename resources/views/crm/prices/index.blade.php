@@ -7,6 +7,8 @@
                     Showing prices for <span class="text-white font-medium">{{ $filteredProduct->description }}</span>
                     <button wire:click="$set('productFilter', null)" class="text-accent ml-2">Clear</button>
                 </p>
+            @else
+                <p class="text-sm text-zinc-500 mt-1">View and manage prices from all vendors. Click a row to edit a price.</p>
             @endif
         </div>
         <button wire:click="create" class="flex items-center gap-1 px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-semibold">

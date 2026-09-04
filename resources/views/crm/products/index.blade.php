@@ -1,4 +1,55 @@
 <div>
+    @if ($showForm)
+        {{-- Full-page Create / Edit form --}}
+        <div class="flex items-center gap-3 mb-6">
+            <button wire:click="$set('showForm', false)" class="h-9 w-9 shrink-0 flex items-center justify-center rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors">
+                <x-heroicon-o-arrow-left class="w-5 h-5" />
+            </button>
+            <div>
+                <h1 class="text-2xl font-bold text-white">{{ $editingId ? 'Edit Product' : 'Create Product' }}</h1>
+                <p class="text-sm text-zinc-500">Add a new item to the product catalog.</p>
+            </div>
+        </div>
+
+        <div class="rounded-xl bg-zinc-800 border border-white/10 p-5">
+            <h2 class="font-bold text-white mb-1">Product Details</h2>
+            <p class="text-xs text-zinc-500 mb-4">Core attributes used to identify this item across quotations, invoices, and stock.</p>
+
+            <form wire:submit.prevent="save" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wide text-zinc-500 mb-1.5">Product Code <span class="text-red-400">*</span></label>
+                    <input type="text" wire:model="form.code" placeholder="e.g., CEM-01" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
+                    @error('form.code') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wide text-zinc-500 mb-1.5">Brand</label>
+                    <input type="text" wire:model="form.brand" placeholder="e.g., Tokyo Cement" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
+                </div>
+                <div class="col-span-1 sm:col-span-2">
+                    <label class="block text-xs font-semibold uppercase tracking-wide text-zinc-500 mb-1.5">Description <span class="text-red-400">*</span></label>
+                    <input type="text" wire:model="form.description" placeholder="e.g., Portland Cement (50kg Bag)" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
+                    @error('form.description') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wide text-zinc-500 mb-1.5">Category</label>
+                    <select wire:model="form.category" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm">
+                        <option value="">Select…</option>
+                        @foreach ($categories as $val) <option value="{{ $val }}">{{ $val }}</option> @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wide text-zinc-500 mb-1.5">Unit of Measure (UoM)</label>
+                    <input type="text" wire:model="form.unit_of_measure" placeholder="e.g., Bag, Pcs, Mtr" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
+                </div>
+                <div class="col-span-1 sm:col-span-2 flex justify-end gap-2 mt-2">
+                    <button type="button" wire:click="$set('showForm', false)" class="px-4 py-2 rounded-lg border border-white/10 text-zinc-300 text-sm font-medium hover:bg-zinc-700 transition-colors">Cancel</button>
+                    <button type="submit" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-semibold">
+                        <x-heroicon-o-check class="w-4 h-4" /> {{ $editingId ? 'Save Changes' : 'Create Product' }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    @else
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-white">Products</h1>
         <div class="flex gap-2">
@@ -53,44 +104,6 @@
         </table>
     </div>
     <div class="mt-4">{{ $products->links() }}</div>
-
-    @if ($showForm)
-        <div class="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-30" wire:click.self="$set('showForm', false)">
-            <div class="bg-zinc-800 border border-white/10 rounded-xl w-full max-w-lg p-6">
-                <h2 class="text-lg font-bold text-white mb-4">{{ $editingId ? 'Edit Product' : 'Add Product' }}</h2>
-                <form wire:submit.prevent="save" class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs text-zinc-400 mb-1">Product Code</label>
-                        <input type="text" wire:model="form.code" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
-                        @error('form.code') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
-                    </div>
-                    <div>
-                        <label class="block text-xs text-zinc-400 mb-1">Legacy / Vendor Code</label>
-                        <input type="text" wire:model="form.legacy_code" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
-                    </div>
-                    <div class="col-span-2">
-                        <label class="block text-xs text-zinc-400 mb-1">Description</label>
-                        <input type="text" wire:model="form.description" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
-                        @error('form.description') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
-                    </div>
-                    <div>
-                        <label class="block text-xs text-zinc-400 mb-1">Category</label>
-                        <select wire:model="form.category" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm">
-                            <option value="">Select…</option>
-                            @foreach ($categories as $val) <option value="{{ $val }}">{{ $val }}</option> @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs text-zinc-400 mb-1">Brand</label>
-                        <input type="text" wire:model="form.brand" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
-                    </div>
-                    <div class="col-span-2 flex justify-end gap-2 mt-2">
-                        <button type="button" wire:click="$set('showForm', false)" class="px-4 py-2 rounded-lg border border-white/10 text-zinc-300 text-sm">Cancel</button>
-                        <button type="submit" class="px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-semibold">Save Product</button>
-                    </div>
-                </form>
-            </div>
-        </div>
     @endif
 
     @if ($showImport)
