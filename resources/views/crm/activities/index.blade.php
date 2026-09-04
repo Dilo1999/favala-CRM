@@ -6,13 +6,15 @@
         </button>
     </div>
 
-    <div class="flex flex-wrap gap-3 mb-4 items-end">
+    <div class="flex flex-wrap gap-3 mb-4 items-end" x-data="dateRangePicker('{{ $dateFrom }}', '{{ $dateTo }}')">
         <div class="relative flex-1 min-w-[220px]">
             <x-heroicon-o-search class="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input type="text" wire:model.debounce.400ms="search" placeholder="Search customer, outcome, phone…" class="w-full pl-9 rounded-lg bg-zinc-800 border-white/10 text-white text-sm" />
         </div>
-        <input type="date" wire:model="dateFrom" class="rounded-lg bg-zinc-800 border-white/10 text-white text-sm" />
-        <input type="date" wire:model="dateTo" class="rounded-lg bg-zinc-800 border-white/10 text-white text-sm" />
+        <div class="relative w-56">
+            <x-heroicon-o-calendar class="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input type="text" x-ref="input" readonly placeholder="Select date range…" class="w-full pl-9 rounded-lg bg-zinc-800 border-white/10 text-white text-sm cursor-pointer" />
+        </div>
         <select wire:model="typeFilter" class="rounded-lg bg-zinc-800 border-white/10 text-white text-sm">
             <option value="">All Types</option>
             <option value="Call">Call</option><option value="Meeting">Meeting</option><option value="Email">Email</option><option value="Visit">Visit</option>
@@ -21,7 +23,7 @@
             <option value="">All Statuses</option>
             <option value="follow_up">Follow-up</option><option value="closed">Closed</option>
         </select>
-        <button wire:click="clearFilters" class="px-3 py-2 rounded-lg border border-white/10 text-zinc-300 text-sm">Clear Filters</button>
+        <button wire:click="clearFilters" x-on:click="clear()" class="px-3 py-2 rounded-lg border border-white/10 text-zinc-300 text-sm">Clear Filters</button>
     </div>
 
     <div class="rounded-xl border border-white/10 bg-zinc-800 overflow-x-auto">
