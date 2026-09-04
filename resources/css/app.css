@@ -202,6 +202,18 @@ span.flatpickr-weekday {
   color: #52525b; /* zinc-600 */
 }
 
+/* Zaha assistant bot avatar — mood-driven animation classes. Only "idle" has
+   a real SVG + animation today; future moods (e.g. "happy", "thinking") just
+   need a matching bot-<mood>.svg in public/images/zaha/ and a matching
+   .animate-<mood> rule here. */
+@keyframes zaha-idle {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50% { transform: scale(1.05) translateY(-1px); }
+}
+.zaha-dynamic-bot.animate-idle {
+  animation: zaha-idle 2.4s ease-in-out infinite;
+}
+
 /* Sidebar nav icon animations */
 @keyframes crm-nav-pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(224, 122, 95, 0.45); }
