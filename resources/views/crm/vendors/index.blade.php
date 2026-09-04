@@ -1,52 +1,52 @@
 <div>
     <div class="flex items-center justify-between mb-6">
-        <div>
-            <h1 class="text-2xl font-bold text-white">Vendors</h1>
-            <p class="text-sm text-zinc-500 mt-1">Manage your suppliers and their details.</p>
-        </div>
+        <h1 class="text-2xl font-bold text-white">Vendors</h1>
         <button wire:click="create" class="flex items-center gap-1 px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-semibold">
             <x-heroicon-o-plus class="w-4 h-4" /> Add Vendor
         </button>
     </div>
 
-    <div class="relative mb-4 max-w-md">
-        <x-heroicon-o-search class="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
-        <input type="text" wire:model.debounce.400ms="search" placeholder="Search by name, contact, phone…"
-            class="w-full pl-9 rounded-lg bg-zinc-800 border-white/10 text-white text-sm" />
-    </div>
+    <div class="rounded-xl border border-white/10 bg-zinc-800 p-6">
+        <h2 class="text-lg font-bold text-white">Vendor List</h2>
+        <p class="text-sm text-zinc-500 mt-1">Manage your suppliers and their details.</p>
 
-    <div class="rounded-xl border border-white/10 bg-zinc-800 overflow-x-auto">
-        <table class="w-full text-sm">
-            <thead>
-                <tr class="text-left text-zinc-500 text-xs uppercase border-b border-white/10">
-                    <th class="p-3">Company Name</th>
-                    <th class="p-3">Contact</th>
-                    <th class="p-3">Phone</th>
-                    <th class="p-3">Location</th>
-                    <th class="p-3">Priced Products</th>
-                    <th class="p-3"></th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-white/10">
-                @forelse ($vendors as $vendor)
-                    <tr class="hover:bg-zinc-700/40">
-                        <td class="p-3 text-white font-medium">{{ $vendor->company_name }}</td>
-                        <td class="p-3 text-zinc-300">{{ $vendor->contact_person }}</td>
-                        <td class="p-3 text-zinc-300">{{ $vendor->phone }}</td>
-                        <td class="p-3 text-zinc-400">{{ $vendor->location }}</td>
-                        <td class="p-3 text-zinc-400">{{ $vendor->prices_count }}</td>
-                        <td class="p-3 text-right">
-                            <x-row-menu>
-                                <button wire:click="edit({{ $vendor->id }})" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Edit</button>
-                                <button wire:click="delete({{ $vendor->id }})" wire:confirm="Delete this vendor?" class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete</button>
-                            </x-row-menu>
-                        </td>
+        <div class="relative mt-4 mb-5 max-w-md">
+            <x-heroicon-o-search class="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input type="text" wire:model.debounce.400ms="search" placeholder="Search by name, contact, phone…"
+                class="w-full pl-9 rounded-lg bg-zinc-900 border-white/10 text-white text-sm" />
+        </div>
+
+        <div class="overflow-x-auto -mx-6">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-left text-zinc-500 text-xs uppercase border-b border-white/10">
+                        <th class="px-6 py-3">Company Name</th>
+                        <th class="px-6 py-3">Contact</th>
+                        <th class="px-6 py-3">Phone</th>
+                        <th class="px-6 py-3">Location</th>
+                        <th class="px-6 py-3"></th>
                     </tr>
-                @empty
-                    <tr><td colspan="6" class="p-6 text-center text-zinc-500">No vendors found.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody class="divide-y divide-white/10">
+                    @forelse ($vendors as $vendor)
+                        <tr class="hover:bg-zinc-700/40">
+                            <td class="px-6 py-3 text-white font-medium">{{ $vendor->company_name }}</td>
+                            <td class="px-6 py-3 text-zinc-300">{{ $vendor->contact_person }}</td>
+                            <td class="px-6 py-3 text-zinc-300">{{ $vendor->phone }}</td>
+                            <td class="px-6 py-3 text-zinc-400">{{ $vendor->location }}</td>
+                            <td class="px-6 py-3 text-right">
+                                <x-row-menu>
+                                    <button wire:click="edit({{ $vendor->id }})" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Edit</button>
+                                    <button wire:click="delete({{ $vendor->id }})" wire:confirm="Delete this vendor?" class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete</button>
+                                </x-row-menu>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5" class="px-6 py-6 text-center text-zinc-500">No vendors found.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
     <div class="mt-4">{{ $vendors->links() }}</div>
 
