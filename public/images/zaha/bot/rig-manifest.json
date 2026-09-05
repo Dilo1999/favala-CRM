@@ -1,0 +1,81 @@
+{
+  "name": "Favala Hardware Chatbot Reduced Rig",
+  "part_count": 6,
+  "coordinate_system": "Normalized pivots: x from left, y from top",
+  "assembly_order_back_to_front": [
+    "floating_base",
+    "body_with_belt",
+    "neck_joint",
+    "head_assembly",
+    "open_hand_arm",
+    "thumbs_up_arm"
+  ],
+  "parts": {
+    "head_assembly": {
+      "png": "png/head_assembly.png",
+      "svg": "svg/head_assembly.svg",
+      "width": 612,
+      "height": 519,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.92
+      },
+      "parent": "neck_joint"
+    },
+    "body_with_belt": {
+      "png": "png/body_with_belt.png",
+      "svg": "svg/body_with_belt.svg",
+      "width": 522,
+      "height": 513,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.12
+      },
+      "parent": null
+    },
+    "open_hand_arm": {
+      "png": "png/open_hand_arm.png",
+      "svg": "svg/open_hand_arm.svg",
+      "width": 509,
+      "height": 376,
+      "pivot": {
+        "x": 0.87,
+        "y": 0.2
+      },
+      "parent": "body_with_belt"
+    },
+    "thumbs_up_arm": {
+      "png": "png/thumbs_up_arm.png",
+      "svg": "svg/thumbs_up_arm.svg",
+      "width": 461,
+      "height": 322,
+      "pivot": {
+        "x": 0.13,
+        "y": 0.2
+      },
+      "parent": "body_with_belt"
+    },
+    "neck_joint": {
+      "png": "png/neck_joint.png",
+      "svg": "svg/neck_joint.svg",
+      "width": 237,
+      "height": 172,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.55
+      },
+      "parent": "body_with_belt"
+    },
+    "floating_base": {
+      "png": "png/floating_base.png",
+      "svg": "svg/floating_base.svg",
+      "width": 359,
+      "height": 263,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.18
+      },
+      "parent": "body_with_belt"
+    }
+  }
+}
