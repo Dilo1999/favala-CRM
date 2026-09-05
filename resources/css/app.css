@@ -415,6 +415,98 @@ span.flatpickr-weekday {
   filter: drop-shadow(0 2px 0 rgb(224 122 95 / 0.35));
 }
 
+/* Login form — field styling aligned with modern dark sign-in UI */
+.crm-login-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #d4d4d8;
+}
+
+.crm-login-input-wrap {
+  position: relative;
+}
+
+.crm-app .crm-login-form input.crm-login-input:not([type='checkbox']):not([type='radio']) {
+  width: 100%;
+  padding: 0.8125rem 0.875rem 0.8125rem 2.75rem;
+  border-radius: 0.75rem;
+  background: rgb(24 24 27 / 0.85);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  color: #fafafa;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.crm-app .crm-login-form input.crm-login-input--password:not([type='checkbox']):not([type='radio']) {
+  padding-right: 2.75rem;
+}
+
+.crm-login-input::placeholder {
+  color: #71717a;
+}
+
+.crm-app .crm-login-form input.crm-login-input:not([type='checkbox']):not([type='radio']):focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgb(224 122 95 / 0.22);
+  background: rgb(24 24 27 / 0.95);
+}
+
+.crm-login-input-icon {
+  position: absolute;
+  left: 0.875rem;
+  top: 50%;
+  z-index: 1;
+  width: 1.125rem;
+  height: 1.125rem;
+  transform: translateY(-50%);
+  color: #71717a;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.crm-login-checkbox {
+  width: 1rem;
+  height: 1rem;
+}
+
+.crm-login-submit {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.8125rem 1rem;
+  border-radius: 0.75rem;
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgb(224 122 95 / 0.35);
+  transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.crm-login-submit:hover {
+  background: var(--color-accent-hover);
+  box-shadow: 0 6px 22px rgb(224 122 95 / 0.42);
+}
+
+.crm-login-submit:active {
+  transform: scale(0.985);
+}
+
+.crm-login-form .crm-login-input:-webkit-autofill,
+.crm-login-form .crm-login-input:-webkit-autofill:hover,
+.crm-login-form .crm-login-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #fff;
+  -webkit-box-shadow: 0 0 0 1000px #18181b inset;
+  box-shadow: 0 0 0 1000px #18181b inset;
+  border: 1px solid rgb(255 255 255 / 0.1);
+}
+
 /* Sidebar expand/collapse toggle — lives in the header row with the logo */
 .crm-app .crm-sidebar-toggle:active {
   transform: scale(0.92);

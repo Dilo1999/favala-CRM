@@ -22,20 +22,20 @@
                 <div class="zaha-login-bubble">
                     Hi, I'm <span class="text-accent font-semibold">Fava</span> — your assistant here at Favala. Sign in to get started.
                 </div>
-                <div class="relative h-64 w-64 flex items-center justify-center">
+                <div class="relative h-80 w-80 flex items-center justify-center">
                     <div class="absolute inset-0 rounded-full bg-accent/20 blur-2xl"></div>
-                    <img src="{{ asset('images/zaha/bot-idle.svg') }}" alt="Fava" class="zaha-dynamic-bot animate-idle relative w-64 h-64 object-contain" />
+                    <img src="{{ asset('images/zaha/bot-idle.svg') }}" alt="Fava" class="zaha-dynamic-bot animate-idle relative w-80 h-80 object-contain" />
                 </div>
             </div>
 
             {{-- Desktop: bot anchored to the left of the centered form --}}
-            <div class="hidden lg:flex flex-col items-center gap-3 absolute right-full top-1/2 -translate-y-1/2 mr-5">
+            <div class="hidden lg:flex flex-col items-center gap-3 absolute right-full top-1/2 -translate-y-1/2 mr-10">
                 <div class="zaha-login-bubble">
                     Hi, I'm <span class="text-accent font-semibold">Fava</span> — your assistant here at Favala. Sign in to get started.
                 </div>
-                <div class="relative h-80 w-80 flex items-center justify-center shrink-0">
+                <div class="relative h-[28rem] w-[28rem] flex items-center justify-center shrink-0">
                     <div class="absolute inset-0 rounded-full bg-accent/20 blur-2xl"></div>
-                    <img src="{{ asset('images/zaha/bot-idle.svg') }}" alt="Fava" class="zaha-dynamic-bot animate-idle relative w-80 h-80 object-contain" />
+                    <img src="{{ asset('images/zaha/bot-idle.svg') }}" alt="Fava" class="zaha-dynamic-bot animate-idle relative w-[28rem] h-[28rem] object-contain" />
                 </div>
             </div>
 
@@ -62,35 +62,41 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('login') }}" class="space-y-4">
+                <form method="POST" action="{{ route('login') }}" class="crm-login-form space-y-5">
                     @csrf
                     <div>
-                        <label class="block text-sm font-medium text-zinc-300 mb-1.5">Email</label>
-                        <div class="relative">
-                            <x-heroicon-o-mail class="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                            <input type="email" name="email" value="{{ old('email') }}" required autofocus
-                                class="w-full pl-9 rounded-lg bg-zinc-900 border-white/10 text-white text-sm focus:border-accent focus:ring-accent" />
+                        <label class="crm-login-label" for="login-email">Email</label>
+                        <div class="crm-login-input-wrap">
+                            <x-heroicon-o-user class="crm-login-input-icon" />
+                            <input id="login-email" type="email" name="email" value="{{ old('email') }}" required autofocus
+                                placeholder="Enter your email"
+                                class="crm-login-input" />
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-zinc-300 mb-1.5">Password</label>
-                        <div class="relative">
-                            <x-heroicon-o-lock-closed class="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                            <input :type="showPassword ? 'text' : 'password'" name="password" required
-                                class="w-full pl-9 pr-9 rounded-lg bg-zinc-900 border-white/10 text-white text-sm focus:border-accent focus:ring-accent" />
+                        <label class="crm-login-label" for="login-password">Password</label>
+                        <div class="crm-login-input-wrap">
+                            <x-heroicon-o-lock-closed class="crm-login-input-icon" />
+                            <input id="login-password" :type="showPassword ? 'text' : 'password'" name="password" required
+                                placeholder="Enter your password"
+                                class="crm-login-input crm-login-input--password" />
                             <button type="button" @click="showPassword = !showPassword"
-                                class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300">
-                                <x-heroicon-o-eye class="w-4 h-4" x-show="!showPassword" />
-                                <x-heroicon-o-eye-off class="w-4 h-4" x-show="showPassword" x-cloak />
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors">
+                                <x-heroicon-o-eye class="w-[1.125rem] h-[1.125rem]" x-show="!showPassword" />
+                                <x-heroicon-o-eye-off class="w-[1.125rem] h-[1.125rem]" x-show="showPassword" x-cloak />
                             </button>
                         </div>
                     </div>
-                    <label class="flex items-center gap-2 text-sm text-zinc-400">
-                        <input type="checkbox" name="remember" class="rounded border-white/10 bg-zinc-900 text-accent" />
-                        Remember me
-                    </label>
-                    <button type="submit" class="w-full flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover text-white text-sm font-semibold rounded-lg py-2.5 transition-colors">
-                        <x-heroicon-o-login class="w-4 h-4" /> Sign in
+                    <div class="flex items-center justify-between gap-3 pt-0.5">
+                        <label class="flex items-center gap-2.5 text-sm text-zinc-400 cursor-pointer select-none">
+                            <input type="checkbox" name="remember" class="crm-login-checkbox rounded border-white/15 bg-zinc-900/80 text-accent focus:ring-accent/30" />
+                            Remember me
+                        </label>
+                        <a href="#" class="text-sm font-medium text-accent hover:text-accent-light transition-colors">Forgot password?</a>
+                    </div>
+                    <button type="submit" class="crm-login-submit">
+                        <x-heroicon-o-login class="w-[1.125rem] h-[1.125rem]" />
+                        Sign In
                     </button>
                 </form>
 
