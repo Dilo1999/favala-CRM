@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Sign in · Favala CRM</title>
+    <title>Create account · Favala CRM</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="crm-app h-full bg-zinc-900 text-zinc-100 antialiased relative overflow-hidden">
@@ -15,12 +15,11 @@
     </div>
 
     <div class="relative min-h-full flex items-center justify-center px-4 py-12">
-        {{-- Sign-in card — centered; Fava sits to the left on desktop --}}
-        <div class="w-full max-w-sm relative" x-data="{ showPassword: false }">
+        <div class="w-full max-w-sm relative" x-data="{ showPassword: false, showConfirm: false }">
             {{-- Mobile: bot above form --}}
             <div class="flex flex-col items-center gap-4 mb-8 lg:hidden">
                 <div class="zaha-login-bubble">
-                    Hi, I'm <span class="text-accent font-semibold">Fava</span> — your assistant here at Favala. Sign in to get started.
+                    Hi, I'm <span class="text-accent font-semibold">Fava</span> — let's get your Favala account set up.
                 </div>
                 <div class="relative h-80 w-80 flex items-center justify-center">
                     <div class="absolute inset-0 rounded-full bg-accent/20 blur-2xl"></div>
@@ -31,7 +30,7 @@
             {{-- Desktop: bot anchored to the left of the centered form --}}
             <div class="hidden lg:flex flex-col items-center gap-3 absolute right-full top-1/2 -translate-y-1/2 mr-10">
                 <div class="zaha-login-bubble">
-                    Hi, I'm <span class="text-accent font-semibold">Fava</span> — your assistant here at Favala. Sign in to get started.
+                    Hi, I'm <span class="text-accent font-semibold">Fava</span> — let's get your Favala account set up.
                 </div>
                 <div class="relative h-[28rem] w-[28rem] flex items-center justify-center shrink-0">
                     <div class="absolute inset-0 rounded-full bg-accent/20 blur-2xl"></div>
@@ -53,38 +52,43 @@
                     </div>
                 </div>
 
-                <h1 class="text-lg font-bold text-white">Welcome Back</h1>
-                <p class="text-sm text-zinc-500 mt-1 mb-6">Sign in to access your dashboard.</p>
-
-                @if (session('status'))
-                    <div class="mb-4 rounded-lg bg-emerald-500/10 text-emerald-400 text-sm px-4 py-3">
-                        {{ session('status') }}
-                    </div>
-                @endif
+                <h1 class="text-lg font-bold text-white">Create your account</h1>
+                <p class="text-sm text-zinc-500 mt-1 mb-6">An admin will need to approve it before you can sign in.</p>
 
                 @if ($errors->any())
-                    <div class="mb-4 rounded-lg bg-red-500/10 text-red-400 text-sm px-4 py-3">
-                        {{ $errors->first() }}
+                    <div class="mb-4 rounded-lg bg-red-500/10 text-red-400 text-sm px-4 py-3 space-y-1">
+                        @foreach ($errors->all() as $error)
+                            <p>{{ $error }}</p>
+                        @endforeach
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('login') }}" class="crm-login-form space-y-5">
+                <form method="POST" action="{{ route('register') }}" class="crm-login-form space-y-5">
                     @csrf
                     <div>
-                        <label class="crm-login-label" for="login-email">Email</label>
+                        <label class="crm-login-label" for="register-name">Full name</label>
                         <div class="crm-login-input-wrap">
                             <x-heroicon-o-user class="crm-login-input-icon" />
-                            <input id="login-email" type="email" name="email" value="{{ old('email') }}" required autofocus
-                                placeholder="Enter your email"
+                            <input id="register-name" type="text" name="name" value="{{ old('name') }}" required autofocus
+                                placeholder="Your full name"
                                 class="crm-login-input" />
                         </div>
                     </div>
                     <div>
-                        <label class="crm-login-label" for="login-password">Password</label>
+                        <label class="crm-login-label" for="register-email">Email</label>
+                        <div class="crm-login-input-wrap">
+                            <x-heroicon-o-mail class="crm-login-input-icon" />
+                            <input id="register-email" type="email" name="email" value="{{ old('email') }}" required
+                                placeholder="you@example.com"
+                                class="crm-login-input" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="crm-login-label" for="register-password">Password</label>
                         <div class="crm-login-input-wrap">
                             <x-heroicon-o-lock-closed class="crm-login-input-icon" />
-                            <input id="login-password" :type="showPassword ? 'text' : 'password'" name="password" required
-                                placeholder="Enter your password"
+                            <input id="register-password" :type="showPassword ? 'text' : 'password'" name="password" required
+                                placeholder="At least 8 characters"
                                 class="crm-login-input crm-login-input--password" />
                             <button type="button" @click="showPassword = !showPassword"
                                 class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors">
@@ -93,27 +97,34 @@
                             </button>
                         </div>
                     </div>
-                    <div class="flex items-center justify-between gap-3 pt-0.5">
-                        <label class="flex items-center gap-2.5 text-sm text-zinc-400 cursor-pointer select-none">
-                            <input type="checkbox" name="remember" class="crm-login-checkbox rounded border-white/15 bg-zinc-900/80 text-accent focus:ring-accent/30" />
-                            Remember me
-                        </label>
-                        <a href="#" class="text-sm font-medium text-accent hover:text-accent-light transition-colors">Forgot password?</a>
+                    <div>
+                        <label class="crm-login-label" for="register-password-confirm">Confirm password</label>
+                        <div class="crm-login-input-wrap">
+                            <x-heroicon-o-lock-closed class="crm-login-input-icon" />
+                            <input id="register-password-confirm" :type="showConfirm ? 'text' : 'password'" name="password_confirmation" required
+                                placeholder="Re-enter your password"
+                                class="crm-login-input crm-login-input--password" />
+                            <button type="button" @click="showConfirm = !showConfirm"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors">
+                                <x-heroicon-o-eye class="w-[1.125rem] h-[1.125rem]" x-show="!showConfirm" />
+                                <x-heroicon-o-eye-off class="w-[1.125rem] h-[1.125rem]" x-show="showConfirm" x-cloak />
+                            </button>
+                        </div>
                     </div>
                     <button type="submit" class="crm-login-submit">
-                        <x-heroicon-o-login class="w-[1.125rem] h-[1.125rem]" />
-                        Sign In
+                        <x-heroicon-o-user-add class="w-[1.125rem] h-[1.125rem]" />
+                        Create account
                     </button>
                 </form>
 
                 <p class="text-center text-sm text-zinc-500 mt-6">
-                    New here?
-                    <a href="{{ route('register') }}" class="font-medium text-accent hover:text-accent-light transition-colors">Create an account</a>
+                    Already have an account?
+                    <a href="{{ route('login') }}" class="font-medium text-accent hover:text-accent-light transition-colors">Sign in</a>
                 </p>
 
                 <div class="flex items-center gap-2 justify-center text-xs text-zinc-500 mt-4 pt-4 border-t border-white/10">
                     <x-heroicon-o-shield-check class="w-4 h-4 text-accent" />
-                    Your sign-in is protected with encrypted authentication.
+                    New accounts require admin approval before first sign-in.
                 </div>
             </div>
 

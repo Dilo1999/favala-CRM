@@ -21,6 +21,12 @@ class User extends Authenticatable implements FilamentUser
 
     public const ROLE_VIEWER = 'viewer';
 
+    public const STATUS_PENDING = 'pending';
+
+    public const STATUS_ACTIVE = 'active';
+
+    public const STATUS_INACTIVE = 'inactive';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -90,6 +96,11 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessCrm(): bool
     {
-        return $this->status === 'active' && in_array($this->role, [self::ROLE_ADMIN, self::ROLE_MEMBER], true);
+        return $this->status === self::STATUS_ACTIVE && in_array($this->role, [self::ROLE_ADMIN, self::ROLE_MEMBER], true);
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status === self::STATUS_PENDING;
     }
 }

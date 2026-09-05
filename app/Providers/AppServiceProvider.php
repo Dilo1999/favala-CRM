@@ -3,9 +3,14 @@
 namespace App\Providers;
 
 use App\Models\Deal;
+use App\Models\User;
 use App\Observers\DealObserver;
+use App\Observers\UserObserver;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
+use Symfony\Component\Mailer\Bridge\Brevo\Transport\BrevoTransportFactory;
+use Symfony\Component\Mailer\Transport\Dsn;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,6 +28,14 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Deal::observe(DealObserver::class);
+        User::observe(UserObserver::class);
+
+        // Brevo transactional email API (BREVO_API_KEY) — see config/mail.php "brevo" mailer.
+        Mail::extend('brevo', function () {
+            return (new BrevoTransportFactory())->create(
+                new Dsn('brevo+api', 'default', config('services.brevo.api_key'))
+            );
+        });
 
         // MySQL (e.g. MariaDB / older MySQL) has a 1000-byte index limit with utf8mb4.
         // Default string length 191 keeps unique indexes under that limit.

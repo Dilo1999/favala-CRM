@@ -29,9 +29,13 @@ class AuthController extends Controller
         }
 
         if (! Auth::user()->canAccessCrm()) {
+            $message = Auth::user()->isPending()
+                ? 'Your account is awaiting admin approval. You\'ll get an email as soon as it\'s approved.'
+                : 'Your account does not have access to the CRM.';
+
             Auth::logout();
 
-            return back()->withErrors(['email' => 'Your account does not have access to the CRM.'])->onlyInput('email');
+            return back()->withErrors(['email' => $message])->onlyInput('email');
         }
 
         $request->session()->regenerate();
