@@ -214,6 +214,11 @@ span.flatpickr-weekday {
   animation: zaha-idle 2.4s ease-in-out infinite;
 }
 
+/* Sidebar expand/collapse toggle — lives in the header row with the logo */
+.crm-app .crm-sidebar-toggle:active {
+  transform: scale(0.92);
+}
+
 /* Sidebar nav icon animations */
 @keyframes crm-nav-pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(224, 122, 95, 0.45); }
@@ -221,7 +226,13 @@ span.flatpickr-weekday {
 }
 
 .crm-app .crm-nav-icon {
+  width: 2.25rem;
+  height: 2.25rem;
   transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.crm-app lord-icon.crm-nav-icon {
+  width: 2.25rem !important;
+  height: 2.25rem !important;
 }
 .crm-app .crm-nav-item:hover .crm-nav-icon {
   transform: scale(1.18) translateY(-1px);

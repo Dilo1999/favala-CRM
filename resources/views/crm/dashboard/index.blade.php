@@ -19,7 +19,7 @@
                 x-data="{ mood: 'idle', getCurrentSvg() { return 'bot-' + this.mood + '.svg'; }, getMoodCategory() { return this.mood; } }">
                 <div class="flex-1 flex flex-col items-center justify-center text-center p-6 min-h-[280px]">
                     <img :src="'/images/zaha/' + getCurrentSvg()" :class="'animate-' + getMoodCategory()"
-                        alt="Zaha" class="zaha-dynamic-bot w-48 h-48 object-contain mb-4 animate-idle" src="/images/zaha/bot-idle.svg" />
+                        alt="Zaha" class="zaha-dynamic-bot w-56 h-56 object-contain mb-4 animate-idle" src="/images/zaha/bot-idle.svg" />
                     <h3 class="text-white font-bold text-lg">Hey, {{ explode(' ', auth()->user()->name)[0] }}</h3>
                     <p class="text-sm text-zinc-500 mt-1">How can I help you today?</p>
                 </div>

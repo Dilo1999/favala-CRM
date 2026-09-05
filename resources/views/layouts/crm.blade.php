@@ -10,14 +10,31 @@
     <script src="https://cdn.lordicon.com/lordicon.js" defer></script>
 </head>
 <body class="crm-app h-full bg-zinc-900 text-zinc-100 antialiased">
-    <div class="flex h-full">
+    <div class="flex h-full" x-data="{ sidebarExpanded: false }" x-init="sidebarExpanded = localStorage.getItem('crm-sidebar-expanded') === '1'">
         {{-- Sidebar --}}
-        <aside class="w-16 shrink-0 bg-zinc-800 border-r border-white/10 flex flex-col items-center">
-            <div class="h-16 flex items-center justify-center border-b border-white/10 w-full">
-                <div class="h-8 w-8 rounded-lg bg-accent flex items-center justify-center font-bold text-white">F</div>
+        <aside class="shrink-0 bg-zinc-800 border-r border-white/10 flex flex-col transition-all duration-300 ease-in-out"
+               :class="sidebarExpanded ? 'w-56' : 'w-20'">
+            <div class="border-b border-white/10 w-full shrink-0 flex items-center transition-all duration-300"
+                 :class="sidebarExpanded ? 'h-16 px-3 gap-2' : 'h-[4.5rem] flex-col justify-center gap-1.5 py-2'">
+                <div class="flex items-center gap-3 min-w-0 overflow-hidden"
+                     :class="sidebarExpanded ? 'flex-1' : 'justify-center'">
+                    <div class="h-8 w-8 shrink-0 rounded-lg bg-accent flex items-center justify-center font-bold text-white">F</div>
+                    <span x-show="sidebarExpanded" x-cloak class="text-sm font-semibold text-white truncate">Favala CRM</span>
+                </div>
+                <button type="button"
+                        @click="sidebarExpanded = !sidebarExpanded; localStorage.setItem('crm-sidebar-expanded', sidebarExpanded ? '1' : '0')"
+                        class="crm-sidebar-toggle shrink-0 flex items-center justify-center rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-700/80 transition-all duration-200"
+                        :class="sidebarExpanded ? 'h-8 w-8' : 'h-7 w-7'"
+                        :aria-label="sidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'"
+                        :title="sidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'">
+                    <svg class="w-4 h-4 transition-transform duration-300" :class="sidebarExpanded ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
             </div>
 
-            <nav class="flex-1 overflow-y-auto py-4 space-y-1 w-full flex flex-col items-center">
+            <nav class="flex-1 overflow-y-auto overflow-x-hidden py-4 gap-3 w-full flex flex-col"
+                 :class="sidebarExpanded ? 'px-3 items-stretch' : 'items-center'">
                 @php
                     $navItems = [
                         ['route' => 'crm.dashboard', 'label' => 'Dashboard', 'icon' => 'chart-bar'],
@@ -50,29 +67,32 @@
                 @foreach ($navItems as $item)
                     @php $active = request()->routeIs($item['route'].'*'); @endphp
                     <a href="{{ route($item['route']) }}"
-                       title="{{ $item['label'] }}"
-                       class="crm-nav-item {{ $active ? 'is-active' : '' }} h-10 w-10 rounded-lg flex items-center justify-center transition-colors duration-200
-                              {{ $active ? 'bg-accent text-white' : 'text-zinc-400 hover:bg-zinc-700 hover:text-white' }}">
+                       :title="sidebarExpanded ? '' : '{{ $item['label'] }}'"
+                       class="crm-nav-item {{ $active ? 'is-active' : '' }} h-12 rounded-lg flex items-center transition-colors duration-200 shrink-0
+                              {{ $active ? 'bg-accent text-white' : 'text-zinc-400 hover:bg-zinc-700 hover:text-white' }}"
+                       :class="sidebarExpanded ? 'w-full px-3 gap-3 justify-start' : 'w-12 justify-center'">
                         @if (isset($lordIcons[$item['route']]))
-                            <lord-icon class="crm-nav-icon" src="https://cdn.lordicon.com/{{ $lordIcons[$item['route']] }}.json"
-                                trigger="hover" stroke="90" colors="primary:#a1a1aa,secondary:#e07a5f"
-                                style="width:24px;height:24px"></lord-icon>
+                            <lord-icon class="crm-nav-icon shrink-0" src="https://cdn.lordicon.com/{{ $lordIcons[$item['route']] }}.json"
+                                trigger="hover" stroke="90" colors="primary:#a1a1aa,secondary:#e07a5f"></lord-icon>
                         @else
-                            <x-dynamic-component :component="'heroicon-o-'.$item['icon']" class="crm-nav-icon anim-{{ $item['anim'] ?? 'bounce' }} w-6 h-6 shrink-0" />
+                            <x-dynamic-component :component="'heroicon-o-'.$item['icon']" class="crm-nav-icon anim-{{ $item['anim'] ?? 'bounce' }} shrink-0" />
                         @endif
+                        <span x-show="sidebarExpanded" x-cloak class="text-sm font-medium truncate">{{ $item['label'] }}</span>
                     </a>
                 @endforeach
             </nav>
 
-            <div class="border-t border-white/10 py-4 w-full flex flex-col items-center gap-3">
+            <div class="border-t border-white/10 py-4 w-full flex flex-col gap-3 shrink-0"
+                 :class="sidebarExpanded ? 'px-3 items-stretch' : 'items-center'">
                 @if (auth()->user()->isAdmin())
                     @php $settingsActive = request()->routeIs('crm.settings*'); @endphp
                     <a href="{{ route('crm.settings') }}"
-                       title="Settings"
-                       class="crm-nav-item {{ $settingsActive ? 'is-active' : '' }} h-10 w-10 rounded-lg flex items-center justify-center transition-colors duration-200 {{ $settingsActive ? 'bg-accent text-white' : 'text-zinc-400 hover:bg-zinc-700 hover:text-white' }}">
-                        <lord-icon class="crm-nav-icon" src="https://cdn.lordicon.com/ryyjawhw.json"
-                            trigger="hover" stroke="90" colors="primary:#a1a1aa,secondary:#e07a5f"
-                            style="width:24px;height:24px"></lord-icon>
+                       :title="sidebarExpanded ? '' : 'Settings'"
+                       class="crm-nav-item {{ $settingsActive ? 'is-active' : '' }} h-12 rounded-lg flex items-center transition-colors duration-200 shrink-0 {{ $settingsActive ? 'bg-accent text-white' : 'text-zinc-400 hover:bg-zinc-700 hover:text-white' }}"
+                       :class="sidebarExpanded ? 'w-full px-3 gap-3 justify-start' : 'w-12 justify-center'">
+                        <lord-icon class="crm-nav-icon shrink-0" src="https://cdn.lordicon.com/ryyjawhw.json"
+                            trigger="hover" stroke="90" colors="primary:#a1a1aa,secondary:#e07a5f"></lord-icon>
+                        <span x-show="sidebarExpanded" x-cloak class="text-sm font-medium truncate">Settings</span>
                     </a>
                 @endif
             </div>
