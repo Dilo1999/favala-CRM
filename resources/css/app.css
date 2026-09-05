@@ -82,6 +82,18 @@
   color-scheme: dark;
 }
 
+/* Browser autofill (e.g. saved login credentials) otherwise forces a light
+   yellow/blue background, breaking the dark theme on inputs like the login
+   form's email/password fields. */
+.crm-app input:-webkit-autofill,
+.crm-app input:-webkit-autofill:hover,
+.crm-app input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #fff;
+  -webkit-box-shadow: 0 0 0px 1000px #18181b inset;
+  box-shadow: 0 0 0px 1000px #18181b inset;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
 /* Checkboxes / radios: tint the native check mark with the accent color. */
 .crm-app input[type='checkbox'],
 .crm-app input[type='radio'] {
@@ -368,6 +380,39 @@ span.flatpickr-weekday {
     animation: zaha-bubble-in-mobile 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
       zaha-bubble-glow 2.4s ease-in-out 0.45s infinite;
   }
+}
+
+/* Login screen: an always-visible greeting bubble sitting above the bot
+   (distinct from the hover-triggered dashboard bubble above). */
+@keyframes zaha-login-bubble-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.zaha-login-bubble {
+  position: relative;
+  max-width: 15rem;
+  padding: 0.85rem 1.1rem;
+  border-radius: 1rem;
+  background: linear-gradient(145deg, rgb(52 52 58 / 0.98) 0%, rgb(39 39 42 / 0.98) 55%, rgb(48 40 38 / 0.98) 100%);
+  border: 1px solid rgb(224 122 95 / 0.45);
+  color: rgb(228 228 231);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  text-align: center;
+  backdrop-filter: blur(8px);
+  animation: zaha-login-bubble-float 3.2s ease-in-out infinite;
+}
+
+.zaha-login-bubble::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  border: 8px solid transparent;
+  border-top-color: rgb(48 40 38);
+  filter: drop-shadow(0 2px 0 rgb(224 122 95 / 0.35));
 }
 
 /* Sidebar expand/collapse toggle — lives in the header row with the logo */
