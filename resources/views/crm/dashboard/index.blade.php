@@ -14,14 +14,22 @@
 
     @if ($tab === 'overview')
         @php($o = $this->overview)
-        <div class="flex flex-col lg:flex-row gap-6 lg:gap-8">
-            <div class="lg:w-1/3 shrink-0 rounded-xl bg-zinc-800 border border-white/10 flex flex-col overflow-hidden"
+        <div class="flex flex-col lg:flex-row gap-6 lg:gap-8 lg:items-stretch">
+            <div class="lg:w-1/3 shrink-0 rounded-xl bg-zinc-800 border border-white/10 flex flex-col lg:min-h-[calc(100vh-12rem)]"
                 x-data="{ mood: 'idle', getCurrentSvg() { return 'bot-' + this.mood + '.svg'; }, getMoodCategory() { return this.mood; } }">
-                <div class="flex-1 flex flex-col items-center justify-center text-center p-6 min-h-[280px]">
-                    <img :src="'/images/zaha/' + getCurrentSvg()" :class="'animate-' + getMoodCategory()"
-                        alt="Zaha" class="zaha-dynamic-bot w-56 h-56 object-contain mb-4 animate-idle" src="/images/zaha/bot-idle.svg" />
+                <div class="flex-1 flex flex-col items-center justify-start text-center p-6 pt-8">
+                    <div class="w-64 -translate-x-2 flex flex-col items-center">
+                    <div class="relative zaha-bot-hover mb-4 w-64">
+                        <img :src="'/images/zaha/' + getCurrentSvg()" :class="'animate-' + getMoodCategory()"
+                            alt="Zaha" class="zaha-dynamic-bot w-64 h-64 object-contain animate-idle" src="/images/zaha/bot-idle.svg" />
+                        <div class="zaha-speech-bubble" aria-hidden="true">
+                            <span class="zaha-speech-bubble__spark" aria-hidden="true">✨</span>
+                            <span class="zaha-speech-bubble__text">I love to help you!</span>
+                        </div>
+                    </div>
                     <h3 class="text-white font-bold text-lg">Hey, {{ explode(' ', auth()->user()->name)[0] }}</h3>
                     <p class="text-sm text-zinc-500 mt-1">How can I help you today?</p>
+                    </div>
                 </div>
 
                 <form class="flex items-center gap-2 p-3 border-t border-white/10">
@@ -34,8 +42,8 @@
 
             <div class="hidden lg:block w-px bg-white/10"></div>
 
-            <div class="flex-1 space-y-6">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="flex-1 flex flex-col gap-6 lg:min-h-[calc(100vh-12rem)]">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 shrink-0">
                     <div class="rounded-xl bg-zinc-800 border border-white/10 p-5">
                         <div class="flex items-center justify-between">
                             <p class="text-sm text-zinc-400">Total Revenue</p>
@@ -70,9 +78,10 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div class="rounded-xl bg-zinc-800 border border-white/10 p-5">
-                    <h3 class="font-bold text-white mb-4">Recent Sales</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 flex-1 lg:items-stretch min-h-0">
+                <div class="rounded-xl bg-zinc-800 border border-white/10 p-5 flex flex-col lg:min-h-0">
+                    <h3 class="font-bold text-white mb-4 shrink-0">Recent Sales</h3>
+                    <div class="flex-1 overflow-y-auto min-h-0">
                     <table class="w-full text-sm">
                         <thead>
                             <tr class="text-left text-zinc-500 text-xs uppercase">
@@ -95,12 +104,13 @@
                             @endforelse
                         </tbody>
                     </table>
+                    </div>
                 </div>
 
-                <div class="rounded-xl bg-zinc-800 border border-white/10 p-5">
-                    <h3 class="font-bold text-white mb-1">Recent Customers</h3>
-                    <p class="text-xs text-zinc-500 mb-4">You added {{ $o['customers_this_month'] }} customers this month.</p>
-                    <div class="space-y-3">
+                <div class="rounded-xl bg-zinc-800 border border-white/10 p-5 flex flex-col lg:min-h-0">
+                    <h3 class="font-bold text-white mb-1 shrink-0">Recent Customers</h3>
+                    <p class="text-xs text-zinc-500 mb-4 shrink-0">You added {{ $o['customers_this_month'] }} customers this month.</p>
+                    <div class="flex-1 overflow-y-auto min-h-0 space-y-3">
                         @forelse ($o['recent_customers'] as $customer)
                             <div class="flex items-center gap-3">
                                 <div class="h-8 w-8 rounded-full bg-accent/20 text-accent text-xs font-semibold flex items-center justify-center">

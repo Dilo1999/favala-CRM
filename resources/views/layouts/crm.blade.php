@@ -33,7 +33,7 @@
                 </button>
             </div>
 
-            <nav class="flex-1 overflow-y-auto overflow-x-hidden py-4 gap-3 w-full flex flex-col"
+            <nav class="crm-sidebar-nav flex-1 overflow-y-auto overflow-x-hidden py-4 gap-3 w-full flex flex-col"
                  :class="sidebarExpanded ? 'px-3 items-stretch' : 'items-center'">
                 @php
                     $navItems = [

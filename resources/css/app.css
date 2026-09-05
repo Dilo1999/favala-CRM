@@ -214,9 +214,200 @@ span.flatpickr-weekday {
   animation: zaha-idle 2.4s ease-in-out infinite;
 }
 
+/* Hover zone extends below the bot image; speech bubble slides in from the right */
+.zaha-bot-hover::after {
+  content: '';
+  position: absolute;
+  left: -0.5rem;
+  right: -0.5rem;
+  top: 100%;
+  height: 2.5rem;
+}
+
+@keyframes zaha-bubble-in {
+  0% {
+    opacity: 0;
+    transform: translate(-0.75rem, -50%) scale(0.88);
+  }
+  65% {
+    transform: translate(0.2rem, -50%) scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, -50%) scale(1);
+  }
+}
+
+@keyframes zaha-bubble-sparkle {
+  0%, 100% { transform: rotate(-8deg) scale(1); opacity: 1; }
+  50% { transform: rotate(8deg) scale(1.15); opacity: 0.85; }
+}
+
+@keyframes zaha-bubble-glow {
+  0%, 100% { box-shadow: 0 0 0 1px rgb(224 122 95 / 0.35), 0 10px 28px rgb(0 0 0 / 0.4), 0 0 18px rgb(224 122 95 / 0.12); }
+  50% { box-shadow: 0 0 0 1px rgb(224 122 95 / 0.55), 0 12px 32px rgb(0 0 0 / 0.45), 0 0 24px rgb(224 122 95 / 0.22); }
+}
+
+.zaha-speech-bubble {
+  position: absolute;
+  left: calc(100% + 0.75rem);
+  top: 50%;
+  z-index: 10;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.375rem;
+  max-width: 11.5rem;
+  padding: 0.75rem 0.95rem;
+  border-radius: 1rem;
+  background:
+    linear-gradient(145deg, rgb(52 52 58 / 0.98) 0%, rgb(39 39 42 / 0.98) 55%, rgb(48 40 38 / 0.98) 100%);
+  border: 1px solid rgb(224 122 95 / 0.45);
+  color: rgb(250 250 250);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: left;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-0.5rem, -50%) scale(0.96);
+  transition: opacity 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.zaha-speech-bubble__spark {
+  flex-shrink: 0;
+  font-size: 0.875rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 6px rgb(224 122 95 / 0.55));
+}
+
+.zaha-speech-bubble__text {
+  background: linear-gradient(90deg, #fafafa 0%, #f4d4cb 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.zaha-speech-bubble::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 8px solid transparent;
+  border-right-color: rgb(48 40 38);
+  filter: drop-shadow(-2px 0 0 rgb(224 122 95 / 0.35));
+}
+
+.zaha-speech-bubble::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgb(224 122 95 / 0.7), rgb(255 255 255 / 0.08) 40%, rgb(224 122 95 / 0.25));
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.zaha-bot-hover:hover .zaha-speech-bubble,
+.zaha-bot-hover:focus-within .zaha-speech-bubble {
+  opacity: 1;
+  animation: zaha-bubble-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+    zaha-bubble-glow 2.4s ease-in-out 0.45s infinite;
+}
+
+.zaha-bot-hover:hover .zaha-speech-bubble__spark,
+.zaha-bot-hover:focus-within .zaha-speech-bubble__spark {
+  animation: zaha-bubble-sparkle 1.6s ease-in-out infinite;
+}
+
+@media (max-width: 1023px) {
+  @keyframes zaha-bubble-in-mobile {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, 0.75rem) scale(0.88);
+    }
+    65% {
+      transform: translate(-50%, -0.15rem) scale(1.04);
+    }
+    100% {
+      opacity: 1;
+      transform: translate(-50%, 0) scale(1);
+    }
+  }
+
+  .zaha-speech-bubble {
+    left: 50%;
+    top: calc(100% + 0.75rem);
+    max-width: 15rem;
+    justify-content: center;
+    text-align: center;
+    transform: translate(-50%, 0.5rem) scale(0.96);
+  }
+
+  .zaha-speech-bubble::before {
+    right: auto;
+    left: 50%;
+    top: 0;
+    transform: translate(-50%, -100%);
+    border: 8px solid transparent;
+    border-bottom-color: rgb(48 40 38);
+    filter: drop-shadow(0 -2px 0 rgb(224 122 95 / 0.35));
+  }
+
+  .zaha-bot-hover:hover .zaha-speech-bubble,
+  .zaha-bot-hover:focus-within .zaha-speech-bubble {
+    animation: zaha-bubble-in-mobile 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+      zaha-bubble-glow 2.4s ease-in-out 0.45s infinite;
+  }
+}
+
 /* Sidebar expand/collapse toggle — lives in the header row with the logo */
 .crm-app .crm-sidebar-toggle:active {
   transform: scale(0.92);
+}
+
+/* Sidebar nav — dark-themed scrollbar matching zinc-800 panel */
+.crm-app .crm-sidebar-nav {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(82 82 91 / 0.85) transparent;
+}
+
+.crm-app .crm-sidebar-nav::-webkit-scrollbar {
+  width: 6px;
+}
+
+.crm-app .crm-sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.crm-app .crm-sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgb(82 82 91 / 0.75);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.crm-app .crm-sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: rgb(113 113 122 / 0.9);
+  background-clip: padding-box;
+}
+
+.crm-app .crm-sidebar-nav::-webkit-scrollbar-thumb:active {
+  background: rgb(224 122 95 / 0.75);
+  background-clip: padding-box;
+}
+
+.crm-app .crm-sidebar-nav::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 /* Sidebar nav icon animations */
