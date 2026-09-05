@@ -7,11 +7,11 @@
 
     #head_assembly {
       transform-origin: 50% 92%;
-      animation: zaha-head-sway 5s ease-in-out infinite;
+      animation: zaha-head-look 7s ease-in-out infinite;
     }
     #neck_joint {
       transform-origin: 50% 55%;
-      animation: zaha-head-sway 5s ease-in-out infinite;
+      animation: zaha-head-look 7s ease-in-out infinite;
     }
 
     #open_hand_arm {
@@ -31,9 +31,13 @@
       animation-delay: -0.8s;
     }
 
-    @keyframes zaha-head-sway {
-      0%, 100% { transform: rotate(-2.5deg) translateY(0); }
-      50%      { transform: rotate(2.5deg) translateY(-3px); }
+    @keyframes zaha-head-look {
+      0%          { transform: rotate(0deg)   translateX(0)   translateY(0); }
+      12%, 22%    { transform: rotate(9deg)    translateX(6px) translateY(-1px); }
+      34%         { transform: rotate(0deg)   translateX(0)   translateY(0); }
+      46%, 56%    { transform: rotate(-9deg)   translateX(-6px) translateY(-1px); }
+      68%         { transform: rotate(0deg)   translateX(0)   translateY(0); }
+      100%        { transform: rotate(0deg)   translateX(0)   translateY(0); }
     }
 
     @keyframes zaha-wave-open {
