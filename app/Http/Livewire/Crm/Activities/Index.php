@@ -13,6 +13,8 @@ class Index extends Component
 
     public bool $showForm = false;
 
+    public ?int $editingId = null;
+
     public string $typeFilter = '';
 
     public string $statusFilter = '';
@@ -37,16 +39,46 @@ class Index extends Component
 
     public function create(): void
     {
+        $this->editingId = null;
         $this->form = ['type' => null, 'customer_id' => null, 'outcome' => null, 'status' => 'follow_up', 'date' => now()->toDateString(), 'details' => ''];
+        $this->showForm = true;
+    }
+
+    public function edit(int $id): void
+    {
+        $activity = Activity::findOrFail($id);
+        $this->editingId = $id;
+        $this->form = [
+            'type' => $activity->type,
+            'customer_id' => $activity->customer_id,
+            'outcome' => $activity->outcome,
+            'status' => $activity->status,
+            'date' => optional($activity->date)->toDateString(),
+            'details' => $activity->details,
+        ];
         $this->showForm = true;
     }
 
     public function save(): void
     {
         $this->validate();
-        Activity::create($this->form + ['done_by' => auth()->id()]);
+
+        if ($this->editingId) {
+            Activity::findOrFail($this->editingId)->update($this->form);
+            session()->flash('status', 'Activity updated.');
+        } else {
+            Activity::create($this->form + ['done_by' => auth()->id()]);
+            session()->flash('status', 'Activity logged.');
+        }
+
         $this->showForm = false;
-        session()->flash('status', 'Activity logged.');
+        $this->editingId = null;
+    }
+
+    public function cancel(): void
+    {
+        $this->showForm = false;
+        $this->editingId = null;
     }
 
     public function delete(int $id): void
