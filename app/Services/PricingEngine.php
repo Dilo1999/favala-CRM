@@ -16,25 +16,28 @@ class PricingEngine
      */
     public static function line(float $cost, float $qty, float $markupPercent, string $discountType = 'flat', float $discountValue = 0): array
     {
-        $unitPrice = $cost * (1 + $markupPercent / 100);
-        $grossAmount = $unitPrice * $qty;
+        // Round the unit price to cents *before* multiplying by qty — otherwise the
+        // gross/line amount can drift a cent away from unit_price × qty, showing a
+        // phantom discount on the printout even when discount_value is 0.
+        $unitPrice = round($cost * (1 + $markupPercent / 100), 2);
+        $grossAmount = round($unitPrice * $qty, 2);
 
         $discountAmount = $discountType === 'percent'
-            ? $grossAmount * ($discountValue / 100)
-            : $discountValue;
+            ? round($grossAmount * ($discountValue / 100), 2)
+            : round($discountValue, 2);
         $discountAmount = min($discountAmount, $grossAmount);
 
-        $lineAmount = $grossAmount - $discountAmount;
-        $costAmount = $cost * $qty;
-        $profit = $lineAmount - $costAmount;
+        $lineAmount = round($grossAmount - $discountAmount, 2);
+        $costAmount = round($cost * $qty, 2);
+        $profit = round($lineAmount - $costAmount, 2);
 
         return [
-            'unit_price' => round($unitPrice, 2),
-            'gross_amount' => round($grossAmount, 2),
-            'discount_amount' => round($discountAmount, 2),
-            'line_amount' => round($lineAmount, 2),
-            'cost_amount' => round($costAmount, 2),
-            'profit' => round($profit, 2),
+            'unit_price' => $unitPrice,
+            'gross_amount' => $grossAmount,
+            'discount_amount' => $discountAmount,
+            'line_amount' => $lineAmount,
+            'cost_amount' => $costAmount,
+            'profit' => $profit,
         ];
     }
 
