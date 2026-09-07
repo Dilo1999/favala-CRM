@@ -42,35 +42,31 @@
 
                 @if ($statusKey === \App\Models\SalesQuery::STATUS_NEW)
                     <div class="px-4 pt-3">
-                        <button wire:click="$toggle('showNewQueryForm')" class="w-full text-sm font-medium text-accent border border-dashed border-accent/50 rounded-lg py-2">
+                        <button wire:click="$set('showNewQueryForm', true)" class="w-full text-sm font-medium text-accent border border-dashed border-accent/50 rounded-lg py-2">
                             + Log New Query
                         </button>
-                        @if ($showNewQueryForm)
-                            <div class="mt-3 space-y-2 bg-zinc-800 border border-white/10 rounded-lg p-3">
-                                <select wire:model="newQuery.customer_id" class="w-full text-sm rounded-lg bg-zinc-700 border-white/10 text-white">
-                                    <option value="">Select customer…</option>
-                                    @foreach ($this->customers as $id => $name) <option value="{{ $id }}">{{ $name }}</option> @endforeach
-                                </select>
-                                <textarea wire:model="newQuery.description" placeholder="Description" rows="2" class="w-full text-sm rounded-lg bg-zinc-700 border-white/10 text-white"></textarea>
-                                <button wire:click="createQuery" class="w-full text-sm font-medium bg-accent text-white rounded-lg py-1.5">Save Query</button>
-                            </div>
-                        @endif
                     </div>
                 @endif
 
                 <div class="p-3 space-y-3 flex-1 overflow-y-auto max-h-[70vh]">
                     @forelse ($this->columns[$statusKey] as $query)
                         <div class="bg-zinc-800 border border-white/10 rounded-lg p-3">
-                            <div class="flex items-start justify-between">
-                                <a href="{{ route('crm.queries.show', $query) }}" class="flex items-center gap-2 text-sm font-semibold text-white hover:text-accent">
-                                    <x-heroicon-o-chat-alt class="w-4 h-4 text-zinc-500" />
-                                    {{ $query->customer?->company_name }}
+                            <div class="flex items-start justify-between gap-2">
+                                <a href="{{ route('crm.queries.show', $query) }}" class="flex items-center gap-2 text-sm font-semibold text-white hover:text-accent min-w-0">
+                                    <x-heroicon-o-chat-alt class="w-4 h-4 text-zinc-500 shrink-0" />
+                                    <span class="truncate">{{ $query->customer?->company_name }}</span>
                                 </a>
-                                <select wire:change="moveTo({{ $query->id }}, $event.target.value)" class="text-xs rounded-md bg-zinc-700 border-white/10 text-white">
-                                    @foreach (['new' => 'New', 'negotiating' => 'Negotiating', 'completed' => 'Completed', 'dead' => 'Dead'] as $val => $label)
-                                        <option value="{{ $val }}" @selected($query->status === $val)>{{ $label }}</option>
-                                    @endforeach
-                                </select>
+                                <div class="flex items-center gap-1 shrink-0">
+                                    <select wire:change="moveTo({{ $query->id }}, $event.target.value)" class="text-xs rounded-md bg-zinc-700 border-white/10 text-white">
+                                        @foreach (['new' => 'New', 'negotiating' => 'Negotiating', 'completed' => 'Completed', 'dead' => 'Dead'] as $val => $label)
+                                            <option value="{{ $val }}" @selected($query->status === $val)>{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                    <x-row-menu>
+                                        <a href="{{ route('crm.queries.show', $query) }}" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Edit</a>
+                                        <button wire:click="delete({{ $query->id }})" wire:confirm="Delete this query? This cannot be undone." class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete</button>
+                                    </x-row-menu>
+                                </div>
                             </div>
                             <p class="text-xs text-zinc-500 mt-1">{{ $query->customer?->phone }} · {{ $query->friendly_id }}</p>
                             @if ($query->description)
@@ -86,9 +82,17 @@
                                     @endif
                                 </div>
                             @endif
-                            <div class="flex items-center justify-between mt-3 text-xs text-zinc-500">
-                                <span>{{ $query->quotation?->friendly_id ?? '—' }}@if($query->value) · MVR {{ number_format($query->value, 2) }} @endif</span>
-                                <span>{{ $query->assignedStaff?->name ?? 'Unassigned' }} · {{ $query->created_at->diffForHumans() }}</span>
+                            <div class="mt-3 pt-2 border-t border-white/5 text-xs text-zinc-500 space-y-1">
+                                <div class="flex items-center justify-between">
+                                    <span>{{ $query->quotation ? 'Quotation # '.$query->quotation->friendly_id : '—' }}</span>
+                                    @if ($query->value)
+                                        <span class="text-zinc-300 font-medium">Value: MVR {{ number_format($query->value, 2) }}</span>
+                                    @endif
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span>{{ $query->assignedStaff?->name ?? 'Unassigned' }}</span>
+                                    <span>{{ $query->updated_at->diffForHumans() }}</span>
+                                </div>
                             </div>
                         </div>
                     @empty
@@ -98,4 +102,77 @@
             </div>
         @endforeach
     </div>
+
+    {{-- Log New Query modal --}}
+    @if ($showNewQueryForm)
+        <div class="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-30" wire:click.self="closeNewQueryForm">
+            <div class="bg-zinc-800 border border-white/10 rounded-xl w-full max-w-lg p-6">
+                <div class="flex items-start justify-between mb-5">
+                    <div>
+                        <h2 class="text-lg font-bold text-white">Log New Customer Inquiry</h2>
+                        <p class="text-sm text-zinc-500 mt-1">Record the initial contact from a potential customer.</p>
+                    </div>
+                    <button wire:click="closeNewQueryForm" class="text-zinc-500 hover:text-white">
+                        <x-heroicon-o-x class="w-5 h-5" />
+                    </button>
+                </div>
+
+                <form wire:submit.prevent="createQuery" class="grid grid-cols-2 gap-x-4 gap-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-zinc-200 mb-2">Source</label>
+                        <select wire:model="newQuery.query_source" class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5">
+                            <option value="">Select a source…</option>
+                            @foreach ($this->querySources as $val) <option value="{{ $val }}">{{ $val }}</option> @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-zinc-200 mb-2">Assign To</label>
+                        <select wire:model="newQuery.assigned_staff_id" class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5">
+                            <option value="">Unassigned</option>
+                            @foreach ($this->staff as $id => $name) <option value="{{ $id }}">{{ $name }}</option> @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-zinc-200 mb-2">Customer Name</label>
+                        <input type="text" wire:model="newQuery.customer_name" placeholder="e.g., Ali"
+                            class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5 placeholder-zinc-600" />
+                        @error('newQuery.customer_name') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-zinc-200 mb-2">Customer Phone</label>
+                        <input type="text" wire:model="newQuery.customer_phone" placeholder="e.g., 7771234"
+                            class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5 placeholder-zinc-600" />
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-zinc-200 mb-2">Query Type</label>
+                        <select wire:model="newQuery.query_type" class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5">
+                            <option value="">Select a type…</option>
+                            @foreach ($this->queryTypes as $val) <option value="{{ $val }}">{{ $val }}</option> @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-zinc-200 mb-2">Product Category</label>
+                        <select wire:model="newQuery.product_category" class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5">
+                            <option value="">Select a category…</option>
+                            @foreach ($this->productCategories as $val) <option value="{{ $val }}">{{ $val }}</option> @endforeach
+                        </select>
+                    </div>
+
+                    <div class="col-span-2">
+                        <label class="block text-sm font-semibold text-zinc-200 mb-2">Query Details / Product List</label>
+                        <textarea wire:model="newQuery.description" rows="4"
+                            placeholder="Enter all relevant details about the customer's inquiry, or paste a list of required products here…"
+                            class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5 placeholder-zinc-600 resize-none"></textarea>
+                    </div>
+
+                    <div class="col-span-2 flex justify-end gap-2 mt-2">
+                        <button type="button" wire:click="closeNewQueryForm" class="px-4 py-2 rounded-lg border border-white/10 text-zinc-300 text-sm font-medium hover:bg-zinc-700">Cancel</button>
+                        <button type="submit" class="px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-semibold">Log Query</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
 </div>

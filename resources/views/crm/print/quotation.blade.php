@@ -16,10 +16,7 @@
 
     <div class="flex items-start justify-between mb-8">
         <div>
-            <div class="flex items-center gap-2 mb-1">
-                <div class="h-8 w-8 rounded-lg bg-accent flex items-center justify-center font-bold text-white">F</div>
-                <span class="font-bold text-lg">FAVALA</span>
-            </div>
+            <x-favala-logo variant="print" class="mb-1" />
             <p class="text-gray-500 text-xs">Construction & Hardware Supply — Maldives</p>
         </div>
         <div class="text-right">

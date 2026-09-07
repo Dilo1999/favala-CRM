@@ -25,6 +25,7 @@ class Index extends Component
         'company_name' => '', 'contact_person' => '', 'phone' => '', 'tin' => '',
         'atoll_id' => null, 'island_id' => null, 'address' => '',
         'customer_type' => null, 'lead_source' => null, 'assigned_staff_id' => null, 'status' => 'new',
+        'date_added' => null,
     ];
 
     public string $statusFilter = '';
@@ -45,6 +46,7 @@ class Index extends Component
             'form.lead_source' => 'nullable|string',
             'form.assigned_staff_id' => 'nullable|exists:users,id',
             'form.status' => 'required|string',
+            'form.date_added' => 'required|date',
         ];
     }
 
@@ -69,6 +71,7 @@ class Index extends Component
         $customer = Customer::findOrFail($id);
         $this->editingId = $id;
         $this->form = $customer->only(array_keys($this->form));
+        $this->form['date_added'] = $customer->created_at->toDateString();
         $this->showForm = true;
     }
 
@@ -76,10 +79,20 @@ class Index extends Component
     {
         $this->validate();
 
+        $data = $this->form;
+        $dateAdded = $data['date_added'];
+        unset($data['date_added']);
+
+        // Preserve the time-of-day, only the calendar date is user-editable.
+        $createdAt = \Illuminate\Support\Carbon::parse($dateAdded)
+            ->setTimeFrom($this->editingId ? Customer::find($this->editingId)?->created_at ?? now() : now());
+
         if ($this->editingId) {
-            Customer::findOrFail($this->editingId)->update($this->form);
+            Customer::findOrFail($this->editingId)->forceFill($data + ['created_at' => $createdAt])->save();
         } else {
-            Customer::create($this->form + ['added_by' => auth()->id()]);
+            Customer::create($data + ['added_by' => auth()->id()])
+                ->forceFill(['created_at' => $createdAt])
+                ->save();
         }
 
         $this->showForm = false;
@@ -100,6 +113,7 @@ class Index extends Component
             'company_name' => '', 'contact_person' => '', 'phone' => '', 'tin' => '',
             'atoll_id' => null, 'island_id' => null, 'address' => '',
             'customer_type' => null, 'lead_source' => null, 'assigned_staff_id' => null, 'status' => 'new',
+            'date_added' => now()->toDateString(),
         ];
     }
 

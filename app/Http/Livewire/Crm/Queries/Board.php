@@ -4,6 +4,8 @@ namespace App\Http\Livewire\Crm\Queries;
 
 use App\Models\Customer;
 use App\Models\SalesQuery;
+use App\Models\SettingOption;
+use App\Models\User;
 use Livewire\Component;
 
 class Board extends Component
@@ -14,7 +16,12 @@ class Board extends Component
 
     public bool $showNewQueryForm = false;
 
-    public array $newQuery = ['customer_id' => null, 'description' => '', 'query_source' => null, 'query_type' => null];
+    public array $newQuery = [
+        'query_source' => null, 'assigned_staff_id' => null,
+        'customer_name' => '', 'customer_phone' => '',
+        'query_type' => null, 'product_category' => null,
+        'description' => '',
+    ];
 
     protected function baseQuery()
     {
@@ -62,9 +69,24 @@ class Board extends Component
         ];
     }
 
-    public function getCustomersProperty()
+    public function getStaffProperty()
     {
-        return Customer::orderBy('company_name')->limit(200)->pluck('company_name', 'id');
+        return User::crmStaff()->orderBy('name')->pluck('name', 'id');
+    }
+
+    public function getQuerySourcesProperty(): array
+    {
+        return SettingOption::options(SettingOption::QUERY_SOURCE);
+    }
+
+    public function getQueryTypesProperty(): array
+    {
+        return SettingOption::options(SettingOption::QUERY_TYPE);
+    }
+
+    public function getProductCategoriesProperty(): array
+    {
+        return SettingOption::options(SettingOption::PRODUCT_CATEGORY);
     }
 
     public function moveTo(int $queryId, string $status): void
@@ -72,29 +94,69 @@ class Board extends Component
         SalesQuery::whereKey($queryId)->update(['status' => $status]);
     }
 
+    public function delete(int $queryId): void
+    {
+        SalesQuery::whereKey($queryId)->delete();
+        session()->flash('status', 'Query deleted.');
+    }
+
+    public function closeNewQueryForm(): void
+    {
+        $this->showNewQueryForm = false;
+        $this->resetNewQueryForm();
+    }
+
     public function createQuery(): void
     {
         $this->validate([
-            'newQuery.customer_id' => 'required|exists:customers,id',
+            'newQuery.customer_name' => 'required|string|max:191',
+            'newQuery.customer_phone' => 'nullable|string|max:60',
+            'newQuery.query_source' => 'nullable|string',
+            'newQuery.query_type' => 'nullable|string',
+            'newQuery.product_category' => 'nullable|string',
+            'newQuery.assigned_staff_id' => 'nullable|exists:users,id',
             'newQuery.description' => 'nullable|string',
         ]);
 
-        $customer = Customer::find($this->newQuery['customer_id']);
+        // De-dupe by phone when given, so logging the same caller twice doesn't fork their record.
+        $customer = $this->newQuery['customer_phone']
+            ? Customer::firstOrNew(['phone' => $this->newQuery['customer_phone']])
+            : new Customer();
+
+        if (! $customer->exists) {
+            $customer->fill([
+                'company_name' => $this->newQuery['customer_name'],
+                'phone' => $this->newQuery['customer_phone'] ?: null,
+                'lead_source' => $this->newQuery['query_source'],
+                'status' => Customer::STATUS_NEW,
+                'added_by' => auth()->id(),
+            ])->save();
+        }
 
         SalesQuery::create([
             'customer_id' => $customer->id,
-            'phone' => $customer->phone,
+            'phone' => $this->newQuery['customer_phone'] ?: $customer->phone,
             'description' => $this->newQuery['description'],
-            'tags' => [],
+            'tags' => array_values(array_filter([$this->newQuery['product_category']])),
             'source' => 'manual',
             'status' => SalesQuery::STATUS_NEW,
             'query_source' => $this->newQuery['query_source'],
             'query_type' => $this->newQuery['query_type'],
-            'assigned_staff_id' => auth()->id(),
+            'assigned_staff_id' => $this->newQuery['assigned_staff_id'],
         ]);
 
-        $this->newQuery = ['customer_id' => null, 'description' => '', 'query_source' => null, 'query_type' => null];
-        $this->showNewQueryForm = false;
+        $this->closeNewQueryForm();
+        session()->flash('status', 'Query logged.');
+    }
+
+    protected function resetNewQueryForm(): void
+    {
+        $this->newQuery = [
+            'query_source' => null, 'assigned_staff_id' => null,
+            'customer_name' => '', 'customer_phone' => '',
+            'query_type' => null, 'product_category' => null,
+            'description' => '',
+        ];
     }
 
     public function render()

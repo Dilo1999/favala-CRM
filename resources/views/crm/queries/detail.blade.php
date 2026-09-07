@@ -17,10 +17,6 @@
                     @endif
                 </div>
 
-                @if ($record->description)
-                    <p class="text-sm text-zinc-300 mt-4">{{ $record->description }}</p>
-                @endif
-
                 @if (!empty($record->tags))
                     <div class="flex flex-wrap gap-1 mt-3">
                         @foreach ($record->tags as $tag)
@@ -30,10 +26,10 @@
                 @endif
 
                 <dl class="grid grid-cols-2 gap-4 mt-5 text-sm">
-                    <div><dt class="text-zinc-500">Assigned Staff</dt><dd class="text-white">{{ $record->assignedStaff?->name ?? 'Unassigned' }}</dd></div>
                     <div><dt class="text-zinc-500">Value</dt><dd class="text-white">{{ $record->value ? 'MVR '.number_format($record->value, 2) : '—' }}</dd></div>
                     <div><dt class="text-zinc-500">Logged</dt><dd class="text-white">{{ $record->created_at->format('d M Y H:i') }}</dd></div>
                     <div><dt class="text-zinc-500">Source</dt><dd class="text-white">{{ ucfirst($record->source) }}</dd></div>
+                    <div><dt class="text-zinc-500">Last Updated</dt><dd class="text-white">{{ $record->updated_at->diffForHumans() }}</dd></div>
                 </dl>
             </div>
 
@@ -42,15 +38,53 @@
 
         <div>
             <div class="rounded-xl border border-white/10 bg-zinc-800 p-5">
-                <h3 class="text-sm font-bold text-white mb-3">Status</h3>
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-bold text-white">Edit Query</h3>
+                    <x-row-menu>
+                        <button wire:click="delete" wire:confirm="Delete this query? This cannot be undone." class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete Query</button>
+                    </x-row-menu>
+                </div>
+
                 <label class="block text-xs font-medium text-zinc-400 mb-1">Query Status</label>
                 <select wire:model="status" class="w-full text-sm rounded-lg bg-zinc-700 border-white/10 text-white mb-4">
                     @foreach (\App\Models\SalesQuery::STATUSES as $val => $label) <option value="{{ $val }}">{{ $label }}</option> @endforeach
                 </select>
+
                 <label class="flex items-center gap-2 text-sm text-zinc-300 mb-4">
                     <input type="checkbox" wire:model="followUp" class="rounded border-white/10 bg-zinc-700 text-accent" />
                     Mark for Follow-up
                 </label>
+
+                <label class="block text-xs font-medium text-zinc-400 mb-1">Contact Phone</label>
+                <input type="text" wire:model="phone" class="w-full text-sm rounded-lg bg-zinc-700 border-white/10 text-white mb-4" />
+
+                <label class="block text-xs font-medium text-zinc-400 mb-1">Assigned Staff</label>
+                <select wire:model="assignedStaffId" class="w-full text-sm rounded-lg bg-zinc-700 border-white/10 text-white mb-4">
+                    <option value="">Unassigned</option>
+                    @foreach ($staff as $id => $name) <option value="{{ $id }}">{{ $name }}</option> @endforeach
+                </select>
+
+                <label class="block text-xs font-medium text-zinc-400 mb-1">Query Source</label>
+                <select wire:model="querySource" class="w-full text-sm rounded-lg bg-zinc-700 border-white/10 text-white mb-4">
+                    <option value="">Select a source…</option>
+                    @foreach ($querySources as $val) <option value="{{ $val }}">{{ $val }}</option> @endforeach
+                </select>
+
+                <label class="block text-xs font-medium text-zinc-400 mb-1">Query Type</label>
+                <select wire:model="queryType" class="w-full text-sm rounded-lg bg-zinc-700 border-white/10 text-white mb-4">
+                    <option value="">Select a type…</option>
+                    @foreach ($queryTypes as $val) <option value="{{ $val }}">{{ $val }}</option> @endforeach
+                </select>
+
+                <label class="block text-xs font-medium text-zinc-400 mb-1">Product Category</label>
+                <select wire:model="productCategory" class="w-full text-sm rounded-lg bg-zinc-700 border-white/10 text-white mb-4">
+                    <option value="">Select a category…</option>
+                    @foreach ($productCategories as $val) <option value="{{ $val }}">{{ $val }}</option> @endforeach
+                </select>
+
+                <label class="block text-xs font-medium text-zinc-400 mb-1">Query Details / Product List</label>
+                <textarea wire:model="description" rows="4" class="w-full text-sm rounded-lg bg-zinc-700 border-white/10 text-white mb-4 resize-none"></textarea>
+
                 <button wire:click="save" class="w-full bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-lg py-2">Save Changes</button>
             </div>
         </div>

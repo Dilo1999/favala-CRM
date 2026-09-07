@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Create account · Favala CRM</title>
+    <link rel="icon" href="{{ asset('images/logo/Favala-1.png') }}" type="image/png" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="crm-app h-full bg-zinc-900 text-zinc-100 antialiased relative overflow-hidden">
@@ -38,18 +39,15 @@
                 </div>
             </div>
 
-            <div class="flex flex-col items-center gap-1 mb-6 lg:hidden">
-                <span class="font-bold tracking-wide text-xl text-white">FAVALA CRM</span>
+            <div class="flex flex-col items-center gap-2 mb-6 lg:hidden">
+                <x-favala-logo variant="hero" />
                 <p class="text-xs text-zinc-500">Construction &amp; Hardware Supply — Maldives</p>
             </div>
 
             <div class="bg-zinc-800/90 backdrop-blur border border-white/10 rounded-2xl shadow-2xl shadow-black/40 p-6">
-                <div class="hidden lg:flex items-center gap-2 mb-6">
-                    <div class="h-9 w-9 rounded-lg bg-accent flex items-center justify-center font-bold text-white">F</div>
-                    <div>
-                        <p class="font-bold tracking-wide text-sm text-white leading-tight">FAVALA CRM</p>
-                        <p class="text-xs text-zinc-500 leading-tight">Construction &amp; Hardware Supply</p>
-                    </div>
+                <div class="hidden lg:flex flex-col items-center text-center gap-1 mb-6">
+                    <x-favala-logo variant="auth" class="mx-auto object-center" />
+                    <p class="text-xs text-zinc-500 leading-tight">Construction &amp; Hardware Supply</p>
                 </div>
 
                 <h1 class="text-lg font-bold text-white">Create your account</h1>

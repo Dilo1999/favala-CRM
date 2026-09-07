@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ $title ?? 'Dashboard' }} · Favala CRM</title>
+    <link rel="icon" href="{{ asset('images/logo/Favala-1.png') }}" type="image/png" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
@@ -14,17 +15,15 @@
         {{-- Sidebar --}}
         <aside class="shrink-0 bg-zinc-800 border-r border-white/10 flex flex-col transition-all duration-300 ease-in-out"
                :class="sidebarExpanded ? 'w-56' : 'w-20'">
-            <div class="border-b border-white/10 w-full shrink-0 flex items-center transition-all duration-300"
-                 :class="sidebarExpanded ? 'h-16 px-3 gap-2' : 'h-[4.5rem] flex-col justify-center gap-1.5 py-2'">
-                <div class="flex items-center gap-3 min-w-0 overflow-hidden"
-                     :class="sidebarExpanded ? 'flex-1' : 'justify-center'">
-                    <div class="h-8 w-8 shrink-0 rounded-lg bg-accent flex items-center justify-center font-bold text-white">F</div>
-                    <span x-show="sidebarExpanded" x-cloak class="text-sm font-semibold text-white truncate">Favala CRM</span>
-                </div>
+            <div class="border-b border-white/10 w-full shrink-0 relative flex items-center justify-center transition-all duration-300"
+                 :class="sidebarExpanded ? 'h-[4.5rem]' : 'h-[5rem] flex-col gap-1.5 py-2'">
+                <img src="{{ asset('images/logo/Favala-1.png') }}" alt="Favala CRM"
+                     class="shrink-0 object-center mx-auto transition-all duration-300"
+                     :class="sidebarExpanded ? 'h-10 w-auto max-w-[11rem] object-contain' : 'h-10 w-10 rounded object-cover'" />
                 <button type="button"
                         @click="sidebarExpanded = !sidebarExpanded; localStorage.setItem('crm-sidebar-expanded', sidebarExpanded ? '1' : '0')"
                         class="crm-sidebar-toggle shrink-0 flex items-center justify-center rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-700/80 transition-all duration-200"
-                        :class="sidebarExpanded ? 'h-8 w-8' : 'h-7 w-7'"
+                        :class="sidebarExpanded ? 'absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8' : 'h-7 w-7'"
                         :aria-label="sidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'"
                         :title="sidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'">
                     <svg class="w-4 h-4 transition-transform duration-300" :class="sidebarExpanded ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">

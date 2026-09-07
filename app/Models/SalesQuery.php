@@ -64,4 +64,10 @@ class SalesQuery extends Model
     {
         return $this->belongsTo(User::class, 'assigned_staff_id');
     }
+
+    /** "600" instead of "600.00", but "2.50" is kept — used when describing product quantities. */
+    public static function formatQty(float $qty): string
+    {
+        return rtrim(rtrim(number_format($qty, 2), '0'), '.');
+    }
 }

@@ -116,19 +116,29 @@ class Deal extends Model
      */
     public function spawnQuery(): SalesQuery
     {
-        $categories = $this->products()
-            ->with('product')
-            ->get()
-            ->pluck('product.category')
+        $dealProducts = $this->products()->with('product')->get();
+
+        $categories = $dealProducts->pluck('product.category')->filter()->unique()->values()->all();
+
+        $productList = $dealProducts
+            ->map(fn (DealProduct $dp) => $dp->product
+                ? "{$dp->product->description} (Qty: ".SalesQuery::formatQty((float) $dp->qty).')'
+                : null)
             ->filter()
-            ->unique()
-            ->values()
-            ->all();
+            ->implode(', ');
+
+        $description = "Auto-generated from Deal #{$this->friendly_id}";
+        if ($productList) {
+            $description .= ' — '.$productList;
+        }
+        if ($this->additional_details) {
+            $description .= ' — '.$this->additional_details;
+        }
 
         return $this->salesQuery()->create([
             'customer_id' => $this->customer_id,
             'phone' => $this->customer?->phone,
-            'description' => "Auto-generated from Deal #{$this->friendly_id}".($this->additional_details ? ' — '.$this->additional_details : ''),
+            'description' => $description,
             'tags' => array_values(array_unique(array_merge(['Deal'], $categories))),
             'source' => 'deal',
             'status' => SalesQuery::STATUS_NEGOTIATING,

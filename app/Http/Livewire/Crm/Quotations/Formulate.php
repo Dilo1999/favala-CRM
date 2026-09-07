@@ -247,6 +247,7 @@ class Formulate extends Component
         }
 
         $quotation->recalculateTotals();
+        $quotation->syncLinkedQuery();
 
         session()->flash('status', 'Quotation saved.');
 

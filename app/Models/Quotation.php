@@ -113,6 +113,62 @@ class Quotation extends Model
         $this->update(['status' => self::STATUS_SENT]);
     }
 
+    /**
+     * Keep the linked Query in sync with this quotation (spec §5: "once a quotation exists
+     * it shows the Quotation #"). Call after items are persisted + totals recalculated.
+     *
+     * - Deal-originated quotation: the deal already spawned a Query — just attach this
+     *   quotation's number/value/tags to it, without touching its "Auto-generated from
+     *   Deal #…" description.
+     * - Standalone ("Cash Sale") quotation: no deal, no existing query — spawn one, tagged
+     *   Quotation Request + product category, landing in Negotiating.
+     */
+    public function syncLinkedQuery(): void
+    {
+        $items = $this->items()->with('product')->get();
+        $categories = $items->pluck('product.category')->filter()->unique()->values()->all();
+
+        $query = $this->deal?->salesQuery ?? $this->salesQueries()->where('source', 'quotation')->first();
+
+        if ($query) {
+            $query->update([
+                'quotation_id' => $this->id,
+                'value' => $this->grand_total,
+                'tags' => array_values(array_unique(array_merge($query->tags ?? [], ['Quotation Request'], $categories))),
+            ]);
+
+            return;
+        }
+
+        if ($this->deal_id) {
+            return; // Deal exists but its query is missing — don't fabricate a second one.
+        }
+
+        $productList = $items
+            ->map(fn (QuotationItem $i) => $i->product
+                ? "{$i->product->description} (Qty: ".SalesQuery::formatQty((float) $i->qty).')'
+                : null)
+            ->filter()
+            ->implode(', ');
+
+        $description = "Auto-generated from Quotation #{$this->friendly_id}";
+        if ($productList) {
+            $description .= ' — '.$productList;
+        }
+
+        SalesQuery::create([
+            'customer_id' => $this->customer_id,
+            'phone' => $this->bill_to_phone ?: $this->customer?->phone,
+            'description' => $description,
+            'tags' => array_values(array_unique(array_merge(['Quotation Request'], $categories))),
+            'source' => 'quotation',
+            'quotation_id' => $this->id,
+            'value' => $this->grand_total,
+            'status' => SalesQuery::STATUS_NEGOTIATING,
+            'assigned_staff_id' => $this->staff_id,
+        ]);
+    }
+
     /** Convert to Invoice (spec §5): inherits number, items, GST and totals; starts fully unpaid. */
     public function convertToInvoice(?User $staff = null): Invoice
     {
@@ -152,8 +208,6 @@ class Quotation extends Model
             $this->deal->markWon();
         }
 
-        // A query may already reference this quotation directly, or (more often) it was
-        // spawned from the originating deal before the quotation existed — check both.
         $linkedQuery = $this->salesQueries()->first() ?? $this->deal?->salesQuery;
 
         if ($linkedQuery) {

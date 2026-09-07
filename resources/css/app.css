@@ -512,6 +512,46 @@ span.flatpickr-weekday {
   transform: scale(0.92);
 }
 
+/* App-wide themed scrollbar — every scrollable area (Kanban columns, tables,
+   modals, etc.) gets this dark thin scrollbar instead of the OS-default
+   bright one. The more specific .crm-sidebar-nav rules below override it
+   for the sidebar's slightly narrower treatment. */
+.crm-app {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(82 82 91 / 0.85) transparent;
+}
+
+.crm-app ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.crm-app ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.crm-app ::-webkit-scrollbar-thumb {
+  background: rgb(82 82 91 / 0.75);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.crm-app ::-webkit-scrollbar-thumb:hover {
+  background: rgb(113 113 122 / 0.9);
+  background-clip: padding-box;
+}
+
+.crm-app ::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.crm-app ::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 /* Sidebar nav — dark-themed scrollbar matching zinc-800 panel */
 .crm-app .crm-sidebar-nav {
   scrollbar-width: thin;

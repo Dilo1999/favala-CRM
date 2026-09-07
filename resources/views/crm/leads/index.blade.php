@@ -88,11 +88,10 @@
                 <div>
                     <label class="block text-sm font-semibold text-zinc-200 mb-2">Date Added</label>
                     <div class="relative">
-                        <input type="text" disabled
-                            value="{{ ($editingId ? \App\Models\Customer::find($editingId)?->created_at : now())?->format('F jS, Y') }}"
-                            class="w-full rounded-lg bg-zinc-900 border-white/10 text-zinc-300 text-sm px-4 py-2.5" />
-                        <x-heroicon-o-calendar class="w-4 h-4 text-zinc-500 absolute right-4 top-1/2 -translate-y-1/2" />
+                        <input type="date" wire:model="form.date_added"
+                            class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5" />
                     </div>
+                    @error('form.date_added') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
                 </div>
 
                 <div class="col-span-2 flex justify-end gap-2 mt-4 pt-4 border-t border-white/10">
