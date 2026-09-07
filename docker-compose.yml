@@ -1,0 +1,33 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: favala_crm_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: favala_crm
+      POSTGRES_USER: favala_crm
+      POSTGRES_PASSWORD: favala_crm_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - favala_crm_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U favala_crm -d favala_crm"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: favala_crm_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@favala.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+
+volumes:
+  favala_crm_pgdata:

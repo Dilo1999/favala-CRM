@@ -20,8 +20,8 @@
                 <div class="flex-1 flex flex-col items-center justify-start text-center p-6 pt-8">
                     <div class="w-64 -translate-x-2 flex flex-col items-center">
                     <div class="relative zaha-bot-hover mb-4 w-64">
-                        <img :src="'/images/zaha/' + getCurrentSvg()" :class="'animate-' + getMoodCategory()"
-                            alt="Zaha" class="zaha-dynamic-bot w-64 h-64 object-contain animate-idle" src="/images/zaha/bot-idle.svg" />
+                        <img :src="'{{ asset('images/zaha') }}/' + getCurrentSvg()" :class="'animate-' + getMoodCategory()"
+                            alt="Zaha" class="zaha-dynamic-bot w-64 h-64 object-contain animate-idle" src="{{ asset('images/zaha/bot-idle.svg') }}" />
                         <div class="zaha-speech-bubble" aria-hidden="true">
                             <span class="zaha-speech-bubble__spark" aria-hidden="true">✨</span>
                             <span class="zaha-speech-bubble__text">I love to help you!</span>
