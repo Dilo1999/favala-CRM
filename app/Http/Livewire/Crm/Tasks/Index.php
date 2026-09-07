@@ -22,6 +22,8 @@ class Index extends Component
 
     public bool $showForm = false;
 
+    public ?int $editingId = null;
+
     public array $form = ['type' => null, 'customer_id' => null, 'assigned_to' => null, 'deadline' => '', 'notes' => ''];
 
     protected function rules(): array
@@ -37,16 +39,45 @@ class Index extends Component
 
     public function create(): void
     {
+        $this->editingId = null;
         $this->form = ['type' => null, 'customer_id' => null, 'assigned_to' => null, 'deadline' => now()->toDateString(), 'notes' => ''];
+        $this->showForm = true;
+    }
+
+    public function edit(int $id): void
+    {
+        $task = Task::findOrFail($id);
+        $this->editingId = $id;
+        $this->form = [
+            'type' => $task->type,
+            'customer_id' => $task->customer_id,
+            'assigned_to' => $task->assigned_to,
+            'deadline' => optional($task->deadline)->toDateString(),
+            'notes' => $task->notes,
+        ];
         $this->showForm = true;
     }
 
     public function save(): void
     {
         $this->validate();
-        Task::create($this->form + ['status' => 'pending']);
+
+        if ($this->editingId) {
+            Task::findOrFail($this->editingId)->update($this->form);
+            session()->flash('status', 'Task updated.');
+        } else {
+            Task::create($this->form + ['status' => 'pending']);
+            session()->flash('status', 'Task created.');
+        }
+
         $this->showForm = false;
-        session()->flash('status', 'Task created.');
+        $this->editingId = null;
+    }
+
+    public function cancel(): void
+    {
+        $this->showForm = false;
+        $this->editingId = null;
     }
 
     public function complete(int $id): void

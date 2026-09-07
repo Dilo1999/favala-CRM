@@ -33,6 +33,7 @@
                             <td class="p-3"><x-badge color="orange">Pending</x-badge></td>
                             <td class="p-3 text-right">
                                 <x-row-menu>
+                                    <button wire:click="edit({{ $task->id }})" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Edit</button>
                                     <button wire:click="complete({{ $task->id }})" class="block w-full text-left px-3 py-1.5 text-green-400 hover:bg-zinc-700">Mark Complete</button>
                                     <button wire:click="delete({{ $task->id }})" wire:confirm="Delete this task?" class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete</button>
                                 </x-row-menu>
@@ -67,6 +68,7 @@
                             <td class="p-3 text-zinc-400">{{ $task->duration }}</td>
                             <td class="p-3 text-right">
                                 <x-row-menu>
+                                    <button wire:click="edit({{ $task->id }})" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Edit</button>
                                     <button wire:click="delete({{ $task->id }})" wire:confirm="Delete this task?" class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete</button>
                                 </x-row-menu>
                             </td>
@@ -81,9 +83,9 @@
     @endif
 
     @if ($showForm)
-        <div class="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-30" wire:click.self="$set('showForm', false)">
+        <div class="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-30" wire:click.self="cancel">
             <div class="bg-zinc-800 border border-white/10 rounded-xl w-full max-w-lg p-6">
-                <h2 class="text-lg font-bold text-white mb-4">Create Task</h2>
+                <h2 class="text-lg font-bold text-white mb-4">{{ $editingId ? 'Edit Task' : 'Create Task' }}</h2>
                 <form wire:submit.prevent="save" class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs text-zinc-400 mb-1">Task Type</label>
@@ -118,8 +120,8 @@
                         <textarea wire:model="form.notes" rows="3" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm"></textarea>
                     </div>
                     <div class="col-span-2 flex justify-end gap-2 mt-2">
-                        <button type="button" wire:click="$set('showForm', false)" class="px-4 py-2 rounded-lg border border-white/10 text-zinc-300 text-sm">Cancel</button>
-                        <button type="submit" class="px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-semibold">Save Task</button>
+                        <button type="button" wire:click="cancel" class="px-4 py-2 rounded-lg border border-white/10 text-zinc-300 text-sm">Cancel</button>
+                        <button type="submit" class="px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-semibold">{{ $editingId ? 'Save Changes' : 'Save Task' }}</button>
                     </div>
                 </form>
             </div>
