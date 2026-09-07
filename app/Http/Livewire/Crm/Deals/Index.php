@@ -3,7 +3,10 @@
 namespace App\Http\Livewire\Crm\Deals;
 
 use App\Http\Livewire\Concerns\WithBasicTable;
+use App\Models\Customer;
 use App\Models\Deal;
+use App\Models\SettingOption;
+use App\Models\User;
 use Livewire\Component;
 
 class Index extends Component
@@ -13,6 +16,15 @@ class Index extends Component
     public string $tab = 'all';
 
     public string $viewMode = 'list';
+
+    public ?int $viewingId = null;
+
+    public ?int $editingId = null;
+
+    public array $editForm = [
+        'customer_id' => null, 'deal_date' => '', 'request_source' => null,
+        'assigned_staff_id' => null, 'stage' => 'potential', 'additional_details' => null,
+    ];
 
     protected function baseQuery()
     {
@@ -36,6 +48,80 @@ class Index extends Component
         ];
     }
 
+    public function getViewingDealProperty(): ?Deal
+    {
+        return $this->viewingId
+            ? Deal::with(['customer', 'assignedStaff', 'createdBy', 'products.product', 'quotations'])->find($this->viewingId)
+            : null;
+    }
+
+    public function view(int $id): void
+    {
+        $this->editingId = null;
+        $this->viewingId = $id;
+    }
+
+    public function closeView(): void
+    {
+        $this->viewingId = null;
+    }
+
+    public function edit(int $id): void
+    {
+        $deal = Deal::findOrFail($id);
+        $this->viewingId = null;
+        $this->editingId = $id;
+        $this->editForm = [
+            'customer_id' => $deal->customer_id,
+            'deal_date' => $deal->deal_date->toDateString(),
+            'request_source' => $deal->request_source,
+            'assigned_staff_id' => $deal->assigned_staff_id,
+            'stage' => $deal->stage,
+            'additional_details' => $deal->additional_details,
+        ];
+    }
+
+    public function closeEdit(): void
+    {
+        $this->editingId = null;
+    }
+
+    protected function editRules(): array
+    {
+        return [
+            'editForm.customer_id' => 'required|exists:customers,id',
+            'editForm.deal_date' => 'required|date',
+            'editForm.request_source' => 'nullable|string',
+            'editForm.assigned_staff_id' => 'nullable|exists:users,id',
+            'editForm.stage' => 'required|in:potential,hot,lost,won',
+            'editForm.additional_details' => 'nullable|string',
+        ];
+    }
+
+    public function saveEdit(): void
+    {
+        $this->validate($this->editRules());
+
+        Deal::findOrFail($this->editingId)->update($this->editForm);
+
+        $this->editingId = null;
+        session()->flash('status', 'Deal updated.');
+    }
+
+    public function deleteDeal(int $id): void
+    {
+        Deal::findOrFail($id)->delete();
+
+        $this->viewingId = null;
+        $this->editingId = null;
+        session()->flash('status', 'Deal deleted.');
+    }
+
+    public function convertToQuotation(int $id)
+    {
+        return redirect()->route('crm.quotations.create', ['dealId' => $id]);
+    }
+
     public function render()
     {
         $query = $this->baseQuery();
@@ -49,6 +135,11 @@ class Index extends Component
 
         $deals = $query->orderByDesc('created_at')->paginate(15);
 
-        return view('crm.deals.index', ['deals' => $deals])->layout('layouts.crm');
+        return view('crm.deals.index', [
+            'deals' => $deals,
+            'customers' => Customer::orderBy('company_name')->limit(300)->pluck('company_name', 'id'),
+            'requestSources' => SettingOption::options(SettingOption::REQUEST_SOURCE),
+            'staff' => User::crmStaff()->orderBy('name')->pluck('name', 'id'),
+        ])->layout('layouts.crm');
     }
 }

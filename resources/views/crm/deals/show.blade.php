@@ -4,7 +4,8 @@
             <a href="{{ route('crm.deals') }}" class="text-zinc-400 hover:text-white"><x-heroicon-o-arrow-left class="w-5 h-5" /></a>
             <h1 class="text-2xl font-bold text-white">{{ $record->friendly_id }}</h1>
             @php($outcome = $record->outcome_status)
-            <x-badge :color="match($outcome) { 'Converted' => 'green', 'Expired', 'Lost' => 'red', default => 'orange' }">{{ $outcome }}</x-badge>
+            <x-badge :color="match($outcome) { 'Converted' => 'green', 'Expired' => 'red', default => 'orange' }">{{ $outcome }}</x-badge>
+            <x-badge :color="match($record->stage) { 'won' => 'green', 'lost' => 'red', 'hot' => 'orange', default => 'gray' }">{{ $record->stage_label }}</x-badge>
         </div>
         <div class="flex gap-2">
             @if (! $record->isConverted() && $record->quotations->isEmpty())
@@ -24,7 +25,7 @@
                     <div><dt class="text-zinc-500">Deal Date</dt><dd class="text-white">{{ $record->deal_date->format('d M Y') }}</dd></div>
                     <div><dt class="text-zinc-500">Request Source</dt><dd class="text-white">{{ $record->request_source ?? '—' }}</dd></div>
                     <div><dt class="text-zinc-500">Assigned Staff</dt><dd class="text-white">{{ $record->assignedStaff?->name ?? 'Unassigned' }}</dd></div>
-                    <div><dt class="text-zinc-500">Stage</dt><dd class="text-white">{{ $record->stage === 'hot' ? '🔥 Hot Deal' : ucfirst($record->stage) }}</dd></div>
+                    <div><dt class="text-zinc-500">Stage</dt><dd class="text-white">{{ $record->stage_label }}</dd></div>
                     <div><dt class="text-zinc-500">Expires</dt><dd class="text-white">{{ optional($record->expires_at)->format('d M Y H:i') }}</dd></div>
                 </dl>
                 @if ($record->additional_details)

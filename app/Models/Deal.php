@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasFriendlyId;
 use App\Models\Concerns\HasNotes;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -68,40 +69,63 @@ class Deal extends Model
         return $this->hasMany(Quotation::class);
     }
 
-    public function isExpired(): bool
-    {
-        return ! $this->isConverted()
-            && $this->stage !== self::STAGE_LOST
-            && $this->expires_at
-            && $this->expires_at->isPast();
-    }
-
     public function isConverted(): bool
     {
         return $this->stage === self::STAGE_WON || $this->converted_at !== null;
     }
 
-    public function isInProgress(): bool
+    public function isExpired(): bool
     {
-        return ! $this->isConverted()
-            && ! $this->isExpired()
-            && in_array($this->stage, [self::STAGE_POTENTIAL, self::STAGE_HOT], true);
+        return ! $this->isConverted() && $this->expires_at && $this->expires_at->isPast();
     }
 
-    /** Derived, display-only status badge (spec: In Progress / Converted / Expired / Lost). */
+    public function isInProgress(): bool
+    {
+        return ! $this->isConverted() && ! $this->isExpired();
+    }
+
+    /**
+     * Badge #1 — purely time/conversion-based, independent of the manually-set stage
+     * (spec §6.6: two status badges shown together, e.g. Converted+Won, Expired+Lost,
+     * Expired+Potential — this is the first of the pair).
+     */
     public function getOutcomeStatusAttribute(): string
     {
         if ($this->isConverted()) {
             return 'Converted';
-        }
-        if ($this->stage === self::STAGE_LOST) {
-            return 'Lost';
         }
         if ($this->isExpired()) {
             return 'Expired';
         }
 
         return 'In Progress';
+    }
+
+    /** Badge #2 — the deal's actual stage, shown alongside the outcome badge above. */
+    public function getStageLabelAttribute(): string
+    {
+        return match ($this->stage) {
+            self::STAGE_HOT => '🔥 Hot Deal',
+            self::STAGE_WON => 'Won',
+            self::STAGE_LOST => 'Lost',
+            default => 'Potential',
+        };
+    }
+
+    /** The aging/outcome line under the card timestamp (spec §6.6). */
+    public function getAgingLineAttribute(): string
+    {
+        if ($this->isConverted()) {
+            $end = $this->converted_at ?? $this->updated_at;
+
+            return 'Converted in '.$this->created_at->diffForHumans($end, CarbonInterface::DIFF_ABSOLUTE);
+        }
+
+        if ($this->isExpired()) {
+            return 'Expired after '.$this->created_at->diffForHumans($this->expires_at, CarbonInterface::DIFF_ABSOLUTE);
+        }
+
+        return 'In progress for '.$this->created_at->diffForHumans(now(), CarbonInterface::DIFF_ABSOLUTE);
     }
 
     /** Marks the deal Won automatically — called only when it converts through to an invoice. */
