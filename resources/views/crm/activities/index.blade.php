@@ -11,7 +11,7 @@
             <x-heroicon-o-search class="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input type="text" wire:model.debounce.400ms="search" placeholder="Search customer, outcome, phone…" class="w-full pl-9 rounded-lg bg-zinc-800 border-white/10 text-white text-sm" />
         </div>
-        <div class="relative w-56">
+        <div class="relative w-56" wire:ignore>
             <x-heroicon-o-calendar class="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input type="text" x-ref="input" readonly placeholder="Select date range…" class="w-full pl-9 rounded-lg bg-zinc-800 border-white/10 text-white text-sm cursor-pointer" />
         </div>

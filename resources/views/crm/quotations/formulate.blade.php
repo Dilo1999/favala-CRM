@@ -38,14 +38,14 @@
                     </div>
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wide text-zinc-500 mb-1.5">Quotation Date</label>
-                        <div class="relative" x-data="datePicker('quotation_date', '{{ $quotation_date }}')">
+                        <div class="relative" x-data="datePicker('quotation_date', '{{ $quotation_date }}')" wire:ignore>
                             <x-heroicon-o-calendar class="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input type="text" x-ref="input" readonly class="w-full pl-9 rounded-lg bg-zinc-700 border-white/10 text-white text-sm cursor-pointer" />
                         </div>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wide text-zinc-500 mb-1.5">Expiry Date</label>
-                        <div class="relative" x-data="datePicker('expiry_date', '{{ $expiry_date }}')">
+                        <div class="relative" x-data="datePicker('expiry_date', '{{ $expiry_date }}')" wire:ignore>
                             <x-heroicon-o-calendar class="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input type="text" x-ref="input" readonly class="w-full pl-9 rounded-lg bg-zinc-700 border-white/10 text-white text-sm cursor-pointer" />
                         </div>

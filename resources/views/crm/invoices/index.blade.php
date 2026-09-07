@@ -88,7 +88,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-semibold uppercase tracking-wide text-zinc-500 mb-1.5">Invoice Date</label>
-                            <div class="relative" x-data="datePicker('form.invoice_date', '{{ $form['invoice_date'] }}')">
+                            <div class="relative" x-data="datePicker('form.invoice_date', '{{ $form['invoice_date'] }}')" wire:ignore>
                                 <x-heroicon-o-calendar class="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                                 <input type="text" x-ref="input" readonly class="w-full pl-9 rounded-lg bg-zinc-700 border-white/10 text-white text-sm cursor-pointer" />
                             </div>
