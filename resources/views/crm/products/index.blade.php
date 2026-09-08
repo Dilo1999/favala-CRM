@@ -62,46 +62,65 @@
         </div>
     </div>
 
-    <div class="relative mb-4 max-w-md">
-        <x-heroicon-o-search class="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
-        <input type="text" wire:model.debounce.400ms="search" placeholder="Search by description, code or brand…"
-            class="w-full pl-9 rounded-lg bg-zinc-800 border-white/10 text-white text-sm" />
-    </div>
+    <div class="rounded-xl border border-white/10 bg-zinc-800 p-5">
+        <h2 class="text-lg font-bold text-white">Product List</h2>
+        <p class="text-sm text-zinc-500 mt-1 mb-4">Manage your product catalog and pricing. Click a row to edit.</p>
 
-    <div class="rounded-xl border border-white/10 bg-zinc-800 overflow-x-auto">
-        <table class="w-full text-sm">
-            <thead>
-                <tr class="text-left text-zinc-500 text-xs uppercase border-b border-white/10">
-                    <th class="p-3">Product Code</th>
-                    <th class="p-3">Description</th>
-                    <th class="p-3">Category</th>
-                    <th class="p-3">Brand</th>
-                    <th class="p-3">Vendors</th>
-                    <th class="p-3"></th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-white/10">
-                @forelse ($products as $product)
-                    @php($vendorNames = $product->currentPrices()->pluck('vendor.company_name')->filter()->implode(', '))
-                    <tr class="hover:bg-zinc-700/40">
-                        <td class="p-3 text-white font-medium">{{ $product->code }}</td>
-                        <td class="p-3 text-zinc-300">{{ $product->description }}</td>
-                        <td class="p-3"><x-badge>{{ $product->category }}</x-badge></td>
-                        <td class="p-3 text-zinc-400">{{ $product->brand }}</td>
-                        <td class="p-3 text-zinc-400 max-w-[220px] truncate" title="{{ $vendorNames }}">{{ $vendorNames ?: '—' }}</td>
-                        <td class="p-3 text-right">
-                            <x-row-menu>
-                                <a href="{{ route('crm.prices', ['product' => $product->id]) }}" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Update Prices</a>
-                                <button wire:click="edit({{ $product->id }})" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Edit</button>
-                                <button wire:click="delete({{ $product->id }})" wire:confirm="Delete this product?" class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete</button>
-                            </x-row-menu>
-                        </td>
+        <div class="relative mb-4 max-w-md">
+            <x-heroicon-o-search class="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input type="text" wire:model.debounce.400ms="search" placeholder="Search by description, code, or brand…"
+                class="w-full pl-9 rounded-lg bg-zinc-900 border-white/10 text-white text-sm" />
+        </div>
+
+        <div class="overflow-x-auto -mx-5">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-left text-zinc-500 text-xs uppercase border-b border-white/10">
+                        <th class="px-5 py-3">Product Code</th>
+                        <th class="px-5 py-3">Description</th>
+                        <th class="px-5 py-3">Category</th>
+                        <th class="px-5 py-3">Brand</th>
+                        <th class="px-5 py-3">Vendors</th>
+                        <th class="px-5 py-3 text-right">Actions</th>
                     </tr>
-                @empty
-                    <tr><td colspan="6" class="p-6 text-center text-zinc-500">No products found.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody class="divide-y divide-white/10">
+                    @forelse ($products as $product)
+                        @php($vendorNames = $product->currentPrices()->pluck('vendor.company_name')->filter())
+                        <tr class="hover:bg-zinc-700/40 cursor-pointer" wire:click="edit({{ $product->id }})">
+                            <td class="px-5 py-3 text-accent font-medium">{{ $product->code }}</td>
+                            <td class="px-5 py-3 text-zinc-300">{{ $product->description }}</td>
+                            <td class="px-5 py-3 text-accent-light">{{ $product->category }}</td>
+                            <td class="px-5 py-3 text-zinc-400">{{ $product->brand }}</td>
+                            <td class="px-5 py-3">
+                                @if ($vendorNames->isNotEmpty())
+                                    <div class="flex flex-wrap gap-1 max-w-[240px]">
+                                        @foreach ($vendorNames as $vendorName)
+                                            <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-zinc-700 text-zinc-200 whitespace-nowrap">{{ $vendorName }}</span>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <span class="text-zinc-500">—</span>
+                                @endif
+                            </td>
+                            <td class="px-5 py-3 text-right" wire:click.stop>
+                                <div class="flex items-center justify-end gap-2">
+                                    <a href="{{ route('crm.products.pricing', ['productId' => $product->id]) }}" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 text-zinc-200 text-xs font-medium hover:bg-zinc-700 whitespace-nowrap">
+                                        <x-heroicon-o-pencil class="w-3.5 h-3.5" /> Update Prices
+                                    </a>
+                                    <x-row-menu>
+                                        <button wire:click="edit({{ $product->id }})" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Edit</button>
+                                        <button wire:click="delete({{ $product->id }})" wire:confirm="Delete this product?" class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete</button>
+                                    </x-row-menu>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="6" class="px-5 py-6 text-center text-zinc-500">No products found.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
     <div class="mt-4">{{ $products->links() }}</div>
     @endif

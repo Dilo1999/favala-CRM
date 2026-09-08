@@ -85,6 +85,7 @@ Route::middleware(['auth', 'crm'])->group(function () {
     Route::get('/receipts', \App\Http\Livewire\Crm\Receipts\Index::class)->name('crm.receipts');
 
     Route::get('/products', \App\Http\Livewire\Crm\Products\Index::class)->name('crm.products');
+    Route::get('/products/pricing', \App\Http\Livewire\Crm\Products\Pricing::class)->name('crm.products.pricing');
     Route::get('/prices', \App\Http\Livewire\Crm\Prices\Index::class)->name('crm.prices');
     Route::get('/vendors', \App\Http\Livewire\Crm\Vendors\Index::class)->name('crm.vendors');
     Route::get('/targets', \App\Http\Livewire\Crm\Targets\Index::class)->name('crm.targets');
