@@ -83,6 +83,17 @@
 
             <div class="border-t border-white/10 py-4 w-full flex flex-col gap-3 shrink-0"
                  :class="sidebarExpanded ? 'px-3 items-stretch' : 'items-center'">
+                {{-- Shop Catalog is a separate support system (own database, own UI) —
+                     a single link out to it, not items mixed into this CRM's own nav. --}}
+                <a href="{{ route('shop-catalog.shops') }}" target="_blank" rel="noopener"
+                   :title="sidebarExpanded ? '' : 'Shop Catalog (opens separate system)'"
+                   class="crm-nav-item h-12 rounded-lg flex items-center transition-colors duration-200 shrink-0 text-zinc-400 hover:bg-zinc-700 hover:text-white"
+                   :class="sidebarExpanded ? 'w-full px-3 gap-3 justify-start' : 'w-12 justify-center'">
+                    <x-heroicon-o-shopping-bag class="crm-nav-icon anim-rise shrink-0" />
+                    <span x-show="sidebarExpanded" x-cloak class="text-sm font-medium truncate flex items-center gap-1">
+                        Shop Catalog <x-heroicon-o-external-link class="w-3.5 h-3.5 text-zinc-500" />
+                    </span>
+                </a>
                 @if (auth()->user()->isAdmin())
                     @php $settingsActive = request()->routeIs('crm.settings*'); @endphp
                     <a href="{{ route('crm.settings') }}"

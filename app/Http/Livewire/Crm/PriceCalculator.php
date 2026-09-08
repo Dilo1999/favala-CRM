@@ -17,9 +17,9 @@ class PriceCalculator extends Component
      * (otherwise fully client-side) Alpine calculator via a browser event. The
      * calculator itself still works with zero data dependency if this is never used.
      */
-    public function pickProduct(int $index, int $productId): void
+    public function pickProduct(int $index, string $key): void
     {
-        $product = Product::find($productId);
+        $product = Product::find($this->resolveProductId($key));
         $cost = (float) ($product?->cheapestCurrentPrice()?->price ?? 0);
 
         $this->closeProductSearch();

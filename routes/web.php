@@ -88,6 +88,12 @@ Route::middleware(['auth', 'crm'])->group(function () {
     Route::get('/products/pricing', \App\Http\Livewire\Crm\Products\Pricing::class)->name('crm.products.pricing');
     Route::get('/prices', \App\Http\Livewire\Crm\Prices\Index::class)->name('crm.prices');
     Route::get('/vendors', \App\Http\Livewire\Crm\Vendors\Index::class)->name('crm.vendors');
+
+    // --- Shop Catalog support system (separate database — see App\Models\ShopCatalog) ---
+    Route::get('/shop-catalog/shops', \App\Http\Livewire\ShopCatalog\Shops\Index::class)->name('shop-catalog.shops');
+    Route::get('/shop-catalog/products', \App\Http\Livewire\ShopCatalog\Products\Index::class)->name('shop-catalog.products');
+    Route::get('/shop-catalog/prices', \App\Http\Livewire\ShopCatalog\Prices\Index::class)->name('shop-catalog.prices');
+
     Route::get('/targets', \App\Http\Livewire\Crm\Targets\Index::class)->name('crm.targets');
     Route::get('/tools/price-calculator', \App\Http\Livewire\Crm\PriceCalculator::class)->name('crm.price-calculator');
     Route::get('/settings', \App\Http\Livewire\Crm\Settings\Index::class)->name('crm.settings');

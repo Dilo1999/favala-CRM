@@ -68,9 +68,9 @@ class Create extends Component
     }
 
     /** Called by the <x-product-search> picker. */
-    public function pickProduct(int $index, int $productId): void
+    public function pickProduct(int $index, string $key): void
     {
-        $this->updateItemProduct($index, (string) $productId);
+        $this->updateItemProduct($index, (string) $this->resolveProductId($key));
         $this->closeProductSearch();
     }
 

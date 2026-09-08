@@ -162,9 +162,9 @@ class Formulate extends Component
     }
 
     /** Called by the <x-product-search> picker (spec §6.7: "Product (searchable)"). */
-    public function pickProduct(int $index, int $productId): void
+    public function pickProduct(int $index, string $key): void
     {
-        $this->updateItemProduct($index, (string) $productId);
+        $this->updateItemProduct($index, (string) $this->resolveProductId($key));
         $this->closeProductSearch();
     }
 
