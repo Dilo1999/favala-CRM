@@ -70,10 +70,8 @@
                 @foreach ($products as $i => $row)
                     <div class="flex gap-3 items-center rounded-lg border border-white/10 bg-zinc-900/40 p-3">
                         <div class="flex-1">
-                            <select wire:model="products.{{ $i }}.product_id" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm">
-                                <option value="">Select product…</option>
-                                @foreach ($productOptions as $id => $name) <option value="{{ $id }}">{{ $name }}</option> @endforeach
-                            </select>
+                            <x-product-search :index="$i" :label="$row['product_label'] ?? null"
+                                :open-row="$productSearchRow" :search-term="$productSearch" :results="$this->productSearchResults" />
                         </div>
                         <div class="w-24 shrink-0">
                             <input type="number" step="1" min="1" wire:model="products.{{ $i }}.qty" placeholder="Qty" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />

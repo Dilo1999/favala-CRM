@@ -42,12 +42,8 @@
                         @php($line = $this->lines[$i] ?? ['line_amount' => 0])
                         <tr>
                             <td class="py-2 pr-2 min-w-[240px]">
-                                <select wire:change="updateItemProduct({{ $i }}, $event.target.value)" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm">
-                                    <option value="">Select…</option>
-                                    @foreach ($productOptions as $id => $name)
-                                        <option value="{{ $id }}" @selected($item['product_id'] == $id)>{{ $name }}</option>
-                                    @endforeach
-                                </select>
+                                <x-product-search :index="$i" :label="$item['product_label'] ?? null"
+                                    :open-row="$productSearchRow" :search-term="$productSearch" :results="$this->productSearchResults" />
                             </td>
                             <td class="py-2 pr-2 w-20"><input type="number" step="0.01" wire:model.lazy="items.{{ $i }}.qty" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" /></td>
                             <td class="py-2 pr-2 w-24"><input type="number" step="0.01" wire:model.lazy="items.{{ $i }}.markup_percent" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" /></td>

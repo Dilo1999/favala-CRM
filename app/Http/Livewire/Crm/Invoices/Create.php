@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire\Crm\Invoices;
 
+use App\Http\Livewire\Concerns\HasProductSearch;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Product;
@@ -11,6 +12,8 @@ use Livewire\Component;
 
 class Create extends Component
 {
+    use HasProductSearch;
+
     public ?int $customer_id = null;
 
     public string $invoice_date;
@@ -42,7 +45,7 @@ class Create extends Component
     public function addItem(): void
     {
         $this->items[] = [
-            'product_id' => null, 'vendor_id' => null, 'cost' => 0, 'qty' => 1,
+            'product_id' => null, 'product_label' => null, 'vendor_id' => null, 'cost' => 0, 'qty' => 1,
             'markup_percent' => (float) config('crm.default_markup_percent'), 'discount_type' => 'flat', 'discount_value' => 0,
         ];
     }
@@ -59,8 +62,16 @@ class Create extends Component
         $best = $product?->cheapestCurrentPrice();
 
         $this->items[$index]['product_id'] = $productId;
+        $this->items[$index]['product_label'] = $product?->description;
         $this->items[$index]['vendor_id'] = $best?->vendor_id;
         $this->items[$index]['cost'] = (float) ($best?->price ?? 0);
+    }
+
+    /** Called by the <x-product-search> picker. */
+    public function pickProduct(int $index, int $productId): void
+    {
+        $this->updateItemProduct($index, (string) $productId);
+        $this->closeProductSearch();
     }
 
     public function getLinesProperty(): array
@@ -134,7 +145,6 @@ class Create extends Component
     {
         return view('crm.invoices.create', [
             'customers' => Customer::orderBy('company_name')->limit(300)->pluck('company_name', 'id'),
-            'productOptions' => Product::orderBy('description')->pluck('description', 'id'),
         ])->layout('layouts.crm');
     }
 }

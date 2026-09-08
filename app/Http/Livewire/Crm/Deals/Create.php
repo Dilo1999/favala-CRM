@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire\Crm\Deals;
 
+use App\Http\Livewire\Concerns\HasProductSearch;
 use App\Models\Customer;
 use App\Models\Deal;
 use App\Models\Product;
@@ -11,6 +12,8 @@ use Livewire\Component;
 
 class Create extends Component
 {
+    use HasProductSearch;
+
     public ?int $customer_id = null;
 
     public string $deal_date;
@@ -23,7 +26,7 @@ class Create extends Component
 
     public ?string $additional_details = null;
 
-    public array $products = [['product_id' => null, 'qty' => 1]];
+    public array $products = [['product_id' => null, 'product_label' => null, 'qty' => 1]];
 
     public function mount(): void
     {
@@ -46,13 +49,21 @@ class Create extends Component
 
     public function addProductRow(): void
     {
-        $this->products[] = ['product_id' => null, 'qty' => 1];
+        $this->products[] = ['product_id' => null, 'product_label' => null, 'qty' => 1];
     }
 
     public function removeProductRow(int $index): void
     {
         unset($this->products[$index]);
         $this->products = array_values($this->products);
+    }
+
+    /** Called by the <x-product-search> picker. */
+    public function pickProduct(int $index, int $productId): void
+    {
+        $this->products[$index]['product_id'] = $productId;
+        $this->products[$index]['product_label'] = Product::find($productId)?->description;
+        $this->closeProductSearch();
     }
 
     public function save()
@@ -86,7 +97,6 @@ class Create extends Component
             'customers' => Customer::orderBy('company_name')->limit(300)->pluck('company_name', 'id'),
             'requestSources' => SettingOption::options(SettingOption::REQUEST_SOURCE),
             'staff' => User::crmStaff()->orderBy('name')->pluck('name', 'id'),
-            'productOptions' => Product::orderBy('description')->pluck('description', 'id'),
         ])->layout('layouts.crm');
     }
 }

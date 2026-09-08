@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire\Crm\Quotations;
 
+use App\Http\Livewire\Concerns\HasProductSearch;
 use App\Models\Customer;
 use App\Models\Deal;
 use App\Models\Product;
@@ -13,6 +14,8 @@ use Livewire\Component;
 
 class Formulate extends Component
 {
+    use HasProductSearch;
+
     public ?int $recordId = null;
 
     // Deliberately untyped, same reason as $record in mount(): this is bound
@@ -67,7 +70,7 @@ class Formulate extends Component
             $this->discount_value = (float) $record->discount_value;
             $this->gst_percent = (float) $record->gst_percent;
             $this->items = $record->items->map(fn ($i) => [
-                'product_id' => $i->product_id, 'vendor_id' => $i->vendor_id, 'cost' => (float) $i->cost,
+                'product_id' => $i->product_id, 'product_label' => $i->product?->description, 'vendor_id' => $i->vendor_id, 'cost' => (float) $i->cost,
                 'qty' => (float) $i->qty, 'markup_percent' => (float) $i->markup_percent,
                 'discount_type' => $i->discount_type, 'discount_value' => (float) $i->discount_value,
             ])->all();
@@ -106,7 +109,7 @@ class Formulate extends Component
             $best = $dp->product?->cheapestCurrentPrice();
 
             return [
-                'product_id' => $dp->product_id, 'vendor_id' => $best?->vendor_id, 'cost' => (float) ($best?->price ?? 0),
+                'product_id' => $dp->product_id, 'product_label' => $dp->product?->description, 'vendor_id' => $best?->vendor_id, 'cost' => (float) ($best?->price ?? 0),
                 'qty' => (float) $dp->qty, 'markup_percent' => (float) config('crm.default_markup_percent'),
                 'discount_type' => 'flat', 'discount_value' => 0,
             ];
@@ -136,7 +139,7 @@ class Formulate extends Component
     public function addItem(): void
     {
         $this->items[] = [
-            'product_id' => null, 'vendor_id' => null, 'cost' => 0, 'qty' => 1,
+            'product_id' => null, 'product_label' => null, 'vendor_id' => null, 'cost' => 0, 'qty' => 1,
             'markup_percent' => (float) config('crm.default_markup_percent'), 'discount_type' => 'flat', 'discount_value' => 0,
         ];
     }
@@ -153,8 +156,16 @@ class Formulate extends Component
         $best = $product?->cheapestCurrentPrice();
 
         $this->items[$index]['product_id'] = $productId;
+        $this->items[$index]['product_label'] = $product?->description;
         $this->items[$index]['vendor_id'] = $best?->vendor_id;
         $this->items[$index]['cost'] = (float) ($best?->price ?? 0);
+    }
+
+    /** Called by the <x-product-search> picker (spec §6.7: "Product (searchable)"). */
+    public function pickProduct(int $index, int $productId): void
+    {
+        $this->updateItemProduct($index, (string) $productId);
+        $this->closeProductSearch();
     }
 
     public function updateItemVendor(int $index, ?string $vendorId): void
@@ -258,7 +269,6 @@ class Formulate extends Component
     {
         return view('crm.quotations.formulate', [
             'customers' => Customer::orderBy('company_name')->limit(300)->pluck('company_name', 'id'),
-            'productOptions' => Product::orderBy('description')->pluck('description', 'id'),
             'deals' => $this->recordId ? collect() : Deal::whereDoesntHave('quotations')
                 ->with('customer')->orderByDesc('created_at')->limit(100)->get(),
         ])->layout('layouts.crm');
