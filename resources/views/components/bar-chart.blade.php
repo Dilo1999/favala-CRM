@@ -1,13 +1,13 @@
 {{--
-    Single-series vertical bar chart (spec: dataviz skill — one hue, baseline at zero,
-    rounded bar caps, hairline gridlines, sparing direct labels, native hover tooltip).
+    Single-series vertical bar chart — dataviz skill: one hue, baseline at zero,
+    rounded bar caps, hairline gridlines, sparing direct labels, native hover tooltip.
     No JS dependency — pure server-rendered SVG, consistent with this app's
     "reduce external CDN coupling" requirement.
 
-    Note: every assignment below uses single-line @php(...) rather than a
-    @php ... @endphp block — a ternary inside a multi-line @php block (especially
-    within a @foreach) reliably breaks this app's Blade compiler (drops the
-    opening <?php tag). Keep it that way; see the Targets-page fix for precedent.
+    Note: every assignment below uses single-line @php(...) instead of a
+    @php ... @endphp block. A ternary inside a multi-line @php block, especially
+    one nested inside a @foreach, reliably breaks this app's Blade compiler — it
+    drops the opening PHP tag. Keep it that way; see the Targets-page fix for precedent.
 --}}
 @props(['points', 'money' => true, 'color' => 'var(--color-accent)', 'height' => 180])
 
