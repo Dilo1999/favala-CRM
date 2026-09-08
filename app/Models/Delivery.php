@@ -19,7 +19,7 @@ class Delivery extends Model
     public const STATUS_COMPLETED = 'completed';
 
     protected $fillable = [
-        'invoice_id', 'customer_id', 'contact_name', 'contact_phone', 'location',
+        'invoice_id', 'customer_id', 'created_by', 'contact_name', 'contact_phone', 'location',
         'deadline_date', 'deadline_time', 'status', 'completed_at',
     ];
 
@@ -41,6 +41,11 @@ class Delivery extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function items(): HasMany

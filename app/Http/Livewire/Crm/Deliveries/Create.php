@@ -65,6 +65,7 @@ class Create extends Component
         $delivery = Delivery::create([
             'invoice_id' => $this->invoice->id,
             'customer_id' => $this->invoice->customer_id,
+            'created_by' => auth()->id(),
             'contact_name' => $this->contact_name,
             'contact_phone' => $this->contact_phone,
             'location' => $this->location,
