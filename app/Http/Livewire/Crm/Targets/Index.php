@@ -134,13 +134,25 @@ class Index extends Component
         session()->flash('status', 'Company targets updated.');
     }
 
-    public function openStaffForm(int $userId): void
+    public function openStaffForm(?int $userId = null): void
     {
-        $this->staffFormUserId = $userId;
-        $target = Target::where('scope', 'staff')->where('user_id', $userId)
-            ->where('period', $this->period)->where('period_start', $this->periodStart()->toDateString())->first();
-        $this->staffForm = $target ? $target->only(array_keys($this->staffForm)) : $this->staffForm;
+        $this->staffFormUserId = $userId ?: User::crmStaff()->orderBy('name')->value('id');
+        $this->loadStaffForm();
         $this->showStaffForm = true;
+    }
+
+    public function updatedStaffFormUserId(): void
+    {
+        $this->loadStaffForm();
+    }
+
+    protected function loadStaffForm(): void
+    {
+        $target = Target::where('scope', 'staff')->where('user_id', $this->staffFormUserId)
+            ->where('period', $this->period)->where('period_start', $this->periodStart()->toDateString())->first();
+        $this->staffForm = $target
+            ? $target->only(['sales', 'quotations', 'deals', 'meetings', 'calls', 'site_visits', 'new_leads'])
+            : ['sales' => 0, 'quotations' => 0, 'deals' => 0, 'meetings' => 0, 'calls' => 0, 'site_visits' => 0, 'new_leads' => 0];
     }
 
     public function saveStaffTarget(): void
@@ -153,8 +165,30 @@ class Index extends Component
         session()->flash('status', 'Staff targets updated.');
     }
 
+    public function progressPercent($achieved, $target): float
+    {
+        return $target > 0 ? min(100, ($achieved / $target) * 100) : 0;
+    }
+
+    /** "150000" → "150K", "2500000" → "2.5M" — used for the company Sales target card. */
+    public function formatCompact($value): string
+    {
+        $value = (float) $value;
+
+        if ($value >= 1000000) {
+            return rtrim(rtrim(number_format($value / 1000000, 1), '0'), '.').'M';
+        }
+        if ($value >= 1000) {
+            return rtrim(rtrim(number_format($value / 1000, 1), '0'), '.').'K';
+        }
+
+        return number_format($value, 0);
+    }
+
     public function render()
     {
-        return view('crm.targets.index')->layout('layouts.crm');
+        return view('crm.targets.index', [
+            'staffOptions' => User::crmStaff()->orderBy('name')->pluck('name', 'id'),
+        ])->layout('layouts.crm');
     }
 }
