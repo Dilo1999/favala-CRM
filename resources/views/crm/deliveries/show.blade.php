@@ -6,8 +6,10 @@
             <x-badge :color="$record->status === 'completed' ? 'green' : 'orange'">{{ ucfirst($record->status) }}</x-badge>
         </div>
         <div class="flex gap-2">
+            <button wire:click="editDelivery({{ $record->id }})" class="px-4 py-2 rounded-lg border border-white/10 text-zinc-300 text-sm">Edit</button>
             <a href="{{ route('print.delivery', $record) }}" target="_blank" class="px-4 py-2 rounded-lg border border-white/10 text-zinc-300 text-sm">Print</a>
             @if ($record->status === 'pending')
+                <button wire:click="rescheduleDelivery({{ $record->id }})" class="px-4 py-2 rounded-lg border border-white/10 text-zinc-300 text-sm">Reschedule</button>
                 <button wire:click="markComplete" class="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white text-sm font-semibold">Mark as Complete</button>
             @endif
         </div>
@@ -45,4 +47,7 @@
             @livewire('record-notes-panel', ['notableType' => \App\Models\Delivery::class, 'notableId' => $record->id])
         </div>
     </div>
+
+    @include('crm.deliveries._edit-modal')
+    @include('crm.deliveries._reschedule-modal')
 </div>

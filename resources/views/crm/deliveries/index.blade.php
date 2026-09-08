@@ -26,9 +26,11 @@
                         <td class="p-3 {{ $delivery->isOverdue() ? 'text-red-400' : 'text-zinc-400' }}">{{ $delivery->time_left }}</td>
                         <td class="p-3 text-right">
                             <x-row-menu>
-                                <a href="{{ route('crm.deliveries.show', $delivery) }}" class="block px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">View / Edit</a>
+                                <a href="{{ route('crm.deliveries.show', $delivery) }}" class="block px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">View</a>
+                                <button wire:click="editDelivery({{ $delivery->id }})" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Edit</button>
                                 <a href="{{ route('print.delivery', $delivery) }}" target="_blank" class="block px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Print</a>
                                 @if ($delivery->status === 'pending')
+                                    <button wire:click="rescheduleDelivery({{ $delivery->id }})" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Reschedule</button>
                                     <button wire:click="markComplete({{ $delivery->id }})" class="block w-full text-left px-3 py-1.5 text-green-400 hover:bg-zinc-700">Mark as Complete</button>
                                 @endif
                                 <button wire:click="delete({{ $delivery->id }})" wire:confirm="Delete this delivery?" class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete</button>
@@ -42,4 +44,7 @@
         </table>
     </div>
     <div class="mt-4">{{ $deliveries->links() }}</div>
+
+    @include('crm.deliveries._edit-modal')
+    @include('crm.deliveries._reschedule-modal')
 </div>

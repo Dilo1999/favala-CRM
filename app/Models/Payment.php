@@ -13,6 +13,9 @@ class Payment extends Model
 
     public const METHODS = ['Cash', 'Bank Transfer', 'Cheque', 'Purchase Order'];
 
+    /** Not user-selectable on the Receive Payment form — used only for system-generated refund entries. */
+    public const METHOD_REFUND = 'Refund';
+
     protected $fillable = ['invoice_id', 'date', 'method', 'reference', 'received_by', 'amount'];
 
     protected $casts = [

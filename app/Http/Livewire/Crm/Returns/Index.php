@@ -12,7 +12,14 @@ class Index extends Component
 
     public function updateStatus(int $id, string $status): void
     {
-        SalesReturn::whereKey($id)->update(['status' => $status]);
+        SalesReturn::findOrFail($id)->transitionTo($status);
+
+        session()->flash(
+            'status',
+            $status === SalesReturn::STATUS_REFUNDED
+                ? 'Return marked Refunded — invoice balance/paid amount updated.'
+                : 'Return status updated.'
+        );
     }
 
     public function render()

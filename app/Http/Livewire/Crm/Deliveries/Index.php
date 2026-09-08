@@ -2,13 +2,14 @@
 
 namespace App\Http\Livewire\Crm\Deliveries;
 
+use App\Http\Livewire\Concerns\EditsDeliveries;
 use App\Http\Livewire\Concerns\WithBasicTable;
 use App\Models\Delivery;
 use Livewire\Component;
 
 class Index extends Component
 {
-    use WithBasicTable;
+    use EditsDeliveries, WithBasicTable;
 
     public function markComplete(int $id): void
     {
