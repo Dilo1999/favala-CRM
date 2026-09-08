@@ -18,11 +18,11 @@ class Dashboard extends Component
 
     public string $period = 'monthly';
 
-    public string $analyticsDate;
+    public string $analyticsDate = '';
 
     public string $staffTimeframe = 'monthly';
 
-    public string $staffDate;
+    public string $staffDate = '';
 
     public ?int $selectedStaffId = null;
 
@@ -122,6 +122,36 @@ class Dashboard extends Component
                 ),
             ],
         ];
+    }
+
+    /** Total Sales for the last 6 periods (same granularity as the Analytics filter) — feeds the trend chart. */
+    public function getSalesTrendProperty(): array
+    {
+        $points = [];
+
+        for ($i = 5; $i >= 0; $i--) {
+            $anchor = match ($this->period) {
+                'daily' => Carbon::parse($this->analyticsDate)->subDays($i),
+                'weekly' => Carbon::parse($this->analyticsDate)->subWeeks($i),
+                'yearly' => Carbon::parse($this->analyticsDate)->subYears($i),
+                default => Carbon::parse($this->analyticsDate)->subMonths($i),
+            };
+
+            [$start, $end] = $this->periodRange($this->period, $anchor->toDateString());
+
+            $label = match ($this->period) {
+                'daily', 'weekly' => $start->format('d M'),
+                'yearly' => $start->format('Y'),
+                default => $start->format('M Y'),
+            };
+
+            $points[] = [
+                'label' => $label,
+                'value' => (float) Invoice::whereBetween('invoice_date', [$start, $end])->sum('grand_total'),
+            ];
+        }
+
+        return $points;
     }
 
     public function getStaffListProperty()

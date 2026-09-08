@@ -146,6 +146,13 @@
             </select>
             <input type="date" wire:model="analyticsDate" class="rounded-lg bg-zinc-800 border-white/10 text-white text-sm" />
         </div>
+
+        <div class="rounded-xl bg-zinc-800 border border-white/10 p-5 mb-6">
+            <h3 class="font-bold text-white mb-1">Total Sales Trend</h3>
+            <p class="text-xs text-zinc-500 mb-4">Last 6 {{ $period }} periods, ending {{ \Illuminate\Support\Carbon::parse($analyticsDate)->format('d M Y') }}.</p>
+            <x-bar-chart :points="$this->salesTrend" />
+        </div>
+
         <div class="rounded-xl bg-zinc-800 border border-white/10 overflow-hidden">
             <table class="w-full text-sm">
                 <thead class="bg-zinc-700/50">
@@ -185,6 +192,27 @@
                 @endforeach
             </div>
             <input type="date" wire:model="staffDate" class="rounded-lg bg-zinc-800 border-white/10 text-white text-sm" />
+        </div>
+
+        <div class="rounded-xl bg-zinc-800 border border-white/10 p-5 mb-6">
+            <h3 class="font-bold text-white mb-1">Sales by Staff</h3>
+            <p class="text-xs text-zinc-500 mb-4">Ranked for the selected period. Click a bar to see that staff member's details below.</p>
+            @php($maxSales = $this->staffList->max('period_sales') ?: 1)
+            <div class="space-y-3">
+                @forelse ($this->staffList as $member)
+                    @php($isSelected = ($selectedStaffId ?? $this->staffList->first()?->id) === $member->id)
+                    @php($pct = $maxSales > 0 ? max(($member->period_sales / $maxSales) * 100, 2) : 0)
+                    <button type="button" wire:click="$set('selectedStaffId', {{ $member->id }})" class="w-full flex items-center gap-3 group">
+                        <span class="w-28 shrink-0 text-left text-xs {{ $isSelected ? 'text-white font-semibold' : 'text-zinc-400' }} truncate">{{ $member->name }}</span>
+                        <span class="flex-1 h-5 rounded-full bg-zinc-900 overflow-hidden relative">
+                            <span class="absolute inset-y-0 left-0 rounded-full transition-all {{ $isSelected ? 'bg-accent' : 'bg-zinc-600 group-hover:bg-zinc-500' }}" style="width: {{ $pct }}%"></span>
+                        </span>
+                        <span class="w-28 shrink-0 text-right text-xs {{ $isSelected ? 'text-white font-semibold' : 'text-zinc-400' }}">MVR {{ number_format($member->period_sales, 0) }}</span>
+                    </button>
+                @empty
+                    <p class="text-sm text-zinc-500">No staff found.</p>
+                @endforelse
+            </div>
         </div>
 
         @if ($this->selectedStaff)
