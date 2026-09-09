@@ -21,7 +21,7 @@
             {{-- Mobile: bot above form --}}
             <div class="flex flex-col items-center gap-4 mb-8 lg:hidden">
                 <div class="zaha-login-bubble">
-                    Hi, I'm <span class="text-accent font-semibold">Fava</span> — your assistant here at Favala. Sign in to get started.
+                    Hi, I'm <span class="text-accent font-semibold">Fava</span> - your assistant here at Favala. Sign in to get started.
                 </div>
                 <div class="relative h-80 w-80 flex items-center justify-center">
                     <div class="absolute inset-0 rounded-full bg-accent/20 blur-2xl"></div>
@@ -32,7 +32,7 @@
             {{-- Desktop: bot anchored to the left of the centered form --}}
             <div class="hidden lg:flex flex-col items-center gap-3 absolute right-full top-1/2 -translate-y-1/2 mr-10">
                 <div class="zaha-login-bubble">
-                    Hi, I'm <span class="text-accent font-semibold">Fava</span> — your assistant here at Favala. Sign in to get started.
+                    Hi, I'm <span class="text-accent font-semibold">Fava</span> - your assistant here at Favala. Sign in to get started.
                 </div>
                 <div class="relative h-[28rem] w-[28rem] flex items-center justify-center shrink-0">
                     <div class="absolute inset-0 rounded-full bg-accent/20 blur-2xl"></div>
