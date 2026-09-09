@@ -3,7 +3,9 @@
 namespace App\Http\Livewire\Concerns;
 
 use App\Models\Product;
+use App\Models\ProductVendorPrice;
 use App\Models\ShopCatalog\Product as ShopProduct;
+use App\Models\Vendor;
 use Illuminate\Support\Collection;
 
 /**
@@ -91,6 +93,12 @@ trait HasProductSearch
      * shop-catalog pick ("s{id}") is materialized into the main `products`
      * table (matched by code) at this point — the moment it's actually used
      * in a transaction — rather than during search, which stays read-only.
+     *
+     * Materializing the product alone isn't enough: every caller of this trait
+     * (Price Calculator, Quotations, Invoices) immediately looks up cost via
+     * cheapestCurrentPrice(), which reads our own product_vendor_prices table —
+     * so the shop catalog's price(s) must be copied over too, otherwise a
+     * freshly-picked shop product always prices at zero.
      */
     protected function resolveProductId(string $key): int
     {
@@ -98,15 +106,59 @@ trait HasProductSearch
             return (int) substr($key, 1);
         }
 
-        $shopProduct = ShopProduct::findOrFail((int) substr($key, 1));
+        $shopProduct = ShopProduct::with('prices.shop')->findOrFail((int) substr($key, 1));
 
-        return Product::firstOrCreate(
+        $product = Product::firstOrCreate(
             ['code' => $shopProduct->code],
             [
                 'description' => $shopProduct->description,
                 'category' => $shopProduct->category,
                 'brand' => $shopProduct->brand,
             ]
-        )->id;
+        );
+
+        $this->syncShopCatalogPrices($product, $shopProduct);
+
+        return $product->id;
+    }
+
+    /**
+     * Mirrors every shop's current price for this product into our own vendor
+     * pricing (one local Vendor per shop, matched by name). Idempotent — only
+     * writes a new price-history row when the shop's price actually changed,
+     * consistent with the "most recent price wins" rule (spec §6.13).
+     */
+    protected function syncShopCatalogPrices(Product $product, ShopProduct $shopProduct): void
+    {
+        foreach ($shopProduct->prices as $shopPrice) {
+            if (! $shopPrice->shop) {
+                continue;
+            }
+
+            $vendor = Vendor::firstOrCreate(
+                ['company_name' => $shopPrice->shop->name],
+                [
+                    'contact_person' => $shopPrice->shop->contact_person,
+                    'phone' => $shopPrice->shop->phone,
+                    'location' => $shopPrice->shop->location,
+                ]
+            );
+
+            $latest = ProductVendorPrice::where('product_id', $product->id)
+                ->where('vendor_id', $vendor->id)
+                ->latest('id')
+                ->first();
+
+            if ($latest && (float) $latest->price === (float) $shopPrice->price) {
+                continue;
+            }
+
+            ProductVendorPrice::create([
+                'product_id' => $product->id,
+                'vendor_id' => $vendor->id,
+                'price' => $shopPrice->price,
+                'added_by' => auth()->id(),
+            ]);
+        }
     }
 }
