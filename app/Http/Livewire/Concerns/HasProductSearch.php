@@ -52,16 +52,34 @@ trait HasProductSearch
         }
 
         $catalog = Product::query()
+            ->with('prices.vendor')
             ->where(fn ($q) => $q->where('description', 'like', "%{$term}%")->orWhere('code', 'like', "%{$term}%"))
             ->orderBy('description')
             ->limit(20)
             ->get()
-            ->map(fn (Product $product) => (object) [
-                'key' => "p{$product->id}",
-                'description' => $product->description,
-                'code' => $product->code,
-                'origin' => null,
-            ]);
+            ->map(function (Product $product) {
+                $cheapest = $product->cheapestCurrentPrice();
+
+                return (object) [
+                    'key' => "p{$product->id}",
+                    'description' => $product->description,
+                    'code' => $product->code,
+                    // Show the current price here too — a product that started life
+                    // as a Shop Catalog pick (see resolveProductId() below) already
+                    // has its price synced into our own vendor pricing, and hiding
+                    // the Shop Catalog duplicate below must not also hide that price.
+                    'origin' => $cheapest
+                        ? "via {$cheapest->vendor->company_name} — ".number_format($cheapest->price, 2)
+                        : null,
+                ];
+            });
+
+        // A product picked from the Shop Catalog once already gets copied into
+        // our own `products` table (see resolveProductId() below) so it stays
+        // usable forever after — but the original Shop Catalog row never goes
+        // away, so without this it would show up as two identical-looking
+        // results. Once we have a local copy, that's the one to show.
+        $localCodes = $catalog->pluck('code')->filter()->map(fn ($code) => mb_strtolower($code))->all();
 
         $shopMatches = ShopProduct::query()
             ->with('prices')
@@ -69,6 +87,7 @@ trait HasProductSearch
             ->orderBy('description')
             ->limit(20)
             ->get()
+            ->reject(fn (ShopProduct $product) => $product->code && in_array(mb_strtolower($product->code), $localCodes, true))
             ->map(function (ShopProduct $product) {
                 $cheapest = $product->cheapestPrice();
 
