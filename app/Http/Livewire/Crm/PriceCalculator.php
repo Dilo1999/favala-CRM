@@ -21,8 +21,11 @@ class PriceCalculator extends Component
      */
     public function pickProduct(int $index, string $key): void
     {
-        $product = Product::find($this->resolveProductId($key));
-        $cost = (float) ($product?->cheapestCurrentPrice()?->price ?? 0);
+        $selection = $this->resolveProductSelection($key);
+        $product = Product::find($selection->product_id);
+        // Use the specific vendor/shop price that was actually picked from the
+        // search list — falling back to cheapest only for the no-price case.
+        $cost = $selection->price ?? (float) ($product?->cheapestCurrentPrice()?->price ?? 0);
 
         $this->closeProductSearch();
 

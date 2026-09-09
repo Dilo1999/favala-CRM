@@ -3,7 +3,9 @@
 namespace App\Http\Livewire\Concerns;
 
 use App\Models\Product;
+use App\Models\ProductVendorPrice;
 use App\Models\ShopCatalog\Product as ShopProduct;
+use App\Models\Vendor;
 use App\Services\ShopCatalogSync;
 use Illuminate\Support\Collection;
 
@@ -16,13 +18,19 @@ use Illuminate\Support\Collection;
  * Results are merged live from the main `products` table AND the separate Shop
  * Catalog support system's database (App\Models\ShopCatalog\Product) — the two
  * are physically different databases, so this is two small queries merged in
- * PHP, not a SQL union. Each result carries an opaque string `key` ("p{id}" for
- * the main catalog, "s{id}" for the shop catalog) rather than a raw id, because
- * the id sequences of the two catalogs collide (both start at 1).
+ * PHP, not a SQL union. A product carried by several vendors/shops gets one
+ * result row per vendor/shop (not just the cheapest) so every price is visible
+ * and individually selectable, not silently hidden behind a "best price" pick.
+ *
+ * Each result's `key` encodes both the product and (when priced) the specific
+ * vendor/shop it came from: "p{id}" or "p{id}v{vendorId}" for the main
+ * catalog, "s{id}" or "s{id}h{shopId}" for the Shop Catalog — because the id
+ * sequences of the two catalogs collide (both start at 1).
  *
  * Host component must implement `pickProduct(int $index, string $key): void`,
- * which should resolve the key via `resolveProductId()` to get a real
- * `products.id` before doing anything else, then call closeProductSearch().
+ * which should resolve the key via `resolveProductSelection()` (or the
+ * simpler `resolveProductId()` when the vendor/price doesn't matter) before
+ * doing anything else, then call closeProductSearch().
  */
 trait HasProductSearch
 {
@@ -50,54 +58,63 @@ trait HasProductSearch
             return new Collection();
         }
 
-        $catalog = Product::query()
+        $catalogProducts = Product::query()
             ->with('prices.vendor')
             ->where(fn ($q) => $q->where('description', 'like', "%{$term}%")->orWhere('code', 'like', "%{$term}%"))
             ->orderBy('description')
             ->limit(20)
-            ->get()
-            ->map(function (Product $product) {
-                $cheapest = $product->cheapestCurrentPrice();
+            ->get();
 
-                return (object) [
+        $catalog = $catalogProducts->flatMap(function (Product $product) {
+            $prices = $product->currentPrices(); // one row per vendor, most recent price
+
+            if ($prices->isEmpty()) {
+                return [(object) [
                     'key' => "p{$product->id}",
                     'description' => $product->description,
                     'code' => $product->code,
-                    // Show the current price here too — a product that started life
-                    // as a Shop Catalog pick (see resolveProductId() below) already
-                    // has its price synced into our own vendor pricing, and hiding
-                    // the Shop Catalog duplicate below must not also hide that price.
-                    'origin' => $cheapest
-                        ? "via {$cheapest->vendor->company_name} — ".number_format($cheapest->price, 2)
-                        : null,
-                ];
-            });
+                    'origin' => null,
+                ]];
+            }
+
+            return $prices->map(fn (ProductVendorPrice $price) => (object) [
+                'key' => "p{$product->id}v{$price->vendor_id}",
+                'description' => $product->description,
+                'code' => $product->code,
+                'origin' => "via {$price->vendor->company_name} — ".number_format($price->price, 2),
+            ]);
+        });
 
         // A product picked from the Shop Catalog once already gets copied into
-        // our own `products` table (see resolveProductId() below) so it stays
-        // usable forever after — but the original Shop Catalog row never goes
-        // away, so without this it would show up as two identical-looking
-        // results. Once we have a local copy, that's the one to show.
-        $localCodes = $catalog->pluck('code')->filter()->map(fn ($code) => mb_strtolower($code))->all();
+        // our own `products` table (see resolveProductSelection() below) so it
+        // stays usable forever after — but the original Shop Catalog row never
+        // goes away, so without this it would show up as duplicate results.
+        // Once we have a local copy, that's the one to show.
+        $localCodes = $catalogProducts->pluck('code')->filter()->map(fn ($code) => mb_strtolower($code))->all();
 
         $shopMatches = ShopProduct::query()
-            ->with('prices')
+            ->with('prices.shop')
             ->where(fn ($q) => $q->where('description', 'like', "%{$term}%")->orWhere('code', 'like', "%{$term}%"))
             ->orderBy('description')
             ->limit(20)
             ->get()
             ->reject(fn (ShopProduct $product) => $product->code && in_array(mb_strtolower($product->code), $localCodes, true))
-            ->map(function (ShopProduct $product) {
-                $cheapest = $product->cheapestPrice();
+            ->flatMap(function (ShopProduct $product) {
+                if ($product->prices->isEmpty()) {
+                    return [(object) [
+                        'key' => "s{$product->id}",
+                        'description' => $product->description,
+                        'code' => $product->code,
+                        'origin' => 'Shop Catalog',
+                    ]];
+                }
 
-                return (object) [
-                    'key' => "s{$product->id}",
+                return $product->prices->map(fn ($price) => (object) [
+                    'key' => "s{$product->id}h{$price->shop_id}",
                     'description' => $product->description,
                     'code' => $product->code,
-                    'origin' => $cheapest
-                        ? "via {$cheapest->shop->name} — ".number_format($cheapest->price, 2)
-                        : 'Shop Catalog',
-                ];
+                    'origin' => "via {$price->shop->name} — ".number_format($price->price, 2),
+                ]);
             });
 
         return $catalog->concat($shopMatches)
@@ -107,25 +124,57 @@ trait HasProductSearch
     }
 
     /**
-     * Resolve an opaque search-result key back to a real `products.id`. A
-     * shop-catalog pick ("s{id}") is materialized into the main `products`
-     * table (matched by code) at this point — the moment it's actually used
-     * in a transaction — rather than during search, which stays read-only.
-     *
-     * Materializing the product alone isn't enough: every caller of this trait
-     * (Price Calculator, Quotations, Invoices) immediately looks up cost via
-     * cheapestCurrentPrice(), which reads our own product_vendor_prices table —
-     * so the shop catalog's price(s) must be copied over too, otherwise a
-     * freshly-picked shop product always prices at zero.
+     * Resolve an opaque search-result key back to a real `products.id`, when
+     * the specific vendor/shop it was priced at doesn't matter to the caller
+     * (e.g. Deals, which doesn't track a vendor per line item). Prefer
+     * resolveProductSelection() when the caller needs the price too.
      */
     protected function resolveProductId(string $key): int
     {
-        if ($key[0] === 'p') {
-            return (int) substr($key, 1);
+        return $this->resolveProductSelection($key)->product_id;
+    }
+
+    /**
+     * Resolve a search-result key into everything a line item needs: the real
+     * `products.id`, the specific vendor it was priced at (if any), and that
+     * vendor's current price. A shop-catalog pick ("s{id}" / "s{id}h{shopId}")
+     * is materialized into the main `products` table (matched by code) at this
+     * point — the moment it's actually used in a transaction — rather than
+     * during search, which stays read-only. Materializing also mirrors every
+     * shop's price into our own product_vendor_prices (see
+     * ShopCatalogSync::syncProduct()), which is what makes the vendor lookup
+     * below work immediately for a product picked for the very first time.
+     */
+    protected function resolveProductSelection(string $key): object
+    {
+        preg_match('/^([ps])(\d+)(?:[vh](\d+))?$/', $key, $m);
+
+        $prefix = $m[1] ?? 'p';
+        $id = isset($m[2]) ? (int) $m[2] : 0;
+        $subId = (isset($m[3]) && $m[3] !== '') ? (int) $m[3] : null;
+
+        if ($prefix === 'p') {
+            $productId = $id;
+            $vendorId = $subId;
+        } else {
+            $shopProduct = ShopProduct::with('prices.shop')->findOrFail($id);
+            $productId = app(ShopCatalogSync::class)->syncProduct($shopProduct)->id;
+
+            $vendorId = null;
+            if ($subId) {
+                $shop = $shopProduct->prices->firstWhere('shop_id', $subId)?->shop;
+                $vendorId = $shop ? Vendor::where('company_name', $shop->name)->value('id') : null;
+            }
         }
 
-        $shopProduct = ShopProduct::with('prices.shop')->findOrFail((int) substr($key, 1));
+        $price = $vendorId
+            ? ProductVendorPrice::where('product_id', $productId)->where('vendor_id', $vendorId)->latest('id')->value('price')
+            : null;
 
-        return app(ShopCatalogSync::class)->syncProduct($shopProduct)->id;
+        return (object) [
+            'product_id' => $productId,
+            'vendor_id' => $vendorId,
+            'price' => $price !== null ? (float) $price : null,
+        ];
     }
 }

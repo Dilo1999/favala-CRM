@@ -56,21 +56,33 @@ class Create extends Component
         $this->items = array_values($this->items);
     }
 
-    public function updateItemProduct(int $index, ?string $productId): void
+    /**
+     * $vendorId/$cost let a caller apply a *specific* vendor's price (e.g. the
+     * one actually picked from the product search list) instead of always
+     * defaulting to the cheapest — passing neither keeps the old "cheapest
+     * wins" behavior for callers that don't care which vendor.
+     */
+    public function updateItemProduct(int $index, ?string $productId, ?int $vendorId = null, ?float $cost = null): void
     {
         $product = $productId ? Product::find($productId) : null;
-        $best = $product?->cheapestCurrentPrice();
+
+        if ($vendorId === null) {
+            $best = $product?->cheapestCurrentPrice();
+            $vendorId = $best?->vendor_id;
+            $cost = (float) ($best?->price ?? 0);
+        }
 
         $this->items[$index]['product_id'] = $productId;
         $this->items[$index]['product_label'] = $product?->description;
-        $this->items[$index]['vendor_id'] = $best?->vendor_id;
-        $this->items[$index]['cost'] = (float) ($best?->price ?? 0);
+        $this->items[$index]['vendor_id'] = $vendorId;
+        $this->items[$index]['cost'] = (float) ($cost ?? 0);
     }
 
     /** Called by the <x-product-search> picker. */
     public function pickProduct(int $index, string $key): void
     {
-        $this->updateItemProduct($index, (string) $this->resolveProductId($key));
+        $selection = $this->resolveProductSelection($key);
+        $this->updateItemProduct($index, (string) $selection->product_id, $selection->vendor_id, $selection->price);
         $this->closeProductSearch();
     }
 
