@@ -19,6 +19,25 @@ use App\Models\Vendor;
 class ShopCatalogSync
 {
     /**
+     * Mirror one Shop Catalog shop into the main CRM's Vendor list (matched by
+     * name). Shop Catalog is the source of truth, so this is an update-or-create
+     * on every call, not a one-time seed — called both directly (the Shops
+     * admin page pushes on every save) and indirectly (syncProduct() below
+     * needs a vendor to attach each price to).
+     */
+    public function syncShop(Shop $shop): Vendor
+    {
+        return Vendor::updateOrCreate(
+            ['company_name' => $shop->name],
+            [
+                'contact_person' => $shop->contact_person,
+                'phone' => $shop->phone,
+                'location' => $shop->location,
+            ]
+        );
+    }
+
+    /**
      * Materialize one Shop Catalog product locally (if not already) and sync
      * its current prices. Idempotent — safe to call repeatedly.
      */
@@ -38,14 +57,7 @@ class ShopCatalogSync
                 continue;
             }
 
-            $vendor = Vendor::firstOrCreate(
-                ['company_name' => $shopPrice->shop->name],
-                [
-                    'contact_person' => $shopPrice->shop->contact_person,
-                    'phone' => $shopPrice->shop->phone,
-                    'location' => $shopPrice->shop->location,
-                ]
-            );
+            $vendor = $this->syncShop($shopPrice->shop);
 
             $latest = ProductVendorPrice::where('product_id', $product->id)
                 ->where('vendor_id', $vendor->id)
@@ -80,6 +92,24 @@ class ShopCatalogSync
     }
 
     /**
+     * Sync every Shop Catalog shop into the Vendor list. Returns how many were
+     * touched. Shops\Index::save() already pushes on every create/edit, but a
+     * shop saved before that existed (or edited directly in the database)
+     * would otherwise never get a matching Vendor — mirrors syncAll() above,
+     * called the same way (on the CRM Vendors page mount).
+     */
+    public function syncAllShops(): int
+    {
+        $shops = Shop::all();
+
+        foreach ($shops as $shop) {
+            $this->syncShop($shop);
+        }
+
+        return $shops->count();
+    }
+
+    /**
      * The reverse direction: when a local product's details are edited here
      * (Products page), push those details back to its Shop Catalog source (if
      * it has one — matched by `code`, the same key used to sync it in), so the
@@ -98,6 +128,28 @@ class ShopCatalogSync
             'description' => $product->description,
             'category' => $product->category,
             'brand' => $product->brand,
+        ]);
+    }
+
+    /**
+     * The reverse direction for shops: when a vendor's details are edited here
+     * (Vendors page), push those details back to its Shop Catalog source (if
+     * it has one — matched by name, the same key used to sync it in), so the
+     * two stay consistent instead of only being kept in sync one-way. A no-op
+     * for a vendor that never came from the Shop Catalog in the first place.
+     */
+    public function pushShopDetails(Vendor $vendor): void
+    {
+        $shop = Shop::where('name', $vendor->company_name)->first();
+
+        if (! $shop) {
+            return;
+        }
+
+        $shop->update([
+            'contact_person' => $vendor->contact_person,
+            'phone' => $vendor->phone,
+            'location' => $vendor->location,
         ]);
     }
 

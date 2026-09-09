@@ -28,7 +28,8 @@
     @else
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             @foreach ($shops as $shop)
-                <div class="group relative rounded-xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-md transition-all overflow-hidden">
+                <div wire:dblclick="edit({{ $shop->id }})" title="Double-click to edit"
+                    class="group relative rounded-xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-md transition-all overflow-hidden cursor-pointer">
                     <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                         <x-row-menu>
                             <button wire:click="edit({{ $shop->id }})" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Edit</button>

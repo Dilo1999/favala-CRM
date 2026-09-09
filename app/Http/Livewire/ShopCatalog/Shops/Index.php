@@ -4,6 +4,7 @@ namespace App\Http\Livewire\ShopCatalog\Shops;
 
 use App\Http\Livewire\Concerns\WithBasicTable;
 use App\Models\ShopCatalog\Shop;
+use App\Services\ShopCatalogSync;
 use Livewire\Component;
 
 class Index extends Component
@@ -43,9 +44,13 @@ class Index extends Component
     {
         $this->validate();
 
-        $this->editingId
-            ? Shop::findOrFail($this->editingId)->update($this->form)
+        $shop = $this->editingId
+            ? tap(Shop::findOrFail($this->editingId))->update($this->form)
             : Shop::create($this->form);
+
+        // Push straight to the CRM's Vendor list, same as a product gets pushed
+        // to the main catalog — no need to wait for a search pick elsewhere.
+        app(ShopCatalogSync::class)->syncShop($shop);
 
         $this->showForm = false;
         $this->resetForm();

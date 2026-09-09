@@ -4,6 +4,7 @@ namespace App\Http\Livewire\Crm\Vendors;
 
 use App\Http\Livewire\Concerns\WithBasicTable;
 use App\Models\Vendor;
+use App\Services\ShopCatalogSync;
 use Livewire\Component;
 
 class Index extends Component
@@ -15,6 +16,11 @@ class Index extends Component
     public ?int $editingId = null;
 
     public array $form = ['company_name' => '', 'contact_person' => '', 'phone' => '', 'location' => ''];
+
+    public function mount(ShopCatalogSync $sync): void
+    {
+        $sync->syncAllShops();
+    }
 
     protected function rules(): array
     {
@@ -39,13 +45,18 @@ class Index extends Component
         $this->showForm = true;
     }
 
-    public function save(): void
+    public function save(ShopCatalogSync $sync): void
     {
         $this->validate();
 
-        $this->editingId
-            ? Vendor::findOrFail($this->editingId)->update($this->form)
+        $vendor = $this->editingId
+            ? tap(Vendor::findOrFail($this->editingId))->update($this->form)
             : Vendor::create($this->form);
+
+        // Keep the Shop Catalog in step too — if this vendor originally came
+        // from there (same name), editing it here should update it there too,
+        // not just leave the two sides to drift apart.
+        $sync->pushShopDetails($vendor);
 
         $this->showForm = false;
         $this->resetForm();
