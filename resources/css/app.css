@@ -33,33 +33,43 @@
 
 /* Form controls — consistent modern styling app-wide: every input/select/
    textarea gets a real (visible) border, breathing-room padding, and an
-   accent focus ring, instead of relying on ad-hoc per-element classes. */
-.crm-app input:not([type='checkbox']):not([type='radio']):not([type='file']),
-.crm-app select,
-.crm-app textarea {
-  border-width: 1px;
-  padding: 0.5rem 0.75rem;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
-}
+   accent focus ring, instead of relying on ad-hoc per-element classes.
+   Wrapped in @layer base: Tailwind's own utilities compile into @layer
+   utilities, and per the CSS cascade-layers spec, ANY layered rule loses to
+   an UNLAYERED one regardless of specificity — so this block being plain,
+   unlayered CSS was unconditionally beating every utility class applied to
+   an input (pl-9, px-4, etc.), no matter how low-specificity we made the
+   selector. Placing it in @layer base (which Tailwind orders before
+   @layer utilities) is what actually lets a utility class like pl-9 win —
+   that's the fix for search boxes' icon overlapping the placeholder text. */
+@layer base {
+  .crm-app input:not([type='checkbox']):not([type='radio']):not([type='file']),
+  .crm-app select,
+  .crm-app textarea {
+    border-width: 1px;
+    padding: 0.5rem 0.75rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  }
 
-.crm-app input:not([type='checkbox']):not([type='radio']):not([type='file'])::placeholder,
-.crm-app textarea::placeholder {
-  color: #71717a; /* zinc-500 */
-}
+  .crm-app input:not([type='checkbox']):not([type='radio']):not([type='file'])::placeholder,
+  .crm-app textarea::placeholder {
+    color: #71717a; /* zinc-500 */
+  }
 
-.crm-app input:not([type='checkbox']):not([type='radio']):not([type='file']):focus,
-.crm-app select:focus,
-.crm-app textarea:focus {
-  outline: none;
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(224, 122, 95, 0.25);
-}
+  .crm-app input:not([type='checkbox']):not([type='radio']):not([type='file']):focus,
+  .crm-app select:focus,
+  .crm-app textarea:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(224, 122, 95, 0.25);
+  }
 
-.crm-app input:disabled,
-.crm-app select:disabled,
-.crm-app textarea:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+  .crm-app input:disabled,
+  .crm-app select:disabled,
+  .crm-app textarea:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 }
 
 /* Native <select>: swap the default browser arrow for a themed chevron. */
