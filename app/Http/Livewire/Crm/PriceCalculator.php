@@ -13,9 +13,11 @@ class PriceCalculator extends Component
     protected $layout = 'layouts.crm';
 
     /**
-     * Optional convenience: look a product up and push its current cost into the
-     * (otherwise fully client-side) Alpine calculator via a browser event. The
-     * calculator itself still works with zero data dependency if this is never used.
+     * Optional convenience: look a product up and add it (with its current cost)
+     * to the otherwise fully client-side Alpine calculator via a browser event.
+     * One shared search box — each pick appends a new product row, so searching
+     * again immediately after adds another. The calculator itself still works
+     * with zero data dependency if this is never used.
      */
     public function pickProduct(int $index, string $key): void
     {
@@ -24,7 +26,7 @@ class PriceCalculator extends Component
 
         $this->closeProductSearch();
 
-        $this->dispatchBrowserEvent('product-cost-picked', [
+        $this->dispatchBrowserEvent('product-picked', [
             'label' => $product?->description,
             'cost' => $cost,
         ]);
