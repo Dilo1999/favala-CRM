@@ -224,7 +224,7 @@ span.flatpickr-weekday {
   color: #52525b; /* zinc-600 */
 }
 
-/* Zaha assistant bot avatar — mood-driven animation classes. Only "idle" has
+/* Fava assistant bot avatar — mood-driven animation classes. Only "idle" has
    a real SVG + animation today; future moods (e.g. "happy", "thinking") just
    need a matching bot-<mood>.svg in public/images/zaha/ and a matching
    .animate-<mood> rule here. */

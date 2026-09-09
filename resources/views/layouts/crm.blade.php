@@ -143,6 +143,8 @@
         </div>
     </div>
 
+    <x-zaha-widget />
+
     @livewireScripts
 </body>
 </html>

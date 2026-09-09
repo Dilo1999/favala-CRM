@@ -21,7 +21,7 @@
                     <div class="w-64 -translate-x-2 flex flex-col items-center">
                     <div class="relative zaha-bot-hover mb-4 w-64">
                         <img :src="'{{ asset('images/zaha') }}/' + getCurrentSvg()" :class="'animate-' + getMoodCategory()"
-                            alt="Zaha" class="zaha-dynamic-bot w-64 h-64 object-contain animate-idle" src="{{ asset('images/zaha/bot-idle.svg') }}" />
+                            alt="Fava" class="zaha-dynamic-bot w-64 h-64 object-contain animate-idle" src="{{ asset('images/zaha/bot-idle.svg') }}" />
                         <div class="zaha-speech-bubble" aria-hidden="true">
                             <span class="zaha-speech-bubble__spark" aria-hidden="true">✨</span>
                             <span class="zaha-speech-bubble__text">I love to help you!</span>
@@ -33,7 +33,7 @@
                 </div>
 
                 <form class="flex items-center gap-2 p-3 border-t border-white/10">
-                    <input type="text" placeholder="Message Zaha…" class="flex-1 rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
+                    <input type="text" placeholder="Message Fava…" class="flex-1 rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
                     <button type="submit" class="h-9 w-9 shrink-0 flex items-center justify-center rounded-lg bg-accent hover:bg-accent-hover text-white">
                         <x-heroicon-o-paper-airplane class="w-4 h-4" />
                     </button>

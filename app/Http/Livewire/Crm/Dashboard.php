@@ -34,6 +34,17 @@ class Dashboard extends Component
         $this->staffDate = now()->toDateString();
     }
 
+    /**
+     * The Overview tab already shows the big Fava panel — tell the site-wide
+     * floating widget to hide itself while that tab is active, since Livewire
+     * swaps tabs without a page reload and the widget lives outside this
+     * component's own re-rendered markup.
+     */
+    public function updatedTab(): void
+    {
+        $this->dispatchBrowserEvent('dashboard-tab-changed', ['tab' => $this->tab]);
+    }
+
     protected function periodRange(string $period, string $anchor): array
     {
         $date = Carbon::parse($anchor);
