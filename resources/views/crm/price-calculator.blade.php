@@ -43,9 +43,9 @@
             </div>
 
             <div class="rounded-xl bg-zinc-800 border border-white/10 p-5">
-                <h2 class="font-bold text-white">Discount</h2>
-                <p class="text-sm text-zinc-500 mt-1 mb-4">Apply a discount as a percentage or a flat amount to the combined total.</p>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <h2 class="font-bold text-white">Discount &amp; Tax</h2>
+                <p class="text-sm text-zinc-500 mt-1 mb-4">Applied once, to the combined total of all products above.</p>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-sm font-semibold text-zinc-200 mb-1.5">Discount Type</label>
                         <div class="flex items-center gap-5 h-9">
@@ -63,14 +63,10 @@
                         <label class="block text-sm font-semibold text-zinc-200 mb-1.5">Discount Value</label>
                         <input type="number" step="0.01" x-model.number="discountValue" class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm" />
                     </div>
-                </div>
-            </div>
-
-            <div class="rounded-xl bg-zinc-800 border border-white/10 p-5">
-                <h2 class="font-bold text-white mb-4">Tax</h2>
-                <div class="max-w-xs">
-                    <label class="block text-sm font-semibold text-zinc-200 mb-1.5">GST Rate (%)</label>
-                    <input type="number" step="0.01" x-model.number="gst" class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm" />
+                    <div>
+                        <label class="block text-sm font-semibold text-zinc-200 mb-1.5">GST Rate (%)</label>
+                        <input type="number" step="0.01" x-model.number="gst" class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm" />
+                    </div>
                 </div>
             </div>
         </div>
