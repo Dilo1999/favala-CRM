@@ -5,12 +5,24 @@ namespace App\Http\Livewire\Crm\Products;
 use App\Http\Livewire\Concerns\WithBasicTable;
 use App\Models\Product;
 use App\Models\SettingOption;
+use App\Services\ShopCatalogSync;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
 class Index extends Component
 {
     use WithBasicTable, WithFileUploads;
+
+    /**
+     * Pull every Shop Catalog product (and its current prices) into the local
+     * catalog on every visit to this page, so the list here always reflects
+     * both the local products AND the external Shop Catalog — not just the
+     * ones someone happened to already pick via product search elsewhere.
+     */
+    public function mount(ShopCatalogSync $sync): void
+    {
+        $sync->syncAll();
+    }
 
     public bool $showForm = false;
 
@@ -48,13 +60,18 @@ class Index extends Component
         $this->showForm = true;
     }
 
-    public function save(): void
+    public function save(ShopCatalogSync $sync): void
     {
         $this->validate();
 
-        $this->editingId
-            ? Product::findOrFail($this->editingId)->update($this->form)
+        $product = $this->editingId
+            ? tap(Product::findOrFail($this->editingId))->update($this->form)
             : Product::create($this->form);
+
+        // Keep the Shop Catalog in step too — if this product originally came
+        // from there (same code), editing it here should update it there too,
+        // not just leave the two catalogs to drift apart.
+        $sync->pushProductDetails($product);
 
         $this->showForm = false;
         $this->resetForm();

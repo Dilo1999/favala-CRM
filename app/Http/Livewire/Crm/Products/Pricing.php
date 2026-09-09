@@ -5,6 +5,7 @@ namespace App\Http\Livewire\Crm\Products;
 use App\Models\Product;
 use App\Models\ProductVendorPrice;
 use App\Models\Vendor;
+use App\Services\ShopCatalogSync;
 use Livewire\Component;
 
 class Pricing extends Component
@@ -83,7 +84,7 @@ class Pricing extends Component
         ];
     }
 
-    public function save()
+    public function save(ShopCatalogSync $sync)
     {
         $this->validate();
 
@@ -108,6 +109,11 @@ class Pricing extends Component
                 'price' => $row['price'],
                 'added_by' => auth()->id(),
             ]);
+
+            // If this vendor is actually one of the shops mirrored in from the
+            // Shop Catalog, push the new price back there too — not just into
+            // our own local vendor pricing.
+            $sync->pushProductPrice($this->product, Vendor::find($row['vendor_id']), (float) $row['price']);
         }
 
         session()->flash('status', 'Prices updated.');
