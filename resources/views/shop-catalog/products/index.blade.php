@@ -36,7 +36,8 @@
     @else
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             @foreach ($products as $product)
-                <div class="group relative rounded-2xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-lg transition-all overflow-hidden">
+                <div wire:dblclick="edit({{ $product->id }})" title="Double-click to edit"
+                    class="group relative rounded-2xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-lg transition-all overflow-hidden cursor-pointer">
                     <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                         <x-row-menu>
                             <button wire:click="edit({{ $product->id }})" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Edit</button>
@@ -67,11 +68,14 @@
                         <h3 class="text-slate-900 font-bold truncate mt-0.5">{{ $product->description }}</h3>
                         <p class="text-sm text-slate-400 mt-0.5">{{ $product->brand ?: '—' }}</p>
 
-                        <div class="mt-4 pt-4 border-t border-slate-100">
+                        <div class="mt-4 pt-4 border-t border-slate-100 space-y-2">
                             @forelse ($product->prices as $price)
-                                <div class="flex items-center justify-between text-sm py-1">
+                                <div class="flex items-center justify-between text-sm">
                                     <span class="text-slate-500 truncate pr-2">{{ $price->shop->name }}</span>
-                                    <span class="text-accent font-bold shrink-0">MVR {{ number_format($price->price, 2) }}</span>
+                                    <div class="text-right shrink-0">
+                                        <div class="text-accent font-bold">MVR {{ number_format($price->price, 2) }}</div>
+                                        <div class="text-[11px] text-slate-400">Updated {{ $price->updated_at->diffForHumans() }}</div>
+                                    </div>
                                 </div>
                             @empty
                                 <p class="text-sm text-slate-400">Not assigned to a shop yet.</p>
