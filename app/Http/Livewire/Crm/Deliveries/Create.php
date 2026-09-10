@@ -4,6 +4,7 @@ namespace App\Http\Livewire\Crm\Deliveries;
 
 use App\Models\Delivery;
 use App\Models\Invoice;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class Create extends Component
@@ -54,7 +55,14 @@ class Create extends Component
             'contact_phone' => 'nullable|string|max:60',
             'deadline_date' => 'required|date',
             'deadline_time' => 'nullable',
-            'lines.*.delivery_qty' => 'required|numeric|min:0',
+            // Caps each line at what's actually still owed on the invoice — the
+            // HTML max= on the input is client-side only.
+            'lines.*.delivery_qty' => Rule::forEach(function ($value, $attribute) {
+                preg_match('/^lines\.(\d+)\.delivery_qty$/', $attribute, $m);
+                $max = (float) ($this->lines[(int) $m[1]]['balance_qty'] ?? 0);
+
+                return ['required', 'numeric', 'min:0', 'max:'.$max];
+            }),
         ];
     }
 

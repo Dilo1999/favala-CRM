@@ -14,7 +14,10 @@ class Create extends Component
 {
     use HasProductSearch;
 
-    public ?int $customer_id = null;
+    // Deliberately untyped: bound live via wire:model to a <select> whose blank
+    // "Select customer…" option submits "", and PHP's typed-property coercion
+    // rejects "" => ?int with an uncaught TypeError before validation ever runs.
+    public $customer_id = null;
 
     public string $invoice_date;
 
@@ -118,7 +121,7 @@ class Create extends Component
         $lines = $this->lines;
 
         $invoice = Invoice::create([
-            'customer_id' => $this->customer_id,
+            'customer_id' => (int) $this->customer_id,
             'staff_id' => auth()->id(),
             'invoice_date' => $this->invoice_date,
             'expiry_date' => $this->expiry_date,

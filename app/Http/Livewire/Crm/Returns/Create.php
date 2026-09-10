@@ -4,6 +4,7 @@ namespace App\Http\Livewire\Crm\Returns;
 
 use App\Models\Invoice;
 use App\Models\SalesReturn;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class Create extends Component
@@ -35,7 +36,17 @@ class Create extends Component
         return [
             'date' => 'required|date',
             'reason' => 'nullable|string',
-            'lines.*.qty' => 'required|numeric|min:0',
+            // The <input>'s HTML max="{{ max_qty }}" is client-side only and
+            // trivially bypassed (paste, autofill, a raw request) — capping it
+            // here too is what actually stops a return being logged for more
+            // than was invoiced, which would otherwise corrupt the refund math
+            // in SalesReturn::applyRefundToInvoice().
+            'lines.*.qty' => Rule::forEach(function ($value, $attribute) {
+                preg_match('/^lines\.(\d+)\.qty$/', $attribute, $m);
+                $max = (float) ($this->lines[(int) $m[1]]['max_qty'] ?? 0);
+
+                return ['required', 'numeric', 'min:0', 'max:'.$max];
+            }),
         ];
     }
 

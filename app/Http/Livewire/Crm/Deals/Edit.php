@@ -18,7 +18,10 @@ class Edit extends Component
 
     public ?string $request_source = null;
 
-    public ?int $assigned_staff_id = null;
+    // Deliberately untyped: bound live via wire:model to a <select> whose
+    // "Unassigned" option submits "", and PHP's typed-property coercion rejects
+    // "" => ?int with an uncaught TypeError before validation ever runs.
+    public $assigned_staff_id = null;
 
     public string $stage;
 
@@ -33,6 +36,14 @@ class Edit extends Component
         $this->assigned_staff_id = $record->assigned_staff_id;
         $this->stage = $record->stage;
         $this->additional_details = $record->additional_details;
+    }
+
+    /** Normalizes the "Unassigned" option's "" back to null so it never reaches save() as an empty string. */
+    public function updatedAssignedStaffId($value): void
+    {
+        if ($value === '') {
+            $this->assigned_staff_id = null;
+        }
     }
 
     protected function rules(): array
@@ -55,7 +66,7 @@ class Edit extends Component
             'customer_id' => $this->customer_id,
             'deal_date' => $this->deal_date,
             'request_source' => $this->request_source,
-            'assigned_staff_id' => $this->assigned_staff_id,
+            'assigned_staff_id' => $this->assigned_staff_id !== null ? (int) $this->assigned_staff_id : null,
             'stage' => $this->stage,
             'additional_details' => $this->additional_details,
         ]);

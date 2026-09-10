@@ -23,7 +23,11 @@ class Formulate extends Component
     // and PHP's typed-property coercion rejects "" => ?int with a TypeError.
     public $dealId = null;
 
-    public ?int $customer_id = null;
+    // Deliberately untyped, same reason as $dealId above: bound live via
+    // wire:model to a <select> whose blank "Select customer…" option submits
+    // "", and PHP's typed-property coercion rejects "" => ?int with an
+    // uncaught TypeError before validation ever runs.
+    public $customer_id = null;
 
     public string $quotation_date;
 
@@ -41,9 +45,13 @@ class Formulate extends Component
 
     public string $discount_type = 'flat';
 
-    public float $discount_value = 0;
+    // Deliberately untyped, same reason as $customer_id above: bound live via
+    // wire:model to a number input, and briefly clearing the field to retype a
+    // new value round-trips "" through a strictly-typed float property, which
+    // throws mid-edit. Normalized back to a number in updated*() below.
+    public $discount_value = 0;
 
-    public float $gst_percent = 8;
+    public $gst_percent = 8;
 
     // Deliberately untyped: this component backs both /quotations/create (no route
     // parameter) and /quotations/{record}/edit. A nullable Model type-hint here
@@ -136,6 +144,22 @@ class Formulate extends Component
         }
     }
 
+    /** Normalizes a momentarily-blank discount field back to 0 instead of leaving "" sitting in a numeric property. */
+    public function updatedDiscountValue($value): void
+    {
+        if ($value === '') {
+            $this->discount_value = 0;
+        }
+    }
+
+    /** Same as updatedDiscountValue() above, for the GST % field. */
+    public function updatedGstPercent($value): void
+    {
+        if ($value === '') {
+            $this->gst_percent = 0;
+        }
+    }
+
     public function addItem(): void
     {
         $this->items[] = [
@@ -182,6 +206,12 @@ class Formulate extends Component
 
     public function updateItemVendor(int $index, ?string $vendorId): void
     {
+        // The "—" (no vendor) option submits "" from $event.target.value, not
+        // null — normalize it here so it never ends up inserted into the
+        // nullable-but-integer quotation_items.vendor_id column as a literal
+        // empty string, which fails under strict SQL mode.
+        $vendorId = $vendorId !== '' ? $vendorId : null;
+
         $productId = $this->items[$index]['product_id'] ?? null;
         $price = $productId
             ? ProductVendorPrice::where('product_id', $productId)->where('vendor_id', $vendorId)->latest('id')->first()
@@ -213,7 +243,7 @@ class Formulate extends Component
 
     public function getSummaryProperty(): array
     {
-        return PricingEngine::order($this->lines, $this->discount_type, $this->discount_value, $this->gst_percent);
+        return PricingEngine::order($this->lines, $this->discount_type, (float) $this->discount_value, (float) $this->gst_percent);
     }
 
     protected function rules(): array
@@ -225,6 +255,8 @@ class Formulate extends Component
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.qty' => 'required|numeric|min:0.01',
+            'discount_value' => 'nullable|numeric|min:0',
+            'gst_percent' => 'nullable|numeric|min:0',
         ];
     }
 
@@ -234,7 +266,7 @@ class Formulate extends Component
 
         $data = [
             'deal_id' => $this->dealId,
-            'customer_id' => $this->customer_id,
+            'customer_id' => (int) $this->customer_id,
             'quotation_date' => $this->quotation_date,
             'expiry_date' => $this->expiry_date,
             'bill_to_name' => $this->bill_to_name,
@@ -242,8 +274,8 @@ class Formulate extends Component
             'bill_to_address' => $this->bill_to_address,
             'terms_conditions' => $this->terms_conditions,
             'discount_type' => $this->discount_type,
-            'discount_value' => $this->discount_value,
-            'gst_percent' => $this->gst_percent,
+            'discount_value' => (float) $this->discount_value,
+            'gst_percent' => (float) $this->gst_percent,
         ];
 
         if ($this->recordId) {

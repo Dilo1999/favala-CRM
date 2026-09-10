@@ -79,8 +79,14 @@ class Pricing extends Component
     protected function rules(): array
     {
         return [
-            'rows.*.vendor_id' => 'nullable|exists:vendors,id',
-            'rows.*.price' => 'nullable|numeric|min:0',
+            // A row is either fully blank (an unused "Add Vendor Price" row —
+            // both nullable so that passes) or fully filled in: previously
+            // "price" was nullable on its own, so picking a vendor but leaving
+            // price blank passed validation, save() silently skipped the row,
+            // and the user saw a "Prices updated" success message for a price
+            // that was never written.
+            'rows.*.vendor_id' => 'nullable|exists:vendors,id|required_with:rows.*.price',
+            'rows.*.price' => 'nullable|numeric|min:0|required_with:rows.*.vendor_id',
         ];
     }
 

@@ -11,7 +11,7 @@ class Product extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['code', 'legacy_code', 'description', 'category', 'brand', 'unit_of_measure'];
+    protected $fillable = ['code', 'legacy_code', 'description', 'category', 'brand', 'unit_of_measure', 'shop_catalog_product_id'];
 
     public function prices(): HasMany
     {

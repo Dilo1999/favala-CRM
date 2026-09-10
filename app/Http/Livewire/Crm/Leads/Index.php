@@ -126,8 +126,15 @@ class Index extends Component
         $header = array_map('strtolower', array_map('trim', array_shift($rows)));
 
         $count = 0;
+        $skipped = 0;
         foreach ($rows as $row) {
-            if (count($row) < count($header)) {
+            // Must match the header column-for-column: array_combine() throws
+            // on mismatched lengths, so a row with *more* fields than the
+            // header (e.g. an unquoted comma inside a text value) used to
+            // crash the whole import instead of just being skipped.
+            if (count($row) !== count($header)) {
+                $skipped++;
+
                 continue;
             }
             $record = array_combine($header, $row);
@@ -146,7 +153,11 @@ class Index extends Component
 
         $this->showImport = false;
         $this->importFile = null;
-        session()->flash('status', "Imported {$count} leads.");
+        $message = "Imported {$count} leads.";
+        if ($skipped > 0) {
+            $message .= " Skipped {$skipped} row(s) with an unexpected number of columns.";
+        }
+        session()->flash('status', $message);
     }
 
     public function render()

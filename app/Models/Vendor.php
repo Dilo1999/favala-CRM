@@ -10,7 +10,7 @@ class Vendor extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['company_name', 'contact_person', 'phone', 'location'];
+    protected $fillable = ['company_name', 'contact_person', 'phone', 'location', 'shop_catalog_shop_id'];
 
     public function prices(): HasMany
     {

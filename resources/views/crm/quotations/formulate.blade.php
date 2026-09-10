@@ -146,13 +146,13 @@
                         <label class="flex items-center gap-1.5 text-xs text-zinc-300 cursor-pointer">
                             <input type="radio" wire:model="discount_type" value="percent" /> %
                         </label>
-                        <input type="number" step="0.01" wire:model="discount_value" class="w-20 rounded-lg bg-zinc-700 border-white/10 text-white text-sm text-right" />
+                        <input type="number" step="0.01" wire:model.lazy="discount_value" class="w-20 rounded-lg bg-zinc-700 border-white/10 text-white text-sm text-right" />
                     </div>
                 </div>
 
                 <div class="flex justify-between items-center">
                     <span class="text-zinc-400">GST (%)</span>
-                    <input type="number" step="0.01" wire:model="gst_percent" class="w-20 rounded-lg bg-zinc-700 border-white/10 text-white text-sm text-right" />
+                    <input type="number" step="0.01" wire:model.lazy="gst_percent" class="w-20 rounded-lg bg-zinc-700 border-white/10 text-white text-sm text-right" />
                 </div>
 
                 <div class="flex justify-between items-center text-zinc-400"><span>GST Amount</span><span class="text-white font-medium">MVR {{ number_format($this->summary['gst_amount'], 2) }}</span></div>
