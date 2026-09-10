@@ -7,6 +7,8 @@ use Filament\Models\Contracts\FilamentUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements FilamentUser
@@ -102,5 +104,17 @@ class User extends Authenticatable implements FilamentUser
     public function isPending(): bool
     {
         return $this->status === self::STATUS_PENDING;
+    }
+
+    /** Avatar column may hold a relative storage path or (legacy) a full URL. */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (! $this->avatar) {
+            return null;
+        }
+
+        return Str::startsWith($this->avatar, ['http://', 'https://'])
+            ? $this->avatar
+            : Storage::url($this->avatar);
     }
 }

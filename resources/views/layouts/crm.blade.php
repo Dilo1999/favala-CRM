@@ -118,19 +118,7 @@
                           {{ $calcActive ? 'bg-accent text-white' : 'text-zinc-400 hover:bg-zinc-700 hover:text-white' }}">
                     <x-heroicon-o-calculator class="crm-nav-icon anim-pulse w-6 h-6" />
                 </a>
-                <div class="text-right hidden sm:block">
-                    <p class="text-sm font-medium text-white">{{ auth()->user()->name }}</p>
-                    <p class="text-xs text-zinc-500">{{ ucfirst(auth()->user()->role) }}</p>
-                </div>
-                <div class="h-9 w-9 rounded-full bg-accent/20 text-accent flex items-center justify-center font-semibold">
-                    {{ mb_substr(auth()->user()->name, 0, 1) }}
-                </div>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="text-zinc-400 hover:text-white" title="Log out">
-                        <x-heroicon-o-logout class="w-5 h-5" />
-                    </button>
-                </form>
+                @livewire('crm.profile-menu')
             </header>
 
             <main class="flex-1 overflow-y-auto p-6">

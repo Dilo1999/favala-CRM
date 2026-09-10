@@ -51,7 +51,7 @@
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
                                     @if ($user->avatar)
-                                        <img src="{{ $user->avatar }}" alt="{{ $user->name }}" class="h-9 w-9 rounded-full object-cover shrink-0" />
+                                        <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="h-9 w-9 rounded-full object-cover shrink-0" />
                                     @else
                                         <div class="h-9 w-9 rounded-full bg-accent/20 text-accent flex items-center justify-center font-semibold shrink-0">
                                             {{ mb_substr($user->name, 0, 1) }}
@@ -65,8 +65,6 @@
                                 <select wire:change="updateUserRole({{ $user->id }}, $event.target.value)" class="rounded-lg bg-zinc-700 border-white/10 text-white text-xs">
                                     <option value="admin" @selected($user->role === 'admin')>Admin</option>
                                     <option value="member" @selected($user->role === 'member')>Member</option>
-                                    <option value="editor" @selected($user->role === 'editor')>Editor</option>
-                                    <option value="viewer" @selected($user->role === 'viewer')>Viewer</option>
                                 </select>
                             </td>
                             <td class="px-6 py-4">
