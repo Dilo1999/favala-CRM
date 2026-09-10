@@ -834,6 +834,69 @@ html {
   animation-delay: calc(var(--delay, 0) * 1s);
 }
 
+/* Floating chat launcher (zaha-widget) — an eye-catching color-blink glow
+   that cycles between the accent and gold theme colors, plus a small
+   "online" status dot. Only active while the chat panel is closed (Alpine
+   toggles the classes off on open), so it reads as a "new message" cue
+   rather than a constant distraction. */
+@keyframes zaha-launcher-blink {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(224, 122, 95, 0.55), 0 4px 16px rgba(0, 0, 0, 0.4);
+  }
+  25% {
+    box-shadow: 0 0 0 9px rgba(224, 122, 95, 0), 0 0 22px 4px rgba(224, 122, 95, 0.55), 0 4px 16px rgba(0, 0, 0, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 0 rgba(193, 155, 70, 0.55), 0 4px 16px rgba(0, 0, 0, 0.4);
+  }
+  75% {
+    box-shadow: 0 0 0 9px rgba(193, 155, 70, 0), 0 0 22px 4px rgba(193, 155, 70, 0.55), 0 4px 16px rgba(0, 0, 0, 0.4);
+  }
+}
+
+.zaha-launcher-btn {
+  position: relative;
+  animation: zaha-launcher-blink 2.8s ease-in-out infinite;
+}
+
+.zaha-launcher-btn::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  z-index: -1;
+  border-radius: 9999px;
+  background: conic-gradient(from 0deg, #e07a5f, #c19b46, #f4c157, #e07a5f);
+  filter: blur(7px);
+  animation: zaha-launcher-ring-spin 3.4s linear infinite, zaha-launcher-ring-fade 2.8s ease-in-out infinite;
+}
+
+@keyframes zaha-launcher-ring-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes zaha-launcher-ring-fade {
+  0%, 100% { opacity: 0.18; }
+  50% { opacity: 0.6; }
+}
+
+.zaha-launcher-dot {
+  position: absolute;
+  top: -0.1rem;
+  right: -0.1rem;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 9999px;
+  background: #4ade80;
+  border: 2px solid #18181b;
+  animation: zaha-launcher-dot-blink 1.6s ease-in-out infinite;
+}
+
+@keyframes zaha-launcher-dot-blink {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.6); }
+  50% { opacity: 0.35; box-shadow: 0 0 0 4px rgba(74, 222, 128, 0); }
+}
+
 /* Laravel welcome page dot backgrounds */
 @utility bg-dots-darker {
     background-image: url("data:image/svg+xml,%3Csvg width='30' height='30' viewBox='0 0 30 30' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1.22676 0C1.91374 0 2.45351 0.539773 2.45351 1.22676C2.45351 1.91374 1.91374 2.45351 1.22676 2.45351C0.539773 2.45351 0 1.91374 0 1.22676C0 0.539773 0.539773 0 1.22676 0Z' fill='rgba(0,0,0,0.07)'/%3E%3C/svg%3E");

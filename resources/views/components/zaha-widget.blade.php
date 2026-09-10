@@ -44,7 +44,9 @@
     </div>
 
     <button type="button" @click="open = !open" title="Chat with Fava"
+        :class="{ 'zaha-launcher-btn': !open }"
         class="h-14 w-14 rounded-full bg-accent hover:bg-accent-hover shadow-lg shadow-black/40 flex items-center justify-center transition-transform hover:scale-105">
         <img src="{{ asset('images/zaha/bot/head_assembly.svg') }}" alt="Fava" class="w-9 h-9 object-contain" />
+        <span x-show="!open" x-cloak class="zaha-launcher-dot" aria-hidden="true"></span>
     </button>
 </div>
