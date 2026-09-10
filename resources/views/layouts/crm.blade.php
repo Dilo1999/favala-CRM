@@ -131,7 +131,7 @@
         </div>
     </div>
 
-    <x-zaha-widget />
+    @livewire('fava-chat', ['variant' => 'popup'], key('fava-chat-popup'))
 
     @livewireScripts
 </body>

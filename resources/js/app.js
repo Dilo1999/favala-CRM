@@ -1,6 +1,7 @@
 import './bootstrap';
 import './animations';
 import './nav';
+import './fava-chat';
 
 import Alpine from 'alpinejs';
 import dateRangePicker from './date-range';

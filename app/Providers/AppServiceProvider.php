@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Anthropic\Client as AnthropicClient;
 use App\Models\Deal;
 use App\Models\User;
 use App\Observers\DealObserver;
@@ -19,7 +20,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(AnthropicClient::class, fn () => new AnthropicClient(
+            apiKey: config('ai.anthropic.api_key'),
+            requestOptions: ['timeout' => (float) config('ai.anthropic.timeout')],
+        ));
     }
 
     /**

@@ -15,38 +15,7 @@
     @if ($tab === 'overview')
         @php($o = $this->overview)
         <div class="flex flex-col lg:flex-row gap-6 lg:gap-8 lg:items-stretch">
-            <div class="lg:w-1/3 shrink-0 rounded-xl bg-zinc-800 border border-white/10 flex flex-col lg:min-h-[calc(100vh-12rem)]"
-                x-data="{ mood: 'idle', getCurrentSvg() { return 'bot-' + this.mood + '.svg'; }, getMoodCategory() { return this.mood; } }">
-                <div class="flex-1 flex flex-col items-center justify-start text-center p-6 pt-8">
-                    <div class="w-64 -translate-x-2 flex flex-col items-center">
-                    <div class="relative zaha-bot-hover mb-4 w-64">
-                        <div class="absolute inset-0 rounded-full bg-accent/20 blur-2xl"></div>
-                        <span class="zaha-bot-sparkle zaha-bot-sparkle--1" aria-hidden="true">✨</span>
-                        <span class="zaha-bot-sparkle zaha-bot-sparkle--2" aria-hidden="true">⭐</span>
-                        <span class="zaha-bot-sparkle zaha-bot-sparkle--3" aria-hidden="true">✨</span>
-                        <span class="zaha-bot-sparkle zaha-bot-sparkle--4" aria-hidden="true">⭐</span>
-                        {{-- <object>, not <img>: an <img>-embedded SVG can't receive mouse
-                             hover internally, so the head/hand parts inside bot-idle.svg
-                             (its own :hover rules) would never fire. --}}
-                        <object type="image/svg+xml" :data="'{{ asset('images/zaha') }}/' + getCurrentSvg()" :class="'animate-' + getMoodCategory()"
-                            aria-label="Fava" class="zaha-dynamic-bot w-64 h-64 object-contain animate-idle" data="{{ asset('images/zaha/bot-idle.svg') }}"></object>
-                        <div class="zaha-speech-bubble" aria-hidden="true">
-                            <span class="zaha-speech-bubble__spark" aria-hidden="true">✨</span>
-                            <span class="zaha-speech-bubble__text">I love to help you!</span>
-                        </div>
-                    </div>
-                    <h3 class="text-white font-bold text-lg">Hey, {{ explode(' ', auth()->user()->name)[0] }}</h3>
-                    <p class="text-sm text-zinc-500 mt-1">How can I help you today?</p>
-                    </div>
-                </div>
-
-                <form class="flex items-center gap-2 p-3 border-t border-white/10">
-                    <input type="text" placeholder="Message Fava…" class="flex-1 rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
-                    <button type="submit" class="h-9 w-9 shrink-0 flex items-center justify-center rounded-lg bg-accent hover:bg-accent-hover text-white">
-                        <x-heroicon-o-paper-airplane class="w-4 h-4" />
-                    </button>
-                </form>
-            </div>
+            @livewire('fava-chat', ['variant' => 'panel'], key('fava-chat-panel'))
 
             <div class="hidden lg:block w-px bg-white/10"></div>
 
