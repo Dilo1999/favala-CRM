@@ -21,8 +21,15 @@
                     <div class="w-64 -translate-x-2 flex flex-col items-center">
                     <div class="relative zaha-bot-hover mb-4 w-64">
                         <div class="absolute inset-0 rounded-full bg-accent/20 blur-2xl"></div>
-                        <img :src="'{{ asset('images/zaha') }}/' + getCurrentSvg()" :class="'animate-' + getMoodCategory()"
-                            alt="Fava" class="zaha-dynamic-bot w-64 h-64 object-contain animate-idle" src="{{ asset('images/zaha/bot-idle.svg') }}" />
+                        <span class="zaha-bot-sparkle zaha-bot-sparkle--1" aria-hidden="true">✨</span>
+                        <span class="zaha-bot-sparkle zaha-bot-sparkle--2" aria-hidden="true">⭐</span>
+                        <span class="zaha-bot-sparkle zaha-bot-sparkle--3" aria-hidden="true">✨</span>
+                        <span class="zaha-bot-sparkle zaha-bot-sparkle--4" aria-hidden="true">⭐</span>
+                        {{-- <object>, not <img>: an <img>-embedded SVG can't receive mouse
+                             hover internally, so the head/hand parts inside bot-idle.svg
+                             (its own :hover rules) would never fire. --}}
+                        <object type="image/svg+xml" :data="'{{ asset('images/zaha') }}/' + getCurrentSvg()" :class="'animate-' + getMoodCategory()"
+                            aria-label="Fava" class="zaha-dynamic-bot w-64 h-64 object-contain animate-idle" data="{{ asset('images/zaha/bot-idle.svg') }}"></object>
                         <div class="zaha-speech-bubble" aria-hidden="true">
                             <span class="zaha-speech-bubble__spark" aria-hidden="true">✨</span>
                             <span class="zaha-speech-bubble__text">I love to help you!</span>

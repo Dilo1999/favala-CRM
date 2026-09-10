@@ -37,48 +37,48 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             @foreach ($products as $product)
                 <div wire:dblclick="edit({{ $product->id }})" title="Double-click to edit"
-                    class="group relative rounded-2xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-lg transition-all overflow-hidden cursor-pointer">
-                    <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                    class="group relative flex gap-3 rounded-2xl border border-slate-200 bg-white p-3 hover:border-slate-300 hover:shadow-lg transition-all cursor-pointer">
+                    <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                         <x-row-menu>
                             <button wire:click="edit({{ $product->id }})" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Edit</button>
                             <button wire:click="delete({{ $product->id }})" wire:confirm="Delete this product?" class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete</button>
                         </x-row-menu>
                     </div>
 
-                    {{-- Image area: real photo if uploaded, otherwise a warm decorative
-                         gradient with a code chip, echoing a "featured product" tile. --}}
-                    <div class="relative h-44 overflow-hidden bg-gradient-to-br from-orange-100 via-orange-50 to-white">
+                    {{-- Compact thumbnail: real photo if uploaded, otherwise a warm
+                         decorative gradient — no more a full-width banner. --}}
+                    <div class="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-orange-100 via-orange-50 to-white">
                         @if ($product->image_path)
                             <img src="{{ asset('storage/'.$product->image_path) }}" class="h-full w-full object-cover" alt="{{ $product->description }}" />
                         @else
-                            <div class="absolute -right-6 top-1/2 -translate-y-1/2 h-28 w-28 rounded-full border border-accent/20"></div>
                             <div class="absolute inset-0 flex items-center justify-center">
-                                <x-heroicon-o-cube class="w-10 h-10 text-accent/30" />
+                                <x-heroicon-o-cube class="w-7 h-7 text-accent/30" />
                             </div>
                         @endif
-                        <span class="absolute left-3 bottom-3 bg-white/95 text-slate-900 text-xs font-semibold px-2.5 py-1 rounded-md shadow-sm font-mono">
-                            {{ $product->code }}
-                        </span>
                     </div>
 
-                    <div class="p-5">
-                        @if ($product->category)
-                            <p class="text-xs font-semibold text-accent uppercase tracking-wide">{{ $product->category }}</p>
-                        @endif
-                        <h3 class="text-slate-900 font-bold truncate mt-0.5">{{ $product->description }}</h3>
-                        <p class="text-sm text-slate-400 mt-0.5">{{ $product->brand ?: '—' }}</p>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-start justify-between gap-2 pr-6">
+                            <div class="min-w-0">
+                                @if ($product->category)
+                                    <p class="text-[11px] font-semibold text-accent uppercase tracking-wide truncate">{{ $product->category }}</p>
+                                @endif
+                                <h3 class="text-slate-900 font-bold text-sm truncate">{{ $product->description }}</h3>
+                            </div>
+                            <span class="shrink-0 bg-slate-100 text-slate-600 text-[11px] font-semibold px-2 py-0.5 rounded-md font-mono">
+                                {{ $product->code }}
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-400 truncate">{{ $product->brand ?: '—' }}</p>
 
-                        <div class="mt-4 pt-4 border-t border-slate-100 space-y-2">
+                        <div class="mt-1.5 pt-1.5 border-t border-slate-100 space-y-1 max-h-16 overflow-y-auto">
                             @forelse ($product->prices as $price)
-                                <div class="flex items-center justify-between text-sm">
+                                <div class="flex items-center justify-between text-xs" title="Updated {{ $price->updated_at->diffForHumans() }}">
                                     <span class="text-slate-500 truncate pr-2">{{ $price->shop->name }}</span>
-                                    <div class="text-right shrink-0">
-                                        <div class="text-accent font-bold">MVR {{ number_format($price->price, 2) }}</div>
-                                        <div class="text-[11px] text-slate-400">Updated {{ $price->updated_at->diffForHumans() }}</div>
-                                    </div>
+                                    <span class="text-accent font-bold shrink-0">MVR {{ number_format($price->price, 2) }}</span>
                                 </div>
                             @empty
-                                <p class="text-sm text-slate-400">Not assigned to a shop yet.</p>
+                                <p class="text-xs text-slate-400">Not assigned to a shop yet.</p>
                             @endforelse
                         </div>
                     </div>

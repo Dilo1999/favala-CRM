@@ -66,9 +66,47 @@
       94%            { opacity: 0; }
     }
 
+    /* Hover: head tilts into a friendly greeting nod and both arms break into
+       an enthusiastic wave — replaces the slower idle look/wave while the
+       pointer is over the bot. Requires the host page to embed this file via
+       an object element (not an img element), since only the former lets
+       hover state reach elements inside here. */
+    svg:hover #head_assembly,
+    svg:hover #neck_joint {
+      animation: zaha-head-greet 1s ease-in-out infinite;
+    }
+    svg:hover #open_hand_arm {
+      animation: zaha-wave-open-big 0.7s ease-in-out infinite;
+    }
+    svg:hover #thumbs_up_arm {
+      animation: zaha-wave-thumb-big 0.7s ease-in-out infinite;
+      animation-delay: -0.35s;
+    }
+
+    @keyframes zaha-head-greet {
+      0%, 100% { transform: rotate(0deg)   translateY(0); }
+      25%      { transform: rotate(-11deg) translateY(-4px); }
+      50%      { transform: rotate(9deg)   translateY(-6px); }
+      75%      { transform: rotate(-6deg)  translateY(-2px); }
+    }
+
+    @keyframes zaha-wave-open-big {
+      0%, 100% { transform: rotate(-16deg); }
+      50%      { transform: rotate(20deg); }
+    }
+
+    @keyframes zaha-wave-thumb-big {
+      0%, 100% { transform: rotate(12deg)  translateY(0); }
+      50%      { transform: rotate(-16deg) translateY(-9px); }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       #head_assembly, #neck_joint, #open_hand_arm, #thumbs_up_arm, #floating_base,
       .zaha-eye {
+        animation: none;
+      }
+      svg:hover #head_assembly, svg:hover #neck_joint,
+      svg:hover #open_hand_arm, svg:hover #thumbs_up_arm {
         animation: none;
       }
     }
