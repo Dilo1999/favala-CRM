@@ -170,6 +170,11 @@ class Index extends Component
         return $target > 0 ? min(100, ($achieved / $target) * 100) : 0;
     }
 
+    public function remaining($achieved, $target): float
+    {
+        return max(0, (float) $target - (float) $achieved);
+    }
+
     /** "150000" → "150K", "2500000" → "2.5M" — used for the company Sales target card. */
     public function formatCompact($value): string
     {

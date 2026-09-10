@@ -34,6 +34,8 @@
                 ['key' => 'new_leads', 'label' => 'New Leads', 'icon' => 'user-add'],
             ] as $kpi)
                 @php($target = $this->companyTarget?->{$kpi['key']} ?? 0)
+                @php($achieved = $this->companyAchieved[$kpi['key']] ?? 0)
+                @php($remaining = $this->remaining($achieved, $target))
                 <div class="rounded-lg bg-zinc-900 border border-white/10 p-4">
                     <div class="flex items-start justify-between">
                         <p class="text-sm text-zinc-400">{{ $kpi['label'] }}</p>
@@ -49,11 +51,19 @@
                     </div>
                     <p class="text-2xl font-bold text-white mt-2">
                         @if (!empty($kpi['money']))
-                            <span class="text-base font-semibold text-zinc-400 align-top">MVR</span> {{ $this->formatCompact($target) }}
+                            <span class="text-base font-semibold text-zinc-400 align-top">MVR</span> {{ $this->formatCompact($remaining) }}
                         @else
-                            {{ number_format($target) }}
+                            {{ number_format($remaining) }}
                         @endif
                     </p>
+                    <p class="text-xs text-zinc-500 mt-1">remaining ·
+                        @if (!empty($kpi['money']))
+                            MVR {{ $this->formatCompact($achieved) }} / {{ $this->formatCompact($target) }} achieved
+                        @else
+                            {{ number_format($achieved) }} / {{ number_format($target) }} achieved
+                        @endif
+                    </p>
+                    <div class="h-1 bg-zinc-700 rounded-full mt-2 overflow-hidden"><div class="h-full bg-accent" style="width: {{ $this->progressPercent($achieved, $target) }}%"></div></div>
                 </div>
             @endforeach
         </div>
