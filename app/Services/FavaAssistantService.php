@@ -37,14 +37,27 @@ class FavaAssistantService
 
     public function reply(User $user, string $userMessage): AiChatMessage
     {
-        AiChatMessage::create([
+        $userMsg = AiChatMessage::create([
             'user_id' => $user->id,
             'role' => AiChatMessage::ROLE_USER,
             'content' => $userMessage,
         ]);
 
+        return $this->replyTo($user, $userMsg);
+    }
+
+    /**
+     * Same as reply(), but for a user message that's already been persisted —
+     * lets the caller (FavaChat::sendMessage/generateReply) show the user's
+     * own message immediately, in its own fast round trip, before this
+     * slower AI call runs in a second one. Without that split, the browser
+     * shows nothing new — no message bubble, no cleared input — for the
+     * entire duration of the AI call, which reads as the send having failed.
+     */
+    public function replyTo(User $user, AiChatMessage $userMsg): AiChatMessage
+    {
         try {
-            $replyText = $this->runConversation($user);
+            $replyText = $this->runConversation($user, $userMsg);
             $meta = null;
         } catch (\Throwable $e) {
             Log::error('Fava chat failed', ['user_id' => $user->id, 'error' => $e->getMessage()]);
@@ -60,14 +73,29 @@ class FavaAssistantService
         ]);
     }
 
-    private function runConversation(User $user): string
+    /**
+     * Builds the conversation strictly up to $latestUserMessage and always ends
+     * it with that message. The popup and panel chat widgets can both be
+     * mounted on the same page and each starts its own reply() call, so a
+     * plain "latest N rows" query here could race: this call's own history
+     * read might land after a concurrent call has already inserted ITS
+     * assistant reply, making that unrelated reply look like the tail of
+     * this call's conversation — which the API rejects (a turn sequence
+     * can't end on 'assistant'). Anchoring on this message's id avoids that
+     * entirely, regardless of what else gets written concurrently.
+     */
+    private function runConversation(User $user, AiChatMessage $latestUserMessage): string
     {
+        $priorLimit = max(config('ai.anthropic.history_limit') - 1, 0);
+
         $messages = AiChatMessage::where('user_id', $user->id)
+            ->where('id', '<', $latestUserMessage->id)
             ->orderByDesc('id')
-            ->limit(config('ai.anthropic.history_limit'))
+            ->limit($priorLimit)
             ->get()
             ->reverse()
             ->values()
+            ->push($latestUserMessage)
             ->map(fn (AiChatMessage $m) => ['role' => $m->role, 'content' => $m->content])
             ->all();
 

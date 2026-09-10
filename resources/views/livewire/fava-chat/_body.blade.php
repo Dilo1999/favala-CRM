@@ -18,7 +18,7 @@
         @else
             <div class="flex items-start gap-2">
                 <img src="{{ asset('images/zaha/bot/head_assembly.svg') }}" alt="" class="w-6 h-6 shrink-0 mt-0.5 object-contain" />
-                <div class="bg-zinc-700/60 rounded-lg rounded-tl-none px-3 py-2 text-zinc-200 max-w-[85%] whitespace-pre-wrap break-words">{{ $m->content }}</div>
+                <div class="fava-markdown bg-zinc-700/60 rounded-lg rounded-tl-none px-3 py-2 text-zinc-200 max-w-[85%] break-words">{!! $m->rendered_html !!}</div>
             </div>
         @endif
     @empty
@@ -30,7 +30,7 @@
         </div>
     @endforelse
 
-    <div wire:loading wire:target="sendMessage" class="flex items-start gap-2">
+    <div wire:loading wire:target="sendMessage,generateReply" class="flex items-start gap-2">
         <img src="{{ asset('images/zaha/bot/head_assembly.svg') }}" alt="" class="w-6 h-6 shrink-0 mt-0.5 object-contain" />
         <div class="bg-zinc-700/60 rounded-lg rounded-tl-none px-3 py-2 text-zinc-400 text-xs italic">
             Fava is thinking…
@@ -38,10 +38,18 @@
     </div>
 </div>
 
-<form wire:submit.prevent="sendMessage" class="flex items-center gap-2 p-3 border-t border-white/10 shrink-0">
+{{--
+    Two Livewire round trips chained client-side, not one wire:submit call:
+    sendMessage() persists the message and clears the input (fast — the
+    message bubble appears right away), then generateReply() runs the slow
+    AI call and appends the answer. Doing this in a single method would
+    leave the browser showing nothing new — no bubble, no cleared input —
+    for the AI call's whole duration, which reads as the send doing nothing.
+--}}
+<form @submit.prevent="await $wire.sendMessage(); await $wire.generateReply()" class="flex items-center gap-2 p-3 border-t border-white/10 shrink-0">
     <input type="text" wire:model.defer="draft" placeholder="Message Fava…" autocomplete="off"
         class="flex-1 rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
-    <button type="submit" wire:loading.attr="disabled" wire:target="sendMessage"
+    <button type="submit" wire:loading.attr="disabled" wire:target="sendMessage,generateReply"
         class="h-9 w-9 shrink-0 flex items-center justify-center rounded-lg bg-accent hover:bg-accent-hover text-white disabled:opacity-50">
         <x-heroicon-o-paper-airplane class="w-4 h-4" />
     </button>

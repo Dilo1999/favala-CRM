@@ -938,6 +938,128 @@ html {
   50% { opacity: 0.35; box-shadow: 0 0 0 4px rgba(74, 222, 128, 0); }
 }
 
+/* Fava chat — Markdown rendering for assistant replies (tables, bold, lists,
+   code, links). AiChatMessage::rendered_html converts the model's Markdown
+   output to HTML; this styles that HTML to match the CRM's dark zinc/accent
+   theme instead of it inheriting plain browser defaults. */
+.fava-markdown > *:first-child { margin-top: 0; }
+.fava-markdown > *:last-child { margin-bottom: 0; }
+
+.fava-markdown p {
+  margin: 0.5em 0;
+  line-height: 1.55;
+}
+
+.fava-markdown strong {
+  color: #fff;
+  font-weight: 700;
+}
+
+.fava-markdown a {
+  color: var(--color-accent-light);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.fava-markdown a:hover {
+  color: var(--color-accent);
+}
+
+.fava-markdown ul,
+.fava-markdown ol {
+  margin: 0.5em 0;
+  padding-left: 1.25em;
+}
+.fava-markdown ul { list-style: disc; }
+.fava-markdown ol { list-style: decimal; }
+.fava-markdown li { margin: 0.2em 0; }
+.fava-markdown li::marker { color: var(--color-accent); }
+
+.fava-markdown h1, .fava-markdown h2, .fava-markdown h3, .fava-markdown h4 {
+  color: #fff;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0.6em 0 0.3em;
+}
+.fava-markdown h1 { font-size: 1.05rem; }
+.fava-markdown h2 { font-size: 1rem; }
+.fava-markdown h3, .fava-markdown h4 { font-size: 0.9rem; }
+
+.fava-markdown code {
+  background: rgb(0 0 0 / 0.35);
+  border: 1px solid rgb(255 255 255 / 0.08);
+  border-radius: 0.3rem;
+  padding: 0.1em 0.35em;
+  font-size: 0.85em;
+  color: var(--color-accent-light);
+}
+.fava-markdown pre {
+  background: rgb(0 0 0 / 0.35);
+  border: 1px solid rgb(255 255 255 / 0.08);
+  border-radius: 0.5rem;
+  padding: 0.6em 0.75em;
+  overflow-x: auto;
+  margin: 0.5em 0;
+}
+.fava-markdown pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+}
+
+.fava-markdown blockquote {
+  border-left: 2px solid var(--color-accent);
+  margin: 0.5em 0;
+  padding: 0.1em 0.75em;
+  color: #a1a1aa;
+}
+
+.fava-markdown hr {
+  border: none;
+  border-top: 1px solid rgb(255 255 255 / 0.1);
+  margin: 0.75em 0;
+}
+
+/* Tables (Fava's most common structured output — product/customer/quotation
+   lists) get their own card-like surface. display:block + overflow-x lets a
+   wide table scroll within the narrow chat bubble instead of squashing its
+   columns or blowing out the panel's width — the descendants keep their
+   table-row/table-cell display so the layout itself is unaffected. */
+.fava-markdown table {
+  display: block;
+  overflow-x: auto;
+  width: max-content;
+  max-width: 100%;
+  margin: 0.6em 0;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  background: rgb(0 0 0 / 0.25);
+  border-radius: 0.5rem;
+  border: 1px solid rgb(255 255 255 / 0.08);
+}
+.fava-markdown thead {
+  background: rgb(224 122 95 / 0.15);
+}
+.fava-markdown th {
+  color: var(--color-accent-light);
+  font-weight: 700;
+  text-align: left;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+  padding: 0.45em 0.7em;
+  white-space: nowrap;
+  border-bottom: 1px solid rgb(255 255 255 / 0.1);
+}
+.fava-markdown td {
+  padding: 0.4em 0.7em;
+  color: #e4e4e7;
+  white-space: nowrap;
+  border-bottom: 1px solid rgb(255 255 255 / 0.06);
+}
+.fava-markdown tr:last-child td { border-bottom: none; }
+.fava-markdown tbody tr:hover { background: rgb(255 255 255 / 0.04); }
+
 /* Laravel welcome page dot backgrounds */
 @utility bg-dots-darker {
     background-image: url("data:image/svg+xml,%3Csvg width='30' height='30' viewBox='0 0 30 30' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1.22676 0C1.91374 0 2.45351 0.539773 2.45351 1.22676C2.45351 1.91374 1.91374 2.45351 1.22676 2.45351C0.539773 2.45351 0 1.91374 0 1.22676C0 0.539773 0.539773 0 1.22676 0Z' fill='rgba(0,0,0,0.07)'/%3E%3C/svg%3E");

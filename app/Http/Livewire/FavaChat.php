@@ -26,10 +26,15 @@ class FavaChat extends Component
         $this->variant = $variant;
     }
 
-    public function sendMessage(FavaAssistantService $assistant): void
+    /**
+     * Phase 1 of sending — fast: just persists the user's message and clears
+     * the input. Kept separate from generateReply() (the slow AI call) so the
+     * browser shows the message immediately instead of appearing to do
+     * nothing for however long the AI call takes. The two are chained back
+     * to back client-side (see resources/views/livewire/fava-chat/_body.blade.php).
+     */
+    public function sendMessage(): void
     {
-        set_time_limit(60);
-
         $this->validate(['draft' => 'required|string|max:2000']);
 
         $key = 'fava-chat:'.auth()->id();
@@ -40,10 +45,31 @@ class FavaChat extends Component
         }
         RateLimiter::hit($key, 60);
 
-        $message = $this->draft;
+        AiChatMessage::create([
+            'user_id' => auth()->id(),
+            'role' => AiChatMessage::ROLE_USER,
+            'content' => $this->draft,
+        ]);
+
         $this->draft = '';
 
-        $assistant->reply(auth()->user(), $message);
+        $this->emit('favaMessageSent');
+    }
+
+    /** Phase 2 — the slow part: get and persist Fava's reply to the latest pending message. */
+    public function generateReply(FavaAssistantService $assistant): void
+    {
+        set_time_limit(60);
+
+        $latest = AiChatMessage::where('user_id', auth()->id())->latest('id')->first();
+
+        // Nothing pending, or it's already been answered (e.g. this got
+        // triggered twice for the same turn) — nothing to do.
+        if (! $latest || $latest->role !== AiChatMessage::ROLE_USER) {
+            return;
+        }
+
+        $assistant->replyTo(auth()->user(), $latest);
 
         $this->emit('favaMessageSent');
     }
