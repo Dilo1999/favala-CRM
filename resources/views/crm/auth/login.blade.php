@@ -104,11 +104,6 @@
                     </button>
                 </form>
 
-                <p class="text-center text-sm text-zinc-500 mt-6">
-                    New here?
-                    <a href="{{ route('register') }}" class="font-medium text-accent hover:text-accent-light transition-colors">Create an account</a>
-                </p>
-
                 <div class="flex items-center gap-2 justify-center text-xs text-zinc-500 mt-4 pt-4 border-t border-white/10">
                     <x-heroicon-o-shield-check class="w-4 h-4 text-accent" />
                     Your sign-in is protected with encrypted authentication.

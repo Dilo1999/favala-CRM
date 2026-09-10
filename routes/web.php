@@ -40,8 +40,6 @@ Route::get('/', function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [\App\Http\Controllers\Crm\AuthController::class, 'show'])->name('login');
     Route::post('/login', [\App\Http\Controllers\Crm\AuthController::class, 'login']);
-    Route::get('/register', [\App\Http\Controllers\Crm\RegisterController::class, 'show'])->name('register');
-    Route::post('/register', [\App\Http\Controllers\Crm\RegisterController::class, 'register']);
 });
 Route::post('/logout', [\App\Http\Controllers\Crm\AuthController::class, 'logout'])->name('logout')->middleware('auth');
 

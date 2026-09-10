@@ -73,7 +73,7 @@ class UserResource extends Resource
                             ])
                             ->required()
                             ->default(User::STATUS_ACTIVE)
-                            ->helperText('Self-registered accounts start Pending. Switching to Active emails the user that they can now sign in.'),
+                            ->helperText('Switching to Active emails the user that they can now sign in.'),
                     ])
                     ->columns(1),
             ]);
