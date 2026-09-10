@@ -20,6 +20,7 @@
                 <div class="flex-1 flex flex-col items-center justify-start text-center p-6 pt-8">
                     <div class="w-64 -translate-x-2 flex flex-col items-center">
                     <div class="relative zaha-bot-hover mb-4 w-64">
+                        <div class="absolute inset-0 rounded-full bg-accent/20 blur-2xl"></div>
                         <img :src="'{{ asset('images/zaha') }}/' + getCurrentSvg()" :class="'animate-' + getMoodCategory()"
                             alt="Fava" class="zaha-dynamic-bot w-64 h-64 object-contain animate-idle" src="{{ asset('images/zaha/bot-idle.svg') }}" />
                         <div class="zaha-speech-bubble" aria-hidden="true">
