@@ -27,7 +27,7 @@
             </thead>
             <tbody class="divide-y divide-white/10">
                 @forelse ($quotations as $q)
-                    <tr onclick="window.location='{{ route('crm.quotations.edit', $q) }}'" class="hover:bg-zinc-700/40 cursor-pointer">
+                    <tr onclick="window.location='{{ route('crm.quotations.show', $q) }}'" class="hover:bg-zinc-700/40 cursor-pointer">
                         <td class="p-3 text-white font-medium">{{ $q->friendly_id }}</td>
                         <td class="p-3 text-zinc-400">{{ $q->deal?->friendly_id ?? '—' }}</td>
                         <td class="p-3 text-zinc-300">{{ $q->customer?->company_name }}</td>
@@ -37,15 +37,27 @@
                         <td class="p-3 text-white">MVR {{ number_format($q->grand_total, 2) }}</td>
                         <td class="p-3 text-right" @click.stop>
                             <x-row-menu>
-                                <a href="{{ route('crm.quotations.show', $q) }}" class="block px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">View</a>
-                                <a href="{{ route('print.quotation', $q) }}" target="_blank" class="block px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Print</a>
+                                <p class="px-3 pt-1 pb-1.5 text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Actions</p>
+                                <a href="{{ route('crm.quotations.show', $q) }}" class="flex items-center gap-2 px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">
+                                    <x-heroicon-o-eye class="w-4 h-4" /> View
+                                </a>
+                                <a href="{{ route('print.quotation', $q) }}" target="_blank" class="flex items-center gap-2 px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">
+                                    <x-heroicon-o-printer class="w-4 h-4" /> Print
+                                </a>
+                                <a href="{{ route('crm.quotations.edit', $q) }}" class="block px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Edit</a>
                                 @if ($q->status === 'draft')
-                                    <button wire:click="markSent({{ $q->id }})" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Mark as Sent</button>
+                                    <button wire:click="markSent({{ $q->id }})" class="flex items-center gap-2 w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">
+                                        <x-heroicon-o-paper-airplane class="w-4 h-4" /> Mark as Sent
+                                    </button>
                                 @endif
                                 @if ($q->invoices()->count() === 0)
-                                    <button wire:click="convert({{ $q->id }})" wire:confirm="Convert this quotation to an invoice?" class="block w-full text-left px-3 py-1.5 text-green-400 hover:bg-zinc-700">Convert to Invoice</button>
+                                    <button wire:click="convert({{ $q->id }})" wire:confirm="Convert this quotation to an invoice?" class="flex items-center gap-2 w-full text-left px-3 py-1.5 text-green-400 hover:bg-zinc-700">
+                                        <x-heroicon-o-currency-dollar class="w-4 h-4" /> Convert to Invoice
+                                    </button>
                                 @endif
-                                <button wire:click="delete({{ $q->id }})" wire:confirm="Delete this quotation?" class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete</button>
+                                <button wire:click="delete({{ $q->id }})" wire:confirm="Delete this quotation?" class="flex items-center gap-2 w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">
+                                    <x-heroicon-o-trash class="w-4 h-4" /> Delete
+                                </button>
                             </x-row-menu>
                         </td>
                     </tr>
