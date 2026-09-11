@@ -42,7 +42,7 @@
 
                 @if ($statusKey === \App\Models\SalesQuery::STATUS_NEW)
                     <div class="px-4 pt-3">
-                        <button wire:click="$set('showNewQueryForm', true)" class="w-full text-sm font-medium text-accent border border-dashed border-accent/50 rounded-lg py-2">
+                        <button wire:click="$set('showNewQueryForm', true)" class="w-full text-sm font-medium text-accent-light border border-dashed border-accent-light/50 rounded-lg py-2 hover:bg-accent/10">
                             + Log New Query
                         </button>
                     </div>
@@ -52,7 +52,7 @@
                     @forelse ($this->columns[$statusKey] as $query)
                         <div class="bg-zinc-800 border border-white/10 rounded-lg p-3">
                             <div class="flex items-start justify-between gap-2">
-                                <a href="{{ route('crm.queries.show', $query) }}" class="flex items-center gap-2 text-sm font-semibold text-white hover:text-accent min-w-0">
+                                <a href="{{ route('crm.queries.show', $query) }}" class="flex items-center gap-2 text-sm font-semibold text-white hover:text-accent-light min-w-0">
                                     <x-heroicon-o-chat-alt class="w-4 h-4 text-zinc-500 shrink-0" />
                                     <span class="truncate">{{ $query->customer?->company_name }}</span>
                                 </a>
@@ -75,7 +75,7 @@
                             @if (!empty($query->tags))
                                 <div class="flex flex-wrap gap-1 mt-2">
                                     @foreach ($query->tags as $tag)
-                                        <span class="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-accent/10 text-accent">{{ $tag }}</span>
+                                        <span class="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-accent/10 text-accent-light">{{ $tag }}</span>
                                     @endforeach
                                     @if ($query->follow_up)
                                         <span class="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-yellow-500/10 text-yellow-500">Follow-up</span>
