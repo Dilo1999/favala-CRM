@@ -1,24 +1,28 @@
 <div>
     <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <div class="flex items-center gap-3">
-            <a href="{{ route('crm.invoices') }}" class="text-zinc-400 hover:text-white"><x-heroicon-o-arrow-left class="w-5 h-5" /></a>
-            <h1 class="text-2xl font-bold text-white">{{ $record->friendly_id }}</h1>
-            <x-badge :color="$record->payment_status === 'paid' ? 'green' : ($record->payment_status === 'partial' ? 'orange' : 'gray')">{{ ucfirst($record->payment_status) }}</x-badge>
-        </div>
+        <h1 class="text-2xl font-bold text-white">Invoice {{ $record->friendly_id }}</h1>
         <div class="flex gap-2 flex-wrap">
-            <a href="{{ route('print.invoice', $record) }}" target="_blank" class="px-4 py-2 rounded-lg border border-white/10 text-zinc-300 text-sm flex items-center gap-1">
+            <a href="{{ route('crm.invoices') }}" class="px-4 py-2 rounded-lg border border-white/10 text-zinc-200 text-sm font-medium flex items-center gap-1.5 hover:bg-zinc-700">
+                <x-heroicon-o-arrow-left class="w-4 h-4" /> Back
+            </a>
+            <a href="{{ route('print.invoice', $record) }}" target="_blank" class="px-4 py-2 rounded-lg border border-white/10 text-zinc-200 text-sm font-medium flex items-center gap-1.5 hover:bg-zinc-700">
                 <x-heroicon-o-printer class="w-4 h-4" /> Print
             </a>
             <a href="{{ route('crm.deliveries.create', ['invoiceId' => $record->id]) }}"
-               class="px-4 py-2 rounded-lg border border-white/10 text-zinc-300 text-sm {{ $record->isFullyDelivered() ? 'opacity-50 pointer-events-none' : '' }}">
+               class="px-4 py-2 rounded-lg border border-white/10 text-sm font-medium flex items-center gap-1.5 {{ $record->isFullyDelivered() ? 'text-zinc-500 opacity-50 pointer-events-none' : 'text-zinc-200 hover:bg-zinc-700' }}">
+                <x-heroicon-o-truck class="w-4 h-4" />
                 {{ $record->isFullyDelivered() ? 'Fully Scheduled' : 'Create Delivery Note' }}
             </a>
-            <a href="{{ route('crm.returns.create', ['invoiceId' => $record->id]) }}" class="px-4 py-2 rounded-lg border border-white/10 text-zinc-300 text-sm">
-                Create Return
+            <a href="{{ route('crm.returns.create', ['invoiceId' => $record->id]) }}" class="px-4 py-2 rounded-lg border border-white/10 text-zinc-200 text-sm font-medium flex items-center gap-1.5 hover:bg-zinc-700">
+                <x-heroicon-o-reply class="w-4 h-4" /> Create Return
             </a>
             @if ($record->balance_due > 0)
-                <button wire:click="openPaymentForm" class="px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-semibold">
-                    Receive Payment
+                <button wire:click="openPaymentForm" class="px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-semibold flex items-center gap-1.5">
+                    <x-heroicon-o-cash class="w-4 h-4" /> Receive Payment
+                </button>
+            @else
+                <button disabled class="px-4 py-2 rounded-lg bg-accent/50 text-white/70 text-sm font-semibold flex items-center gap-1.5 cursor-not-allowed">
+                    <x-heroicon-o-cash class="w-4 h-4" /> Receive Payment
                 </button>
             @endif
         </div>
@@ -27,54 +31,60 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
             <div class="rounded-xl bg-zinc-800 border border-white/10 p-5">
-                <dl class="grid grid-cols-2 gap-4 text-sm">
-                    <div><dt class="text-zinc-500">Billed To</dt><dd class="text-white">{{ $record->bill_to_name ?? $record->customer?->company_name }} @if($record->bill_to_phone) — {{ $record->bill_to_phone }} @endif</dd></div>
-                    <div><dt class="text-zinc-500">Date</dt><dd class="text-white">{{ $record->invoice_date->format('d M Y') }}</dd></div>
-                    <div><dt class="text-zinc-500">Expiry</dt><dd class="text-white">{{ optional($record->expiry_date)->format('d M Y') ?? '—' }}</dd></div>
-                    <div><dt class="text-zinc-500">Source Quotation</dt><dd class="text-white">
-                        @if ($record->quotation)<a href="{{ route('crm.quotations.show', $record->quotation) }}" class="text-accent hover:underline">{{ $record->quotation->friendly_id }}</a>@else — @endif
-                    </dd></div>
-                    @if ($record->reference_number)
-                        <div><dt class="text-zinc-500">Reference Number</dt><dd class="text-white">{{ $record->reference_number }}</dd></div>
-                    @endif
-                    <div><dt class="text-zinc-500">Sales Staff</dt><dd class="text-white">{{ $record->staff?->name ?? '—' }}</dd></div>
-                </dl>
+                <h3 class="text-lg font-bold text-white mb-4">Invoice Details</h3>
+                <div class="flex flex-wrap justify-between gap-6 text-sm">
+                    <div>
+                        <p class="text-zinc-500">Billed To</p>
+                        <p class="text-white font-bold">{{ $record->bill_to_name ?? $record->customer?->company_name }}</p>
+                        <p class="text-zinc-500">{{ $record->bill_to_phone ?: '-' }}</p>
+                    </div>
+                    <div class="text-right space-y-1">
+                        <p class="text-zinc-400">Invoice #: <span class="text-white font-bold">{{ $record->friendly_id }}</span></p>
+                        <p class="text-zinc-400">Date: <span class="text-white font-bold">{{ $record->invoice_date->format('F jS, Y') }}</span></p>
+                        <p class="text-zinc-400">Expires: <span class="text-white font-bold">{{ optional($record->expiry_date)->format('F jS, Y') ?? '—' }}</span></p>
+                        @if ($record->quotation)
+                            <p class="text-zinc-400">Quotation #: <a href="{{ route('crm.quotations.show', $record->quotation) }}" class="text-white font-bold hover:text-accent-light">{{ $record->quotation->friendly_id }}</a></p>
+                        @endif
+                        @if ($record->reference_number)
+                            <p class="text-zinc-400">Reference #: <span class="text-white font-bold">{{ $record->reference_number }}</span></p>
+                        @endif
+                        @if ($record->staff)
+                            <p class="text-zinc-400">Sales Staff: <span class="text-white font-bold">{{ $record->staff->name }}</span></p>
+                        @endif
+                    </div>
+                </div>
             </div>
 
             <div class="rounded-xl bg-zinc-800 border border-white/10 p-5">
-                <h3 class="font-bold text-white mb-3">Items</h3>
+                <h3 class="text-lg font-bold text-white mb-4">Items</h3>
                 <table class="w-full text-sm">
-                    <thead><tr class="text-left text-zinc-500 text-xs uppercase"><th class="pb-2">#</th><th class="pb-2">Product</th><th class="pb-2 text-right">Qty</th><th class="pb-2 text-right">Rate</th><th class="pb-2 text-right">Amount</th></tr></thead>
+                    <thead><tr class="text-left text-zinc-500 text-xs uppercase"><th class="pb-2">#</th><th class="pb-2">Product</th><th class="pb-2 text-right">Qty</th><th class="pb-2 text-right">Rate</th><th class="pb-2 text-right">Discount</th><th class="pb-2 text-right">Amount</th></tr></thead>
                     <tbody class="divide-y divide-white/10">
                         @foreach ($record->items as $i => $item)
+                            @php($gross = round($item->qty * $item->rate, 2))
+                            @php($discountAmount = $item->discount_type === 'percent' ? round($gross * ($item->discount_value / 100), 2) : min($item->discount_value, $gross))
                             <tr>
                                 <td class="py-2 text-zinc-500">{{ $i + 1 }}</td>
-                                <td class="py-2 text-white">{{ $item->product?->description }} <span class="text-zinc-500 text-xs">{{ $item->product?->code }}</span></td>
-                                <td class="py-2 text-right text-zinc-300">{{ $item->qty }}</td>
+                                <td class="py-2 text-white font-medium">{{ $item->product?->description }} <span class="block text-zinc-500 text-xs font-normal">{{ $item->product?->code }}</span></td>
+                                <td class="py-2 text-right text-zinc-300">{{ $item->qty }} pcs</td>
                                 <td class="py-2 text-right text-zinc-300">MVR {{ number_format($item->rate, 2) }}</td>
+                                <td class="py-2 text-right text-red-400">-MVR {{ number_format($discountAmount, 2) }}</td>
                                 <td class="py-2 text-right text-white">MVR {{ number_format($item->amount, 2) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
-                <div class="border-t border-white/10 mt-3 pt-3 text-sm space-y-1 max-w-xs ml-auto">
-                    <div class="flex justify-between text-zinc-400"><span>Subtotal</span><span class="text-white">MVR {{ number_format($record->subtotal, 2) }}</span></div>
-                    <div class="flex justify-between text-zinc-400"><span>GST ({{ $record->gst_percent }}%)</span><span class="text-white">MVR {{ number_format($record->gst_amount, 2) }}</span></div>
-                    <div class="flex justify-between text-white font-bold"><span>Invoice Total</span><span>MVR {{ number_format($record->grand_total, 2) }}</span></div>
-                    <div class="flex justify-between text-zinc-400"><span>Total Paid</span><span class="text-green-400">MVR {{ number_format($record->amount_paid, 2) }}</span></div>
-                    <div class="flex justify-between text-zinc-400"><span>Balance Due</span><span class="text-white">MVR {{ number_format($record->balance_due, 2) }}</span></div>
-                </div>
             </div>
 
             <div class="rounded-xl bg-zinc-800 border border-white/10 p-5">
-                <h3 class="font-bold text-white mb-3">Payment History</h3>
+                <h3 class="text-lg font-bold text-white mb-4">Payment History</h3>
                 <table class="w-full text-sm">
                     <thead><tr class="text-left text-zinc-500 text-xs uppercase"><th class="pb-2">Date</th><th class="pb-2">Method</th><th class="pb-2">Reference</th><th class="pb-2">Received By</th><th class="pb-2 text-right">Amount</th></tr></thead>
                     <tbody class="divide-y divide-white/10">
                         @forelse ($record->payments as $payment)
                             <tr>
-                                <td class="py-2 text-zinc-300">{{ $payment->date->format('d M Y') }}</td>
-                                <td class="py-2 text-zinc-300">{{ $payment->method }}</td>
+                                <td class="py-2 text-zinc-300">{{ $payment->date->format('F jS, Y') }}</td>
+                                <td class="py-2"><span class="inline-flex items-center px-2.5 py-1 rounded-md bg-zinc-700 text-white text-xs font-semibold">{{ $payment->method }}</span></td>
                                 <td class="py-2 text-zinc-400">{{ $payment->reference ?? '—' }}</td>
                                 <td class="py-2 text-zinc-400">{{ $payment->receivedBy?->name }}</td>
                                 <td class="py-2 text-right text-white">MVR {{ number_format($payment->amount, 2) }}</td>
@@ -88,6 +98,20 @@
         </div>
 
         <div class="space-y-6">
+            <div class="rounded-xl bg-zinc-800 border border-white/10 p-5">
+                <h3 class="text-lg font-bold text-white mb-4">Summary</h3>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between"><span class="text-zinc-400">Subtotal</span><span class="text-white font-semibold">MVR {{ number_format($record->subtotal, 2) }}</span></div>
+                    <div class="flex justify-between"><span class="text-zinc-400">GST ({{ $record->gst_percent }}%)</span><span class="text-white font-semibold">MVR {{ number_format($record->gst_amount, 2) }}</span></div>
+                    <div class="flex justify-between pt-3 border-t border-white/10"><span class="text-white font-bold">Invoice Total</span><span class="text-white font-bold text-lg">MVR {{ number_format($record->grand_total, 2) }}</span></div>
+                    <div class="flex justify-between"><span class="text-zinc-400">Total Paid</span><span class="text-green-400 font-semibold">MVR {{ number_format($record->amount_paid, 2) }}</span></div>
+                    <div class="flex justify-between items-center pt-2">
+                        <span class="text-white font-bold">Balance Due</span>
+                        <span class="inline-flex items-center px-4 py-1.5 rounded-full font-bold text-sm {{ $record->balance_due > 0 ? 'bg-red-600 text-white' : 'bg-green-600 text-white' }}">MVR {{ number_format($record->balance_due, 2) }}</span>
+                    </div>
+                </div>
+            </div>
+
             @if ($record->deliveries->isNotEmpty())
                 <div class="rounded-xl bg-zinc-800 border border-white/10 p-5">
                     <h3 class="font-bold text-white mb-3">Deliveries</h3>
