@@ -79,6 +79,9 @@
         <div class="flex justify-end mb-4">
             <div class="w-64 space-y-1.5">
                 <div class="flex justify-between"><span class="text-gray-700">Sub Total:</span><span class="text-blue-800">MVR {{ number_format($record->subtotal, 2) }}</span></div>
+                @if ($record->discount_value > 0)
+                    <div class="flex justify-between"><span class="text-gray-700">Discount:</span><span class="text-red-500">-MVR {{ number_format($record->subtotal - ($record->grand_total - $record->gst_amount), 2) }}</span></div>
+                @endif
                 <div class="flex justify-between"><span class="text-gray-700">Tax (GST {{ rtrim(rtrim(number_format($record->gst_percent, 2), '0'), '.') }}%):</span><span class="text-blue-800">MVR {{ number_format($record->gst_amount, 2) }}</span></div>
                 <div class="flex justify-between font-bold text-base border-t border-gray-300 pt-1.5"><span>Invoice Total:</span><span>MVR {{ number_format($record->grand_total, 2) }}</span></div>
                 <div class="flex justify-between"><span class="text-gray-700">Total Paid:</span><span class="text-green-700">MVR {{ number_format($record->amount_paid, 2) }}</span></div>

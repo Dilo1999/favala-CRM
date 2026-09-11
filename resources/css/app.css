@@ -603,6 +603,34 @@ span.flatpickr-weekday {
   height: 0;
 }
 
+/* Products table (quotation/deal builders) — a wide horizontally-scrolling
+   table needs an obvious, easy-to-grab scrollbar, not the thin app-wide one. */
+.crm-app .crm-products-scroll {
+  scrollbar-width: auto;
+  scrollbar-color: rgb(228 228 231 / 0.9) transparent;
+}
+
+.crm-app .crm-products-scroll::-webkit-scrollbar {
+  height: 12px;
+}
+
+.crm-app .crm-products-scroll::-webkit-scrollbar-track {
+  background: rgb(255 255 255 / 0.05);
+  border-radius: 9999px;
+}
+
+.crm-app .crm-products-scroll::-webkit-scrollbar-thumb {
+  background: rgb(228 228 231 / 0.9);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.crm-app .crm-products-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgb(255 255 255 / 1);
+  background-clip: padding-box;
+}
+
 /* Sidebar nav — dark-themed scrollbar matching zinc-800 panel */
 .crm-app .crm-sidebar-nav {
   scrollbar-width: thin;

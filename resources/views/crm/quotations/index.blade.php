@@ -27,7 +27,7 @@
             </thead>
             <tbody class="divide-y divide-white/10">
                 @forelse ($quotations as $q)
-                    <tr class="hover:bg-zinc-700/40">
+                    <tr onclick="window.location='{{ route('crm.quotations.edit', $q) }}'" class="hover:bg-zinc-700/40 cursor-pointer">
                         <td class="p-3 text-white font-medium">{{ $q->friendly_id }}</td>
                         <td class="p-3 text-zinc-400">{{ $q->deal?->friendly_id ?? '—' }}</td>
                         <td class="p-3 text-zinc-300">{{ $q->customer?->company_name }}</td>
@@ -35,11 +35,10 @@
                         <td class="p-3 text-zinc-400">{{ $q->staff?->name }}</td>
                         <td class="p-3"><x-badge :color="$q->status === 'sent' ? 'green' : 'gray'">{{ ucfirst($q->status) }}</x-badge></td>
                         <td class="p-3 text-white">MVR {{ number_format($q->grand_total, 2) }}</td>
-                        <td class="p-3 text-right">
+                        <td class="p-3 text-right" @click.stop>
                             <x-row-menu>
                                 <a href="{{ route('crm.quotations.show', $q) }}" class="block px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">View</a>
                                 <a href="{{ route('print.quotation', $q) }}" target="_blank" class="block px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Print</a>
-                                <a href="{{ route('crm.quotations.edit', $q) }}" class="block px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Edit</a>
                                 @if ($q->status === 'draft')
                                     <button wire:click="markSent({{ $q->id }})" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Mark as Sent</button>
                                 @endif

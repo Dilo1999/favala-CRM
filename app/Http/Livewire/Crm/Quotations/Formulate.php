@@ -18,6 +18,10 @@ class Formulate extends Component
 
     public ?int $recordId = null;
 
+    public ?string $friendlyId = null;
+
+    public bool $hasInvoice = false;
+
     // Deliberately untyped, same reason as $record in mount(): this is bound
     // directly via wire:model to a <select> whose "None" option submits "",
     // and PHP's typed-property coercion rejects "" => ?int with a TypeError.
@@ -67,6 +71,9 @@ class Formulate extends Component
 
         if ($record && $record->exists) {
             $this->recordId = $record->id;
+            $this->friendlyId = $record->friendly_id;
+            $this->hasInvoice = $record->invoices()->count() > 0;
+            $this->dealId = $record->deal_id;
             $this->customer_id = $record->customer_id;
             $this->quotation_date = $record->quotation_date->toDateString();
             $this->expiry_date = optional($record->expiry_date)->toDateString() ?? $this->expiry_date;
@@ -309,12 +316,22 @@ class Formulate extends Component
         return redirect()->route('crm.quotations.show', $quotation);
     }
 
+    public function convert()
+    {
+        $quotation = Quotation::findOrFail($this->recordId);
+        $invoice = $quotation->convertToInvoice(auth()->user());
+        session()->flash('status', 'Quotation converted to invoice.');
+
+        return redirect()->route('crm.invoices.show', $invoice);
+    }
+
     public function render()
     {
         return view('crm.quotations.formulate', [
             'customers' => Customer::orderBy('company_name')->limit(300)->pluck('company_name', 'id'),
-            'deals' => $this->recordId ? collect() : Deal::whereDoesntHave('quotations')
-                ->with('customer')->orderByDesc('created_at')->limit(100)->get(),
+            'deals' => $this->recordId
+                ? ($this->dealId ? Deal::with('customer')->whereKey($this->dealId)->get() : collect())
+                : Deal::whereDoesntHave('quotations')->with('customer')->orderByDesc('created_at')->limit(100)->get(),
         ])->layout('layouts.crm');
     }
 }

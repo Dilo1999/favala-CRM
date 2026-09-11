@@ -102,6 +102,9 @@
                 <h3 class="text-lg font-bold text-white mb-4">Summary</h3>
                 <div class="space-y-3 text-sm">
                     <div class="flex justify-between"><span class="text-zinc-400">Subtotal</span><span class="text-white font-semibold">MVR {{ number_format($record->subtotal, 2) }}</span></div>
+                    @if ($record->discount_value > 0)
+                        <div class="flex justify-between"><span class="text-zinc-400">Discount</span><span class="text-red-400 font-semibold">-MVR {{ number_format($record->subtotal - ($record->grand_total - $record->gst_amount), 2) }}</span></div>
+                    @endif
                     <div class="flex justify-between"><span class="text-zinc-400">GST ({{ $record->gst_percent }}%)</span><span class="text-white font-semibold">MVR {{ number_format($record->gst_amount, 2) }}</span></div>
                     <div class="flex justify-between pt-3 border-t border-white/10"><span class="text-white font-bold">Invoice Total</span><span class="text-white font-bold text-lg">MVR {{ number_format($record->grand_total, 2) }}</span></div>
                     <div class="flex justify-between"><span class="text-zinc-400">Total Paid</span><span class="text-green-400 font-semibold">MVR {{ number_format($record->amount_paid, 2) }}</span></div>
