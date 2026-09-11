@@ -1,106 +1,4 @@
 <div>
-    @if ($showForm)
-        {{-- Full-page Create / Edit form --}}
-        <div class="flex items-center justify-between mb-6">
-            <h1 class="text-2xl font-bold text-white">{{ $editingId ? 'Edit Customer' : 'Create Customer' }}</h1>
-        </div>
-
-        <div class="rounded-xl border border-white/10 bg-zinc-800 p-6">
-            <h2 class="text-lg font-bold text-white">Lead Details</h2>
-            <p class="text-sm text-zinc-500 mt-1">Enter the details for the new lead.</p>
-
-            <form wire:submit.prevent="save" class="grid grid-cols-2 gap-x-8 gap-y-5 mt-6">
-                <div>
-                    <label class="block text-sm font-semibold text-zinc-200 mb-2">Company Name</label>
-                    <input type="text" wire:model="form.company_name" placeholder="e.g., Island Builders"
-                        class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5 placeholder-zinc-600" />
-                    @error('form.company_name') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-zinc-200 mb-2">Contact Person</label>
-                    <input type="text" wire:model="form.contact_person" placeholder="e.g., Ahmed Ali"
-                        class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5 placeholder-zinc-600" />
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-zinc-200 mb-2">Phone</label>
-                    <input type="text" wire:model="form.phone" placeholder="e.g., 777-1234"
-                        class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5 placeholder-zinc-600" />
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-zinc-200 mb-2">Tax ID</label>
-                    <input type="text" wire:model="form.tin" placeholder="e.g., TIN12345678"
-                        class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5 placeholder-zinc-600" />
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-zinc-200 mb-2">Atoll</label>
-                    <select wire:model="form.atoll_id" class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5">
-                        <option value="">Select an atoll</option>
-                        @foreach ($atolls as $id => $name) <option value="{{ $id }}">{{ $name }}</option> @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-zinc-200 mb-2">Island / Resort</label>
-                    <select wire:model="form.island_id" class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5">
-                        <option value="">Select an island</option>
-                        @foreach ($this->islands as $id => $name) <option value="{{ $id }}">{{ $name }}</option> @endforeach
-                    </select>
-                </div>
-
-                <div class="col-span-2">
-                    <label class="block text-sm font-semibold text-zinc-200 mb-2">Address</label>
-                    <textarea wire:model="form.address" placeholder="Enter the full address" rows="3"
-                        class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5 placeholder-zinc-600 resize-none"></textarea>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-zinc-200 mb-2">Customer Type</label>
-                    <select wire:model="form.customer_type" class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5">
-                        <option value="">Select a type</option>
-                        @foreach ($customerTypes as $val) <option value="{{ $val }}">{{ $val }}</option> @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-zinc-200 mb-2">Lead Source</label>
-                    <select wire:model="form.lead_source" class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5">
-                        <option value="">Select a source</option>
-                        @foreach ($leadSources as $val) <option value="{{ $val }}">{{ $val }}</option> @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-zinc-200 mb-2">Assigned Staff</label>
-                    <select wire:model="form.assigned_staff_id" class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5">
-                        <option value="">Unassigned</option>
-                        @foreach ($staff as $id => $name) <option value="{{ $id }}">{{ $name }}</option> @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-zinc-200 mb-2">Lead Status</label>
-                    <select wire:model="form.status" class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5">
-                        @foreach ($leadStatuses as $key => $label)
-                            <option value="{{ is_int($key) ? $label : $key }}">{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-zinc-200 mb-2">Date Added</label>
-                    <div class="relative">
-                        <input type="date" wire:model="form.date_added"
-                            class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5" />
-                    </div>
-                    @error('form.date_added') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
-                </div>
-
-                <div class="col-span-2 flex justify-end gap-2 mt-4 pt-4 border-t border-white/10">
-                    <button type="button" wire:click="$set('showForm', false)" class="px-4 py-2 rounded-lg border border-white/10 text-zinc-300 text-sm font-medium hover:bg-zinc-700">Cancel</button>
-                    <button type="submit" class="px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-semibold">{{ $editingId ? 'Save Changes' : 'Create Lead' }}</button>
-                </div>
-            </form>
-        </div>
-    @else
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-white">Leads</h1>
         <div class="flex gap-2">
@@ -178,6 +76,106 @@
     </div>
 
     <div class="mt-4">{{ $leads->links() }}</div>
+
+    {{-- Create / Edit Lead popup --}}
+    @if ($showForm)
+        <div class="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-30" wire:click.self="$set('showForm', false)">
+            <div class="bg-zinc-800 border border-white/10 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
+                <h2 class="text-lg font-bold text-white">{{ $editingId ? 'Edit Customer' : 'Create Customer' }}</h2>
+                <p class="text-sm text-zinc-500 mt-1">Enter the details for the new lead.</p>
+
+                <form wire:submit.prevent="save" class="grid grid-cols-2 gap-x-8 gap-y-5 mt-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-zinc-200 mb-2">Company Name</label>
+                        <input type="text" wire:model="form.company_name" placeholder="e.g., Island Builders"
+                            class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5 placeholder-zinc-600" />
+                        @error('form.company_name') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-zinc-200 mb-2">Contact Person</label>
+                        <input type="text" wire:model="form.contact_person" placeholder="e.g., Ahmed Ali"
+                            class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5 placeholder-zinc-600" />
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-zinc-200 mb-2">Phone</label>
+                        <input type="text" wire:model="form.phone" placeholder="e.g., 777-1234"
+                            class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5 placeholder-zinc-600" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-zinc-200 mb-2">Tax ID</label>
+                        <input type="text" wire:model="form.tin" placeholder="e.g., TIN12345678"
+                            class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5 placeholder-zinc-600" />
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-zinc-200 mb-2">Atoll</label>
+                        <select wire:model="form.atoll_id" class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5">
+                            <option value="">Select an atoll</option>
+                            @foreach ($atolls as $id => $name) <option value="{{ $id }}">{{ $name }}</option> @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-zinc-200 mb-2">Island / Resort</label>
+                        <select wire:model="form.island_id" class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5">
+                            <option value="">Select an island</option>
+                            @foreach ($this->islands as $id => $name) <option value="{{ $id }}">{{ $name }}</option> @endforeach
+                        </select>
+                    </div>
+
+                    <div class="col-span-2">
+                        <label class="block text-sm font-semibold text-zinc-200 mb-2">Address</label>
+                        <textarea wire:model="form.address" placeholder="Enter the full address" rows="3"
+                            class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5 placeholder-zinc-600 resize-none"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-zinc-200 mb-2">Customer Type</label>
+                        <select wire:model="form.customer_type" class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5">
+                            <option value="">Select a type</option>
+                            @foreach ($customerTypes as $val) <option value="{{ $val }}">{{ $val }}</option> @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-zinc-200 mb-2">Lead Source</label>
+                        <select wire:model="form.lead_source" class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5">
+                            <option value="">Select a source</option>
+                            @foreach ($leadSources as $val) <option value="{{ $val }}">{{ $val }}</option> @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-zinc-200 mb-2">Assigned Staff</label>
+                        <select wire:model="form.assigned_staff_id" class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5">
+                            <option value="">Unassigned</option>
+                            @foreach ($staff as $id => $name) <option value="{{ $id }}">{{ $name }}</option> @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-zinc-200 mb-2">Lead Status</label>
+                        <select wire:model="form.status" class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5">
+                            @foreach ($leadStatuses as $key => $label)
+                                <option value="{{ is_int($key) ? $label : $key }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-zinc-200 mb-2">Date Added</label>
+                        <div class="relative">
+                            <input type="date" wire:model="form.date_added"
+                                class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm px-4 py-2.5" />
+                        </div>
+                        @error('form.date_added') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="col-span-2 flex justify-end gap-2 mt-4 pt-4 border-t border-white/10">
+                        <button type="button" wire:click="$set('showForm', false)" class="px-4 py-2 rounded-lg border border-white/10 text-zinc-300 text-sm font-medium hover:bg-zinc-700">Cancel</button>
+                        <button type="submit" class="px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-semibold">{{ $editingId ? 'Save Changes' : 'Create Lead' }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     @endif
 
     {{-- Import modal --}}
