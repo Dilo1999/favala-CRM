@@ -1,62 +1,69 @@
 <div>
     <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-white">Activities</h1>
-        <button wire:click="create" class="flex items-center gap-1 px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-semibold">
-            <x-heroicon-o-plus class="w-4 h-4" /> Log Activity
+        <h1 class="text-2xl font-bold text-white">Activity Log</h1>
+        <button wire:click="create" class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-semibold">
+            <x-heroicon-o-plus-circle class="w-4 h-4" /> Log Activity
         </button>
     </div>
 
-    <div class="flex flex-wrap gap-3 mb-4 items-end" x-data="dateRangePicker('{{ $dateFrom }}', '{{ $dateTo }}')">
-        <div class="relative flex-1 min-w-[220px]">
-            <x-heroicon-o-search class="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input type="text" wire:model.debounce.400ms="search" placeholder="Search customer, outcome, phone…" class="w-full pl-9 rounded-lg bg-zinc-800 border-white/10 text-white text-sm" />
-        </div>
-        <div class="relative w-56" wire:ignore>
-            <x-heroicon-o-calendar class="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input type="text" x-ref="input" readonly placeholder="Select date range…" class="w-full pl-9 rounded-lg bg-zinc-800 border-white/10 text-white text-sm cursor-pointer" />
-        </div>
-        <select wire:model="typeFilter" class="rounded-lg bg-zinc-800 border-white/10 text-white text-sm">
-            <option value="">All Types</option>
-            <option value="Call">Call</option><option value="Meeting">Meeting</option><option value="Email">Email</option><option value="Visit">Visit</option>
-        </select>
-        <select wire:model="statusFilter" class="rounded-lg bg-zinc-800 border-white/10 text-white text-sm">
-            <option value="">All Statuses</option>
-            <option value="follow_up">Follow-up</option><option value="closed">Closed</option>
-        </select>
-        <button wire:click="clearFilters" x-on:click="clear()" class="px-3 py-2 rounded-lg border border-white/10 text-zinc-300 text-sm">Clear Filters</button>
-    </div>
+    <div class="rounded-xl border border-white/10 bg-zinc-800 p-6">
+        <h2 class="text-lg font-bold text-white">All Activities</h2>
+        <p class="text-sm text-zinc-500 mt-1">A log of all recorded calls, meetings, and other interactions.</p>
 
-    <div class="rounded-xl border border-white/10 bg-zinc-800 overflow-x-auto">
-        <table class="w-full text-sm">
-            <thead>
-                <tr class="text-left text-zinc-500 text-xs uppercase border-b border-white/10">
-                    <th class="p-3">Type</th><th class="p-3">Customer</th><th class="p-3">Outcome & Details</th><th class="p-3">Status</th><th class="p-3">Done By</th><th class="p-3">Date</th><th class="p-3"></th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-white/10">
-                @forelse ($activities as $activity)
-                    <tr class="hover:bg-zinc-700/40">
-                        <td class="p-3 text-white">{{ $activity->type }}</td>
-                        <td class="p-3 text-zinc-300">{{ $activity->customer?->company_name }}<span class="block text-xs text-zinc-500">{{ $activity->customer?->phone }}</span></td>
-                        <td class="p-3 text-zinc-400 max-w-xs">
-                            <span class="text-zinc-200">{{ $activity->outcome }}</span>
-                            <span class="block text-xs truncate">{{ $activity->details }}</span>
-                        </td>
-                        <td class="p-3"><x-badge :color="$activity->status === 'closed' ? 'green' : 'orange'">{{ $activity->status === 'closed' ? 'Closed' : 'Follow-up' }}</x-badge></td>
-                        <td class="p-3 text-zinc-400">{{ $activity->doneBy?->name }}</td>
-                        <td class="p-3 text-zinc-400">{{ optional($activity->date)->format('d M Y') }}</td>
-                        <td class="p-3 text-right">
-                            <x-row-menu>
-                                <button wire:click="edit({{ $activity->id }})" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Edit</button>
-                                <button wire:click="delete({{ $activity->id }})" wire:confirm="Delete this activity?" class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete</button>
-                            </x-row-menu>
-                        </td>
+        <div class="flex flex-wrap gap-3 mt-4 mb-5 items-end" x-data="dateRangePicker('{{ $dateFrom }}', '{{ $dateTo }}')">
+            <div class="relative flex-1 min-w-[220px]">
+                <x-heroicon-o-search class="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input type="text" wire:model.debounce.400ms="search" placeholder="Search customer, outcome, phone…" class="w-full pl-9 rounded-lg bg-zinc-900 border-white/10 text-white text-sm" />
+            </div>
+            <div class="relative w-56" wire:ignore>
+                <x-heroicon-o-calendar class="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input type="text" x-ref="input" readonly placeholder="Pick a date range" class="w-full pl-9 rounded-lg bg-zinc-900 border-white/10 text-white text-sm cursor-pointer" />
+            </div>
+            <select wire:model="typeFilter" class="rounded-lg bg-zinc-900 border-white/10 text-white text-sm">
+                <option value="">All Types</option>
+                <option value="Call">Call</option><option value="Meeting">Meeting</option><option value="Email">Email</option><option value="Visit">Visit</option>
+            </select>
+            <select wire:model="statusFilter" class="rounded-lg bg-zinc-900 border-white/10 text-white text-sm">
+                <option value="">All Statuses</option>
+                <option value="follow_up">Follow-up</option><option value="closed">Closed</option>
+            </select>
+            <button wire:click="clearFilters" x-on:click="clear()" class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-white/10 text-zinc-300 text-sm hover:bg-zinc-700">
+                <x-heroicon-o-x class="w-4 h-4" /> Clear Filters
+            </button>
+        </div>
+
+        <div class="overflow-x-auto -mx-6">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-left text-zinc-500 text-xs uppercase border-b border-white/10">
+                        <th class="px-6 py-3">Type</th><th class="px-6 py-3">Customer</th><th class="px-6 py-3">Outcome & Details</th><th class="px-6 py-3">Status</th><th class="px-6 py-3">Done By</th><th class="px-6 py-3">Date</th><th class="px-6 py-3"></th>
                     </tr>
-                @empty
-                    <tr><td colspan="7" class="p-6 text-center text-zinc-500">No activities found.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody class="divide-y divide-white/10">
+                    @forelse ($activities as $activity)
+                        <tr class="hover:bg-zinc-700/40">
+                            <td class="px-6 py-3 text-white font-medium">{{ $activity->type }}</td>
+                            <td class="px-6 py-3 text-white font-medium">{{ $activity->customer?->company_name }}<span class="block text-xs text-zinc-500 font-normal">{{ $activity->customer?->phone }}</span></td>
+                            <td class="px-6 py-3 text-zinc-400 max-w-xs">
+                                <span class="text-zinc-200">{{ $activity->outcome }}</span>
+                                <span class="block text-xs truncate">{{ $activity->details }}</span>
+                            </td>
+                            <td class="px-6 py-3"><x-badge :color="$activity->status === 'closed' ? 'green' : 'orange'">{{ $activity->status === 'closed' ? 'Closed' : 'Follow-up' }}</x-badge></td>
+                            <td class="px-6 py-3 text-zinc-400">{{ $activity->doneBy?->name }}</td>
+                            <td class="px-6 py-3 text-zinc-400 whitespace-nowrap">{{ optional($activity->date)->format('M d, Y, g:i A') }}</td>
+                            <td class="px-6 py-3 text-right">
+                                <x-row-menu>
+                                    <button wire:click="edit({{ $activity->id }})" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Edit</button>
+                                    <button wire:click="delete({{ $activity->id }})" wire:confirm="Delete this activity?" class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete</button>
+                                </x-row-menu>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="7" class="px-6 py-6 text-center text-zinc-500">No activities found.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
     <div class="mt-4">{{ $activities->links() }}</div>
 
