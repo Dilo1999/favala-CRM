@@ -16,7 +16,7 @@
             </thead>
             <tbody class="divide-y divide-white/10">
                 @forelse ($deliveries as $delivery)
-                    <tr class="hover:bg-zinc-700/40">
+                    <tr onclick="window.location='{{ route('crm.deliveries.show', $delivery) }}'" class="hover:bg-zinc-700/40 cursor-pointer">
                         <td class="p-3 text-white font-medium">{{ $delivery->friendly_id }}</td>
                         <td class="p-3 text-zinc-300">{{ $delivery->customer?->company_name }}</td>
                         <td class="p-3 text-zinc-400">{{ $delivery->contact_name }}<span class="block text-xs">{{ $delivery->contact_phone }}</span></td>
@@ -24,7 +24,7 @@
                         <td class="p-3"><x-badge :color="$delivery->status === 'completed' ? 'green' : 'orange'">{{ ucfirst($delivery->status) }}</x-badge></td>
                         <td class="p-3 text-zinc-400">{{ optional($delivery->deadline_date)->format('d M Y') }} {{ $delivery->deadline_time }}</td>
                         <td class="p-3 {{ $delivery->isOverdue() ? 'text-red-400' : 'text-zinc-400' }}">{{ $delivery->time_left }}</td>
-                        <td class="p-3 text-right">
+                        <td class="p-3 text-right" @click.stop>
                             <x-row-menu>
                                 <a href="{{ route('crm.deliveries.show', $delivery) }}" class="block px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">View</a>
                                 <button wire:click="editDelivery({{ $delivery->id }})" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Edit</button>

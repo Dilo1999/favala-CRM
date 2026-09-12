@@ -8,6 +8,9 @@
         <div class="flex gap-2">
             <button wire:click="editDelivery({{ $record->id }})" class="px-4 py-2 rounded-lg border border-white/10 text-zinc-300 text-sm">Edit</button>
             <a href="{{ route('print.delivery', $record) }}" target="_blank" class="px-4 py-2 rounded-lg border border-white/10 text-zinc-300 text-sm">Print</a>
+            @if ($record->invoice_id)
+                <a href="{{ route('crm.returns.create', ['invoiceId' => $record->invoice_id]) }}" class="px-4 py-2 rounded-lg border border-white/10 text-zinc-300 text-sm">Create Return</a>
+            @endif
             @if ($record->status === 'pending')
                 <button wire:click="rescheduleDelivery({{ $record->id }})" class="px-4 py-2 rounded-lg border border-white/10 text-zinc-300 text-sm">Reschedule</button>
                 <button wire:click="markComplete" class="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white text-sm font-semibold">Mark as Complete</button>

@@ -65,6 +65,7 @@
                                 <select wire:change="updateUserRole({{ $user->id }}, $event.target.value)" class="rounded-lg bg-zinc-700 border-white/10 text-white text-xs">
                                     <option value="admin" @selected($user->role === 'admin')>Admin</option>
                                     <option value="member" @selected($user->role === 'member')>Member</option>
+                                    <option value="management" @selected($user->role === 'management')>Management</option>
                                 </select>
                             </td>
                             <td class="px-6 py-4">
@@ -106,6 +107,7 @@
                             <label class="block text-xs text-zinc-400 mb-1">Role</label>
                             <select wire:model="inviteForm.role" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm">
                                 <option value="member">Member</option>
+                                <option value="management">Management</option>
                                 <option value="admin">Admin</option>
                             </select>
                         </div>

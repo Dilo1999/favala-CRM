@@ -6,6 +6,11 @@
             <x-badge :color="match($record->status) { 'refunded' => 'green', 'processed' => 'blue', default => 'orange' }">
                 {{ \App\Models\SalesReturn::STATUSES[$record->status] }}
             </x-badge>
+            @if ($record->status !== \App\Models\SalesReturn::STATUS_REFUNDED && $record->approval_status === 'pending')
+                <x-badge color="gray">Awaiting Approval</x-badge>
+            @elseif ($record->approval_status === 'rejected')
+                <x-badge color="red">Rejected</x-badge>
+            @endif
         </div>
         <div class="flex gap-2 flex-wrap">
             @if ($record->status === \App\Models\SalesReturn::STATUS_REFUNDED)
@@ -15,15 +20,36 @@
                 </a>
             @endif
             @foreach (\App\Models\SalesReturn::STATUSES as $val => $label)
-                @if ($val !== $record->status)
+                @if ($val !== $record->status && $val !== \App\Models\SalesReturn::STATUS_REFUNDED)
                     <button wire:click="updateStatus('{{ $val }}')"
                             class="px-4 py-2 rounded-lg border border-white/10 text-zinc-200 text-sm font-medium hover:bg-zinc-700">
                         Mark {{ $label }}
                     </button>
                 @endif
             @endforeach
+            @if ($record->status !== \App\Models\SalesReturn::STATUS_REFUNDED && $record->approval_status === 'pending' && auth()->user()->canApproveReturns())
+                <button wire:click="reject" class="px-4 py-2 rounded-lg border border-white/10 text-red-400 text-sm font-semibold hover:bg-zinc-700">Reject</button>
+                <button wire:click="approve" class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white text-sm font-semibold">
+                    <x-heroicon-o-check class="w-4 h-4" /> Approve &amp; Refund
+                </button>
+            @endif
         </div>
     </div>
+
+    @if ($record->status !== \App\Models\SalesReturn::STATUS_REFUNDED && $record->approval_status === 'pending')
+        <div class="rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-sm px-4 py-3 mb-6">
+            @if (auth()->user()->canApproveReturns())
+                This return is awaiting your review. Approve to process the refund, or reject to decline it.
+            @else
+                This return is pending approval from Management before it can be refunded.
+            @endif
+        </div>
+    @elseif ($record->approval_status === 'rejected')
+        <div class="rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm px-4 py-3 mb-6">
+            This return was rejected by {{ $record->approvedBy?->name ?? 'Management' }}
+            @if ($record->approved_at) on {{ $record->approved_at->format('d M Y') }} @endif.
+        </div>
+    @endif
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
@@ -82,6 +108,12 @@
                                 CN-{{ str_pad($record->id, 4, '0', STR_PAD_LEFT) }}
                             </a>
                         </div>
+                        @if ($record->approvedBy)
+                            <div class="flex justify-between text-zinc-400">
+                                <span>Approved By</span>
+                                <span class="text-white font-medium">{{ $record->approvedBy->name }}</span>
+                            </div>
+                        @endif
                     @endif
                 </div>
             </div>

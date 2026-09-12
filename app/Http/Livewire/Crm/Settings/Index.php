@@ -62,7 +62,7 @@ class Index extends Component
             'inviteForm.name' => 'required|string|max:191',
             'inviteForm.email' => 'required|email|unique:users,email',
             'inviteForm.password' => 'required|string|min:6',
-            'inviteForm.role' => 'required|in:admin,member',
+            'inviteForm.role' => 'required|in:admin,member,management',
         ]);
 
         User::create($this->inviteForm + ['status' => 'active']);

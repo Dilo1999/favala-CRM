@@ -10,16 +10,32 @@ class Index extends Component
 {
     use WithBasicTable;
 
+    /** Pending/Processed only — reaching Refunded goes through approve() below. */
     public function updateStatus(int $id, string $status): void
     {
+        abort_if($status === SalesReturn::STATUS_REFUNDED, 403);
+
         SalesReturn::findOrFail($id)->transitionTo($status);
 
-        session()->flash(
-            'status',
-            $status === SalesReturn::STATUS_REFUNDED
-                ? 'Return marked Refunded — invoice balance/paid amount updated.'
-                : 'Return status updated.'
-        );
+        session()->flash('status', 'Return status updated.');
+    }
+
+    public function approve(int $id): void
+    {
+        abort_unless(auth()->user()->canApproveReturns(), 403);
+
+        SalesReturn::findOrFail($id)->approve(auth()->user());
+
+        session()->flash('status', 'Return approved and refunded — invoice balance/paid amount updated.');
+    }
+
+    public function reject(int $id): void
+    {
+        abort_unless(auth()->user()->canApproveReturns(), 403);
+
+        SalesReturn::findOrFail($id)->reject(auth()->user());
+
+        session()->flash('status', 'Return rejected.');
     }
 
     public function render()

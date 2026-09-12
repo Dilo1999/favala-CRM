@@ -59,12 +59,13 @@ class UserResource extends Resource
                             ->options([
                                 User::ROLE_ADMIN => 'Admin',
                                 User::ROLE_MEMBER => 'Member (CRM staff)',
+                                User::ROLE_MANAGEMENT => 'Management',
                                 User::ROLE_EDITOR => 'Editor',
                                 User::ROLE_VIEWER => 'Viewer',
                             ])
                             ->required()
                             ->default(User::ROLE_MEMBER)
-                            ->helperText('Admin: full access including Settings and Users. Member: CRM staff (deals, quotations, invoices, etc). Editor/Viewer: legacy site-content roles.'),
+                            ->helperText('Admin: full access including Settings and Users. Member: CRM staff (deals, quotations, invoices, etc). Management: reviews and approves sales returns before refund. Editor/Viewer: legacy site-content roles.'),
                         Select::make('status')
                             ->options([
                                 User::STATUS_PENDING => 'Pending approval',

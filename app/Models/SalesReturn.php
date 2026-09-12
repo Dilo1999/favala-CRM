@@ -27,11 +27,21 @@ class SalesReturn extends Model
         self::STATUS_REFUNDED => 'Refunded',
     ];
 
-    protected $fillable = ['invoice_id', 'customer_id', 'date', 'status', 'refund_applied_at', 'value', 'reason', 'created_by'];
+    public const APPROVAL_PENDING = 'pending';
+
+    public const APPROVAL_APPROVED = 'approved';
+
+    public const APPROVAL_REJECTED = 'rejected';
+
+    protected $fillable = [
+        'invoice_id', 'customer_id', 'date', 'status', 'refund_applied_at', 'value', 'reason', 'created_by',
+        'approval_status', 'approved_by', 'approved_at',
+    ];
 
     protected $casts = [
         'date' => 'date',
         'refund_applied_at' => 'datetime',
+        'approved_at' => 'datetime',
     ];
 
     public static function friendlyIdPrefix(): string
@@ -52,6 +62,11 @@ class SalesReturn extends Model
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function approvedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 
     public function items(): HasMany
@@ -131,9 +146,17 @@ class SalesReturn extends Model
         });
     }
 
-    /** Move to a new status, applying/reversing the invoice credit as the refunded state is entered/left. */
+    /**
+     * Move to a new status, applying/reversing the invoice credit as the refunded state
+     * is entered/left. Refunded can only be reached through approve() below — a return
+     * must be cleared by Management/Admin first, so this guards against skipping that.
+     */
     public function transitionTo(string $status): void
     {
+        if ($status === self::STATUS_REFUNDED && $this->approval_status !== self::APPROVAL_APPROVED) {
+            throw new \RuntimeException('This return must be approved before it can be marked Refunded.');
+        }
+
         $wasRefunded = $this->status === self::STATUS_REFUNDED;
         $becomingRefunded = $status === self::STATUS_REFUNDED;
 
@@ -144,5 +167,27 @@ class SalesReturn extends Model
         } elseif ($wasRefunded && ! $becomingRefunded) {
             $this->reverseRefundFromInvoice();
         }
+    }
+
+    /** Management/Admin clears a pending return for refund — approving and refunding happen together. */
+    public function approve(User $approver): void
+    {
+        $this->forceFill([
+            'approval_status' => self::APPROVAL_APPROVED,
+            'approved_by' => $approver->id,
+            'approved_at' => now(),
+        ])->save();
+
+        $this->transitionTo(self::STATUS_REFUNDED);
+    }
+
+    /** Management/Admin declines a pending return — it stays in its current status, never refunded. */
+    public function reject(User $approver): void
+    {
+        $this->forceFill([
+            'approval_status' => self::APPROVAL_REJECTED,
+            'approved_by' => $approver->id,
+            'approved_at' => now(),
+        ])->save();
     }
 }

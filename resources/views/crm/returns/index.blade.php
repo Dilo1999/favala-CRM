@@ -24,6 +24,11 @@
                             <x-badge :color="match($return->status) { 'refunded' => 'green', 'processed' => 'blue', default => 'orange' }">
                                 {{ \App\Models\SalesReturn::STATUSES[$return->status] }}
                             </x-badge>
+                            @if ($return->status !== 'refunded' && $return->approval_status === 'pending')
+                                <x-badge color="gray">Awaiting Approval</x-badge>
+                            @elseif ($return->approval_status === 'rejected')
+                                <x-badge color="red">Rejected</x-badge>
+                            @endif
                         </td>
                         <td class="p-3 text-white">MVR {{ number_format($return->value, 2) }}</td>
                         <td class="p-3 text-right" @click.stop>
@@ -32,8 +37,14 @@
                                     <x-heroicon-o-eye class="w-4 h-4" /> View
                                 </a>
                                 @foreach (\App\Models\SalesReturn::STATUSES as $val => $label)
-                                    <button wire:click="updateStatus({{ $return->id }}, '{{ $val }}')" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Mark {{ $label }}</button>
+                                    @if ($val !== 'refunded')
+                                        <button wire:click="updateStatus({{ $return->id }}, '{{ $val }}')" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Mark {{ $label }}</button>
+                                    @endif
                                 @endforeach
+                                @if ($return->status !== 'refunded' && $return->approval_status === 'pending' && auth()->user()->canApproveReturns())
+                                    <button wire:click="approve({{ $return->id }})" class="block w-full text-left px-3 py-1.5 text-green-400 hover:bg-zinc-700">Approve &amp; Refund</button>
+                                    <button wire:click="reject({{ $return->id }})" class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Reject</button>
+                                @endif
                             </x-row-menu>
                         </td>
                     </tr>

@@ -23,6 +23,9 @@ class User extends Authenticatable implements FilamentUser
 
     public const ROLE_VIEWER = 'viewer';
 
+    /** Reviews and approves pending sales returns before they can be refunded. */
+    public const ROLE_MANAGEMENT = 'management';
+
     public const STATUS_PENDING = 'pending';
 
     public const STATUS_ACTIVE = 'active';
@@ -66,7 +69,7 @@ class User extends Authenticatable implements FilamentUser
     public function canAccessFilament(): bool
     {
         return $this->status === 'active' && in_array($this->role, [
-            self::ROLE_ADMIN, self::ROLE_MEMBER, self::ROLE_EDITOR, self::ROLE_VIEWER,
+            self::ROLE_ADMIN, self::ROLE_MEMBER, self::ROLE_EDITOR, self::ROLE_VIEWER, self::ROLE_MANAGEMENT,
         ], true);
     }
 
@@ -90,6 +93,17 @@ class User extends Authenticatable implements FilamentUser
         return $this->role === self::ROLE_VIEWER;
     }
 
+    public function isManagement(): bool
+    {
+        return $this->role === self::ROLE_MANAGEMENT;
+    }
+
+    /** Management reviews pending sales returns; Admin retains override authority everywhere. */
+    public function canApproveReturns(): bool
+    {
+        return $this->isAdmin() || $this->isManagement();
+    }
+
     /** CRM staff = anyone who can be assigned deals/leads/tasks (admins + members). */
     public function scopeCrmStaff($query)
     {
@@ -98,7 +112,8 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessCrm(): bool
     {
-        return $this->status === self::STATUS_ACTIVE && in_array($this->role, [self::ROLE_ADMIN, self::ROLE_MEMBER], true);
+        return $this->status === self::STATUS_ACTIVE
+            && in_array($this->role, [self::ROLE_ADMIN, self::ROLE_MEMBER, self::ROLE_MANAGEMENT], true);
     }
 
     public function isPending(): bool
