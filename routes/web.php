@@ -79,6 +79,8 @@ Route::middleware(['auth', 'crm'])->group(function () {
 
     Route::get('/returns', \App\Http\Livewire\Crm\Returns\Index::class)->name('crm.returns');
     Route::get('/returns/create', \App\Http\Livewire\Crm\Returns\Create::class)->name('crm.returns.create');
+    Route::get('/returns/{record}', \App\Http\Livewire\Crm\Returns\Show::class)->name('crm.returns.show');
+    Route::get('/returns/{record}/credit-note', [\App\Http\Controllers\Crm\PrintController::class, 'creditNote'])->name('print.credit-note');
 
     Route::get('/receipts', \App\Http\Livewire\Crm\Receipts\Index::class)->name('crm.receipts');
 

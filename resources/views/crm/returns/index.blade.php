@@ -15,7 +15,7 @@
             </thead>
             <tbody class="divide-y divide-white/10">
                 @forelse ($returns as $return)
-                    <tr class="hover:bg-zinc-700/40">
+                    <tr onclick="window.location='{{ route('crm.returns.show', $return) }}'" class="hover:bg-zinc-700/40 cursor-pointer">
                         <td class="p-3 text-white font-medium">{{ $return->friendly_id }}</td>
                         <td class="p-3 text-zinc-400">{{ $return->date->format('d M Y') }}</td>
                         <td class="p-3 text-zinc-300">{{ $return->invoice?->friendly_id }}</td>
@@ -26,8 +26,11 @@
                             </x-badge>
                         </td>
                         <td class="p-3 text-white">MVR {{ number_format($return->value, 2) }}</td>
-                        <td class="p-3 text-right">
+                        <td class="p-3 text-right" @click.stop>
                             <x-row-menu>
+                                <a href="{{ route('crm.returns.show', $return) }}" class="flex items-center gap-2 px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">
+                                    <x-heroicon-o-eye class="w-4 h-4" /> View
+                                </a>
                                 @foreach (\App\Models\SalesReturn::STATUSES as $val => $label)
                                     <button wire:click="updateStatus({{ $return->id }}, '{{ $val }}')" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Mark {{ $label }}</button>
                                 @endforeach
