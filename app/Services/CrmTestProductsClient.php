@@ -7,27 +7,29 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Fetches "Source: CRM" product details from the temporary crm_test API
- * (see CrmTestProductsController) instead of reading them straight out of
- * the local `products` table — a prototype of moving that data behind a
- * separate service, keyed by `source_product_id` (the original local
- * `products.id`). Shop Catalog products never go through this — they keep
- * using the existing `shop_catalog` DB connection directly.
+ * Fetches "Source: CRM" product details from the standalone crm-test-service
+ * application (see crm-test-service/ at the repo root) instead of reading
+ * them straight out of the local `products` table — a genuinely separate PHP
+ * process with its own SQLite database, reached only over HTTP (no shared DB
+ * connection or in-process call) and authenticated with an API key (see
+ * services.crm_test.api_key / CRM_TEST_SERVICE_API_KEY, which must match
+ * API_KEY in crm-test-service/.env). Keyed by `source_product_id` (the
+ * original local `products.id`). Shop Catalog products never go through
+ * this — they keep using the existing `shop_catalog` DB connection directly.
  */
 class CrmTestProductsClient
 {
     /** @return Collection<int, array> keyed by source_product_id */
     public function all(): Collection
     {
+        $base = rtrim(config('services.crm_test.url'), '/');
+
         try {
-            // Built from the current request's own scheme+host (not the APP_URL
-            // config) since this is a loopback call to the same app instance
-            // that's serving the page — that stays correct no matter which
-            // host/port the dev server is actually reachable on.
-            $base = request()->getSchemeAndHttpHost();
-            $response = Http::timeout(3)->get($base.'/api/crm-test/products');
+            $response = Http::timeout(3)
+                ->withHeaders(['X-Api-Key' => config('services.crm_test.api_key')])
+                ->get("{$base}/products");
         } catch (\Throwable $e) {
-            Log::warning('crm_test products API call failed: '.$e->getMessage());
+            Log::warning('crm-test-service call failed: '.$e->getMessage());
 
             return collect();
         }

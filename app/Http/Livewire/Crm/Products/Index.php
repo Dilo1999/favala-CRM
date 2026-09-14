@@ -146,8 +146,8 @@ class Index extends Component
             ->paginate(15);
 
         // Source: CRM rows (shop_catalog_product_id is null) are, for testing,
-        // displayed from the separate crm_test API instead of straight off this
-        // model — Source: Shop Catalog rows are left completely untouched.
+        // displayed from the standalone crm-test-service app instead of straight
+        // off this model — Source: Shop Catalog rows are left completely untouched.
         $apiProducts = $crmTestProducts->all();
 
         $products->getCollection()->transform(function (Product $product) use ($apiProducts) {

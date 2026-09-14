@@ -35,4 +35,12 @@ return [
         'api_key' => env('BREVO_API_KEY'),
     ],
 
+    // The standalone crm-test-service app (see crm-test-service/ at the repo
+    // root) — a genuinely separate PHP process with its own SQLite database,
+    // reached only over HTTP. Serves "Source: CRM" product data for testing.
+    'crm_test' => [
+        'url' => env('CRM_TEST_SERVICE_URL', 'http://127.0.0.1:8090'),
+        'api_key' => env('CRM_TEST_SERVICE_API_KEY'),
+    ],
+
 ];

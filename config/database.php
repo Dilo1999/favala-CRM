@@ -96,19 +96,6 @@ return [
             'sslmode' => 'prefer',
         ],
 
-        // Temporary sandbox database for "Source: CRM" products (see the Products
-        // page badge) — a self-contained SQLite file that mirrors those rows out
-        // of the main `products` table so they can be fetched back in via an API
-        // call instead of a direct DB read, purely for testing that approach.
-        // Shop Catalog products are untouched by this and keep using the existing
-        // `shop_catalog` connection above.
-        'crm_test' => [
-            'driver' => 'sqlite',
-            'database' => env('CRM_TEST_DB_DATABASE', database_path('crm_test.sqlite')),
-            'prefix' => '',
-            'foreign_key_constraints' => true,
-        ],
-
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DATABASE_URL'),
