@@ -25,8 +25,8 @@ $products = json_decode(file_get_contents($seedPath), true);
 $pdo = crm_test_service_db();
 
 $stmt = $pdo->prepare(<<<'SQL'
-    INSERT INTO products (source_product_id, code, legacy_code, description, category, brand, unit_of_measure)
-    VALUES (:source_product_id, :code, :legacy_code, :description, :category, :brand, :unit_of_measure)
+    INSERT INTO products (source_product_id, code, legacy_code, description, category, brand, unit_of_measure, quantity)
+    VALUES (:source_product_id, :code, :legacy_code, :description, :category, :brand, :unit_of_measure, :quantity)
     ON CONFLICT(source_product_id) DO UPDATE SET
         code = excluded.code,
         legacy_code = excluded.legacy_code,
@@ -36,6 +36,10 @@ $stmt = $pdo->prepare(<<<'SQL'
         unit_of_measure = excluded.unit_of_measure
     SQL);
 
+// quantity is only ever set here for a brand-new row (via the :quantity
+// binding) — the ON CONFLICT clause above deliberately leaves the existing
+// column alone, so re-running this seed never resets a quantity that's
+// already been set (by hand or by bin/randomize-quantities.php).
 foreach ($products as $product) {
     $stmt->execute([
         'source_product_id' => $product['source_product_id'],
@@ -45,6 +49,7 @@ foreach ($products as $product) {
         'category' => $product['category'],
         'brand' => $product['brand'],
         'unit_of_measure' => $product['unit_of_measure'],
+        'quantity' => random_int(0, 500),
     ]);
 }
 

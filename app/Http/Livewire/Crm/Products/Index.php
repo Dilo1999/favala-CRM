@@ -35,6 +35,12 @@ class Index extends Component
 
     public $importFile;
 
+    /** Source: CRM only — quantity lives in crm-test-service's own database. */
+    public ?int $quantityProductId = null;
+
+    /** Untyped — wire:model syncs this as a raw string before validation casts it. */
+    public $quantityValue = 0;
+
     protected function rules(): array
     {
         return [
@@ -134,6 +140,37 @@ class Index extends Component
         session()->flash('status', $message);
     }
 
+    public function openQuantityModal(int $productId, CrmTestProductsClient $crmTestProducts): void
+    {
+        $product = Product::findOrFail($productId);
+
+        if ($product->shop_catalog_product_id) {
+            return; // Quantity only applies to Source: CRM products.
+        }
+
+        $this->quantityProductId = $productId;
+        $this->quantityValue = (int) ($crmTestProducts->all()->get($productId)['quantity'] ?? 0);
+    }
+
+    public function closeQuantityModal(): void
+    {
+        $this->quantityProductId = null;
+        $this->quantityValue = 0;
+    }
+
+    public function saveQuantity(CrmTestProductsClient $crmTestProducts): void
+    {
+        $this->validate(['quantityValue' => 'required|integer|min:0']);
+
+        if ($crmTestProducts->updateQuantity($this->quantityProductId, $this->quantityValue)) {
+            session()->flash('status', 'Quantity updated.');
+        } else {
+            session()->flash('status', 'Could not reach crm-test-service to update quantity.');
+        }
+
+        $this->closeQuantityModal();
+    }
+
     public function render(CrmTestProductsClient $crmTestProducts)
     {
         $products = Product::with('prices.vendor')
@@ -154,7 +191,7 @@ class Index extends Component
             if (! $product->shop_catalog_product_id && $apiProducts->has($product->id)) {
                 $apiRow = $apiProducts->get($product->id);
                 $product->forceFill(collect($apiRow)->only([
-                    'code', 'legacy_code', 'description', 'category', 'brand', 'unit_of_measure',
+                    'code', 'legacy_code', 'description', 'category', 'brand', 'unit_of_measure', 'quantity',
                 ])->all());
             }
 

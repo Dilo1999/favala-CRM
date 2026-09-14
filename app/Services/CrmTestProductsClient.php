@@ -40,4 +40,26 @@ class CrmTestProductsClient
 
         return collect($response->json())->keyBy('source_product_id');
     }
+
+    /**
+     * Quantity lives only in crm-test-service's own database, so this is the
+     * one place it can be changed — the Products page has no local copy to
+     * update instead.
+     */
+    public function updateQuantity(int $sourceProductId, int $quantity): bool
+    {
+        $base = rtrim(config('services.crm_test.url'), '/');
+
+        try {
+            $response = Http::timeout(3)
+                ->withHeaders(['X-Api-Key' => config('services.crm_test.api_key')])
+                ->post("{$base}/products/{$sourceProductId}/quantity", ['quantity' => $quantity]);
+        } catch (\Throwable $e) {
+            Log::warning('crm-test-service quantity update failed: '.$e->getMessage());
+
+            return false;
+        }
+
+        return $response->successful();
+    }
 }

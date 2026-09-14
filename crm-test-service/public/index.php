@@ -21,20 +21,15 @@ header('Content-Type: application/json');
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $path = rtrim((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH), '/') ?: '/';
 
-if ($method !== 'GET') {
-    http_response_code(405);
-    echo json_encode(['error' => 'Method not allowed']);
-
-    return;
-}
-
-if ($path === '/health') {
+if ($path === '/health' && $method === 'GET') {
     echo json_encode(['status' => 'ok', 'service' => 'crm-test-service']);
 
     return;
 }
 
-if ($path === '/products') {
+/** Every other route needs the API key, checked once here. */
+function require_valid_api_key(): bool
+{
     $expectedKey = crm_test_service_env('API_KEY');
     $providedKey = $_SERVER['HTTP_X_API_KEY'] ?? '';
 
@@ -42,22 +37,65 @@ if ($path === '/products') {
         http_response_code(500);
         echo json_encode(['error' => 'Service misconfigured: API_KEY not set in crm-test-service/.env']);
 
-        return;
+        return false;
     }
 
     if (! hash_equals($expectedKey, $providedKey)) {
         http_response_code(401);
         echo json_encode(['error' => 'Unauthorized']);
 
+        return false;
+    }
+
+    return true;
+}
+
+if ($path === '/products' && $method === 'GET') {
+    if (! require_valid_api_key()) {
         return;
     }
 
     $pdo = crm_test_service_db();
     $rows = $pdo->query(
-        'SELECT source_product_id, code, legacy_code, description, category, brand, unit_of_measure FROM products ORDER BY description'
+        'SELECT source_product_id, code, legacy_code, description, category, brand, unit_of_measure, quantity FROM products ORDER BY description'
     )->fetchAll(PDO::FETCH_ASSOC);
 
     echo json_encode($rows);
+
+    return;
+}
+
+// Quantity lives only in this service's own database — this is the one
+// place it can be changed, so favala_CRM's Products page calls out to here
+// instead of holding its own copy.
+if (preg_match('#^/products/(\d+)/quantity$#', $path, $m) && $method === 'POST') {
+    if (! require_valid_api_key()) {
+        return;
+    }
+
+    $sourceProductId = (int) $m[1];
+    $body = json_decode(file_get_contents('php://input') ?: '[]', true) ?? [];
+    $quantity = $body['quantity'] ?? null;
+
+    if (! is_numeric($quantity) || (int) $quantity < 0 || (float) $quantity != (int) $quantity) {
+        http_response_code(422);
+        echo json_encode(['error' => 'quantity must be a non-negative integer']);
+
+        return;
+    }
+
+    $pdo = crm_test_service_db();
+    $stmt = $pdo->prepare('UPDATE products SET quantity = :quantity WHERE source_product_id = :id');
+    $stmt->execute(['quantity' => (int) $quantity, 'id' => $sourceProductId]);
+
+    if ($stmt->rowCount() === 0) {
+        http_response_code(404);
+        echo json_encode(['error' => 'Product not found']);
+
+        return;
+    }
+
+    echo json_encode(['source_product_id' => $sourceProductId, 'quantity' => (int) $quantity]);
 
     return;
 }

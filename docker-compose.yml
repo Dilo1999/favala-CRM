@@ -11,8 +11,32 @@ services:
       DB_HOST: postgres
       SHOP_DB_HOST: postgres
       APP_URL: http://localhost:8080
+      # Container-network hostname for the standalone crm-test-service app
+      # (see crm-test-service/) — 127.0.0.1 from .env would mean this
+      # container's own loopback, not the host's, so it's overridden here
+      # the same way DB_HOST/SHOP_DB_HOST are above.
+      CRM_TEST_SERVICE_URL: http://crm-test-service:8090
     volumes:
       - .:/var/www/html
+    depends_on:
+      postgres:
+        condition: service_healthy
+      crm-test-service:
+        condition: service_started
+
+  # Standalone crm-test-service application (see crm-test-service/) — a
+  # genuinely separate app/process/database from `app` above, reached only
+  # over HTTP via its container-network hostname (CRM_TEST_SERVICE_URL on
+  # the app service).
+  crm-test-service:
+    build:
+      context: ./crm-test-service
+    container_name: favala_crm_test_service
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    volumes:
+      - ./crm-test-service:/var/www/html
     depends_on:
       postgres:
         condition: service_healthy

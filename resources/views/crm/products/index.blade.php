@@ -81,6 +81,7 @@
                         <th class="px-5 py-3">Category</th>
                         <th class="px-5 py-3">Brand</th>
                         <th class="px-5 py-3">Source</th>
+                        <th class="px-5 py-3">Quantity</th>
                         <th class="px-5 py-3">Vendors</th>
                         <th class="px-5 py-3 text-right">Actions</th>
                     </tr>
@@ -98,6 +99,16 @@
                                     <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-accent/15 text-accent whitespace-nowrap">Shop Catalog</span>
                                 @else
                                     <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-zinc-700 text-zinc-400 whitespace-nowrap">CRM</span>
+                                @endif
+                            </td>
+                            <td class="px-5 py-3" wire:click.stop>
+                                @if ($product->shop_catalog_product_id)
+                                    <span class="text-zinc-500">—</span>
+                                @else
+                                    <button wire:click="openQuantityModal({{ $product->id }})" class="flex items-center gap-1.5 text-zinc-200 hover:text-accent">
+                                        <span class="font-medium">{{ $product->quantity ?? 0 }}</span>
+                                        <x-heroicon-o-pencil class="w-3 h-3 text-zinc-500" />
+                                    </button>
                                 @endif
                             </td>
                             <td class="px-5 py-3">
@@ -124,13 +135,31 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="px-5 py-6 text-center text-zinc-500">No products found.</td></tr>
+                        <tr><td colspan="8" class="px-5 py-6 text-center text-zinc-500">No products found.</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
     </div>
     <div class="mt-4">{{ $products->links() }}</div>
+    @endif
+
+    @if ($quantityProductId)
+        <div class="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-30" wire:click.self="closeQuantityModal">
+            <div class="bg-zinc-800 border border-white/10 rounded-xl w-full max-w-sm p-6">
+                <h2 class="text-lg font-bold text-white mb-1">Update Quantity</h2>
+                <p class="text-xs text-zinc-500 mb-4">Stored in crm-test-service's own database, not this app's.</p>
+                <form wire:submit.prevent="saveQuantity">
+                    <label class="block text-xs font-semibold uppercase tracking-wide text-zinc-500 mb-1.5">Quantity</label>
+                    <input type="number" min="0" step="1" wire:model="quantityValue" autofocus class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
+                    @error('quantityValue') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
+                    <div class="flex justify-end gap-2 mt-4">
+                        <button type="button" wire:click="closeQuantityModal" class="px-4 py-2 rounded-lg border border-white/10 text-zinc-300 text-sm">Cancel</button>
+                        <button type="submit" class="px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-semibold">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     @endif
 
     @if ($showImport)
