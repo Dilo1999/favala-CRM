@@ -5,6 +5,7 @@ namespace App\Http\Livewire\Crm\Products;
 use App\Http\Livewire\Concerns\WithBasicTable;
 use App\Models\Product;
 use App\Models\SettingOption;
+use App\Services\CrmTestProductsClient;
 use App\Services\ShopCatalogSync;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -133,7 +134,7 @@ class Index extends Component
         session()->flash('status', $message);
     }
 
-    public function render()
+    public function render(CrmTestProductsClient $crmTestProducts)
     {
         $products = Product::with('prices.vendor')
             ->when($this->search, fn ($q) => $q->where(function ($q) {
@@ -143,6 +144,22 @@ class Index extends Component
             }))
             ->orderBy($this->sortField === 'created_at' ? 'description' : $this->sortField, $this->sortDirection)
             ->paginate(15);
+
+        // Source: CRM rows (shop_catalog_product_id is null) are, for testing,
+        // displayed from the separate crm_test API instead of straight off this
+        // model — Source: Shop Catalog rows are left completely untouched.
+        $apiProducts = $crmTestProducts->all();
+
+        $products->getCollection()->transform(function (Product $product) use ($apiProducts) {
+            if (! $product->shop_catalog_product_id && $apiProducts->has($product->id)) {
+                $apiRow = $apiProducts->get($product->id);
+                $product->forceFill(collect($apiRow)->only([
+                    'code', 'legacy_code', 'description', 'category', 'brand', 'unit_of_measure',
+                ])->all());
+            }
+
+            return $product;
+        });
 
         return view('crm.products.index', [
             'products' => $products,
