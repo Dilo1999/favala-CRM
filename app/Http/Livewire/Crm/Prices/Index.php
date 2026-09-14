@@ -88,7 +88,8 @@ class Index extends Component
 
         return view('crm.prices.index', [
             'prices' => $prices,
-            'products' => Product::orderBy('description')->pluck('description', 'id'),
+            'products' => Product::orderBy('description')->get(['id', 'description', 'shop_catalog_product_id'])
+                ->mapWithKeys(fn (Product $p) => [$p->id => "{$p->description} — {$p->source_label}"]),
             'vendors' => Vendor::orderBy('company_name')->pluck('company_name', 'id'),
             'filteredProduct' => $this->productFilter ? Product::find($this->productFilter) : null,
         ])->layout('layouts.crm');

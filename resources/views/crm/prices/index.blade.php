@@ -40,6 +40,9 @@
                         <td class="p-3 text-zinc-400">{{ $price->created_at->format('d M Y') }}</td>
                         <td class="p-3 text-white">
                             {{ $price->product?->description }}
+                            @if ($price->product)
+                                <span class="ml-1.5 text-[10px] font-medium px-1.5 py-0.5 rounded-full {{ $price->product->shop_catalog_product_id ? 'bg-accent/15 text-accent' : 'bg-zinc-700 text-zinc-400' }}">{{ $price->product->source_label }}</span>
+                            @endif
                             <span class="text-zinc-500 text-xs block">{{ $price->product?->code }}</span>
                         </td>
                         <td class="p-3 text-zinc-300">{{ $price->vendor?->company_name }}</td>

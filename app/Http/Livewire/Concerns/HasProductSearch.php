@@ -68,12 +68,15 @@ trait HasProductSearch
         $catalog = $catalogProducts->flatMap(function (Product $product) {
             $prices = $product->currentPrices(); // one row per vendor, most recent price
 
+            $source = $product->source_label;
+
             if ($prices->isEmpty()) {
                 return [(object) [
                     'key' => "p{$product->id}",
                     'description' => $product->description,
                     'code' => $product->code,
                     'origin' => null,
+                    'source' => $source,
                 ]];
             }
 
@@ -82,6 +85,7 @@ trait HasProductSearch
                 'description' => $product->description,
                 'code' => $product->code,
                 'origin' => "via {$price->vendor->company_name} — ".number_format($price->price, 2),
+                'source' => $source,
             ]);
         });
 
@@ -105,7 +109,8 @@ trait HasProductSearch
                         'key' => "s{$product->id}",
                         'description' => $product->description,
                         'code' => $product->code,
-                        'origin' => 'Shop Catalog',
+                        'origin' => null,
+                        'source' => 'Shop Catalog',
                     ]];
                 }
 
@@ -114,6 +119,7 @@ trait HasProductSearch
                     'description' => $product->description,
                     'code' => $product->code,
                     'origin' => "via {$price->shop->name} — ".number_format($price->price, 2),
+                    'source' => 'Shop Catalog',
                 ]);
             });
 

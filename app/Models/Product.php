@@ -13,6 +13,12 @@ class Product extends Model
 
     protected $fillable = ['code', 'legacy_code', 'description', 'category', 'brand', 'unit_of_measure', 'shop_catalog_product_id'];
 
+    /** Which database this product's record originated from, for display badges. */
+    public function getSourceLabelAttribute(): string
+    {
+        return $this->shop_catalog_product_id ? 'Shop Catalog' : 'CRM';
+    }
+
     public function prices(): HasMany
     {
         return $this->hasMany(ProductVendorPrice::class)->latest('id');

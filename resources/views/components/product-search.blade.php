@@ -11,6 +11,9 @@
                     <button type="button" wire:click="pickProduct({{ $index }}, '{{ $product->key }}')"
                         class="block w-full text-left px-3 py-2 text-sm text-zinc-200 hover:bg-zinc-700 border-b border-white/5 last:border-b-0">
                         <span class="text-white">{{ $product->description }}</span>
+                        @if ($product->source ?? null)
+                            <span class="ml-1.5 text-[10px] font-medium px-1.5 py-0.5 rounded-full {{ $product->source === 'Shop Catalog' ? 'bg-accent/15 text-accent' : 'bg-zinc-700 text-zinc-400' }}">{{ $product->source }}</span>
+                        @endif
                         <span class="block text-xs text-zinc-500">
                             {{ $product->code }}
                             @if ($product->origin)

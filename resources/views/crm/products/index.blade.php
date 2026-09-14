@@ -80,6 +80,7 @@
                         <th class="px-5 py-3">Description</th>
                         <th class="px-5 py-3">Category</th>
                         <th class="px-5 py-3">Brand</th>
+                        <th class="px-5 py-3">Source</th>
                         <th class="px-5 py-3">Vendors</th>
                         <th class="px-5 py-3 text-right">Actions</th>
                     </tr>
@@ -92,6 +93,13 @@
                             <td class="px-5 py-3 text-zinc-300">{{ $product->description }}</td>
                             <td class="px-5 py-3 text-accent-light">{{ $product->category }}</td>
                             <td class="px-5 py-3 text-zinc-400">{{ $product->brand }}</td>
+                            <td class="px-5 py-3">
+                                @if ($product->shop_catalog_product_id)
+                                    <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-accent/15 text-accent whitespace-nowrap">Shop Catalog</span>
+                                @else
+                                    <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-zinc-700 text-zinc-400 whitespace-nowrap">CRM</span>
+                                @endif
+                            </td>
                             <td class="px-5 py-3">
                                 @if ($vendorNames->isNotEmpty())
                                     <div class="flex flex-wrap gap-1 max-w-[240px]">
@@ -116,7 +124,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="px-5 py-6 text-center text-zinc-500">No products found.</td></tr>
+                        <tr><td colspan="7" class="px-5 py-6 text-center text-zinc-500">No products found.</td></tr>
                     @endforelse
                 </tbody>
             </table>
