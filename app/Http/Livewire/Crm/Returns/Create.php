@@ -50,9 +50,38 @@ class Create extends Component
         ];
     }
 
+    /**
+     * Pre-GST, post-line-discount amount for this line's return qty —
+     * mirrors how InvoiceItem::amount is computed (before GST), rather than
+     * qty × rate, which ignores whatever discount the original invoice line
+     * carried.
+     */
+    protected function lineReturnAmount(int $index): float
+    {
+        $item = $this->invoice->items->values()->get($index);
+        $qty = (float) ($this->lines[$index]['qty'] ?? 0);
+
+        if (! $item || (float) $item->qty <= 0 || $qty <= 0) {
+            return 0.0;
+        }
+
+        return round(((float) $item->amount / (float) $item->qty) * $qty, 2);
+    }
+
     public function getTotalValueProperty(): float
     {
-        return collect($this->lines)->sum(fn ($l) => (float) $l['qty'] * (float) $l['rate']);
+        $returnedSubtotal = collect($this->lines)->keys()->sum(fn ($i) => $this->lineReturnAmount($i));
+        $subtotal = (float) $this->invoice->subtotal;
+
+        if ($subtotal <= 0 || $returnedSubtotal <= 0) {
+            return 0.0;
+        }
+
+        // Scales the pre-GST returned subtotal by the same ratio the whole
+        // invoice's grand total bears to its subtotal — folds in both GST and
+        // any order-level discount proportionally, so returning every line in
+        // full refunds exactly the invoice's grand_total, not just its subtotal.
+        return round($returnedSubtotal * ((float) $this->invoice->grand_total / $subtotal), 2);
     }
 
     public function save()
@@ -77,11 +106,11 @@ class Create extends Component
             'created_by' => auth()->id(),
         ]);
 
-        foreach ($itemsToReturn as $line) {
+        foreach ($itemsToReturn as $i => $line) {
             $return->items()->create([
                 'product_id' => $line['product_id'],
                 'qty' => $line['qty'],
-                'amount' => $line['qty'] * $line['rate'],
+                'amount' => $this->lineReturnAmount($i),
             ]);
         }
 

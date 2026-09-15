@@ -12,8 +12,6 @@ class Show extends Component
 
     public bool $showPaymentForm = false;
 
-    public float $paymentAmount = 0;
-
     public string $paymentMethod = 'Cash';
 
     public ?string $paymentReference = null;
@@ -25,7 +23,6 @@ class Show extends Component
 
     public function openPaymentForm(): void
     {
-        $this->paymentAmount = (float) $this->record->balance_due;
         $this->paymentMethod = 'Cash';
         $this->paymentReference = null;
         $this->showPaymentForm = true;
@@ -34,7 +31,6 @@ class Show extends Component
     protected function rules(): array
     {
         return [
-            'paymentAmount' => 'required|numeric|min:0.01|max:'.max($this->record->balance_due, 0.01),
             'paymentMethod' => 'required|in:'.implode(',', Payment::METHODS),
             'paymentReference' => 'nullable|string|max:191',
         ];
@@ -44,7 +40,18 @@ class Show extends Component
     {
         $this->validate();
 
-        $this->record->receivePayment($this->paymentAmount, $this->paymentMethod, $this->paymentReference, auth()->user());
+        // Not user-editable — always the full balance due, re-read fresh here
+        // rather than trusting a value set when the modal opened, in case
+        // another payment landed on this invoice in the meantime.
+        $amount = (float) $this->record->refresh()->balance_due;
+
+        if ($amount <= 0) {
+            $this->showPaymentForm = false;
+
+            return;
+        }
+
+        $this->record->receivePayment($amount, $this->paymentMethod, $this->paymentReference, auth()->user());
         $this->record->refresh();
 
         $this->showPaymentForm = false;

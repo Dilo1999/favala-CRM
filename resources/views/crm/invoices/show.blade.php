@@ -141,8 +141,8 @@
                 <form wire:submit.prevent="receivePayment" class="space-y-4">
                     <div>
                         <label class="block text-xs text-zinc-400 mb-1">Amount to Pay</label>
-                        <input type="number" step="0.01" wire:model="paymentAmount" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
-                        @error('paymentAmount') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
+                        <p class="w-full rounded-lg bg-zinc-900 border border-white/10 px-3 py-2 text-white text-sm font-medium">MVR {{ number_format($record->balance_due, 2) }}</p>
+                        <p class="text-[11px] text-zinc-500 mt-1">Always the full balance due — not editable here.</p>
                     </div>
                     <div>
                         <label class="block text-xs text-zinc-400 mb-1">Payment Method</label>
