@@ -18,6 +18,8 @@ class Quotation extends Model
 
     public const STATUS_SENT = 'sent';
 
+    public const STATUS_CONVERTED = 'converted';
+
     protected $fillable = [
         'deal_id', 'customer_id', 'quotation_date', 'expiry_date', 'staff_id', 'status',
         'bill_to_name', 'bill_to_phone', 'bill_to_address', 'terms_conditions',
@@ -209,6 +211,8 @@ class Quotation extends Model
         // A confirmed sale (this bypasses Invoices\Create::save() entirely, so
         // it needs its own copy of the same stock decrement).
         app(ProductStockService::class)->decrement($this->items);
+
+        $this->update(['status' => self::STATUS_CONVERTED]);
 
         if ($this->deal) {
             $this->deal->markWon();

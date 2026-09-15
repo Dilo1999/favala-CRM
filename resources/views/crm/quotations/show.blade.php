@@ -3,7 +3,7 @@
         <div class="flex items-center gap-3">
             <a href="{{ route('crm.quotations') }}" class="text-zinc-400 hover:text-white"><x-heroicon-o-arrow-left class="w-5 h-5" /></a>
             <h1 class="text-2xl font-bold text-white">{{ $record->friendly_id }}</h1>
-            <x-badge :color="$record->status === 'sent' ? 'green' : 'gray'">{{ ucfirst($record->status) }}</x-badge>
+            <x-badge :color="$record->status === 'converted' ? 'blue' : ($record->status === 'sent' ? 'green' : 'gray')">{{ ucfirst($record->status) }}</x-badge>
         </div>
         <div class="flex gap-2">
             <a href="{{ route('print.quotation', $record) }}" target="_blank" class="px-4 py-2 rounded-lg border border-white/10 text-zinc-300 text-sm flex items-center gap-1">

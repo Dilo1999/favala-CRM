@@ -13,7 +13,7 @@
         </div>
         <select wire:model="statusFilter" class="rounded-lg bg-zinc-800 border-white/10 text-white text-sm">
             <option value="">All Statuses</option>
-            <option value="draft">Draft</option><option value="sent">Sent</option>
+            <option value="draft">Draft</option><option value="sent">Sent</option><option value="converted">Converted</option>
         </select>
     </div>
 
@@ -33,7 +33,7 @@
                         <td class="p-3 text-zinc-300">{{ $q->customer?->company_name }}</td>
                         <td class="p-3 text-zinc-400">{{ $q->quotation_date->format('d M Y') }}</td>
                         <td class="p-3 text-zinc-400">{{ $q->staff?->name }}</td>
-                        <td class="p-3"><x-badge :color="$q->status === 'sent' ? 'green' : 'gray'">{{ ucfirst($q->status) }}</x-badge></td>
+                        <td class="p-3"><x-badge :color="$q->status === 'converted' ? 'blue' : ($q->status === 'sent' ? 'green' : 'gray')">{{ ucfirst($q->status) }}</x-badge></td>
                         <td class="p-3 text-white">MVR {{ number_format($q->grand_total, 2) }}</td>
                         <td class="p-3 text-right" @click.stop>
                             <x-row-menu>

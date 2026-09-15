@@ -22,7 +22,7 @@
             <tbody class="divide-y divide-white/10">
                 @forelse ($invoices as $invoice)
                     @php($last = $invoice->payments->sortByDesc('date')->first())
-                    <tr class="hover:bg-zinc-700/40">
+                    <tr onclick="window.location='{{ route('crm.invoices.show', $invoice) }}'" class="hover:bg-zinc-700/40 cursor-pointer">
                         <td class="p-3 text-white font-medium">{{ $invoice->friendly_id }}</td>
                         <td class="p-3 text-zinc-300">{{ $invoice->customer?->company_name }}</td>
                         <td class="p-3 text-zinc-400">{{ $last ? $last->date->format('d M Y') : 'N/A' }}</td>
@@ -33,7 +33,7 @@
                         </td>
                         <td class="p-3 text-white">MVR {{ number_format($invoice->grand_total, 2) }}</td>
                         <td class="p-3 text-zinc-300">MVR {{ number_format($invoice->balance_due, 2) }}</td>
-                        <td class="p-3 text-right">
+                        <td class="p-3 text-right" onclick="event.stopPropagation()">
                             <x-row-menu>
                                 <a href="{{ route('crm.invoices.show', $invoice) }}" class="block px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">View Details</a>
                                 <a href="{{ route('print.invoice', $invoice) }}" target="_blank" class="block px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Print</a>
