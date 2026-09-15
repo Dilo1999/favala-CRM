@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasFriendlyId;
+use App\Services\ProductStockService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -115,6 +116,11 @@ class SalesReturn extends Model
 
             $this->forceFill(['refund_applied_at' => now()])->save();
         });
+
+        // Outside the DB transaction above (which locks the invoice row) since
+        // this is a network call to crm-test-service — stock coming back is
+        // the mirror of the decrement Invoice creation applied.
+        app(ProductStockService::class)->restore($this->items);
     }
 
     /** Undoes applyRefundToInvoice() — restores the invoice total and removes the refund payment. */
@@ -144,6 +150,9 @@ class SalesReturn extends Model
 
             $this->forceFill(['refund_applied_at' => null])->save();
         });
+
+        // Undoes the restore applyRefundToInvoice() applied.
+        app(ProductStockService::class)->decrement($this->items);
     }
 
     /**

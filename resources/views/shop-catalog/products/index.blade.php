@@ -121,7 +121,7 @@
                         @error('form.code') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                     </div>
                     <div class="col-span-2">
-                        <label class="block text-xs font-medium text-slate-500 mb-1.5">Description</label>
+                        <label class="block text-xs font-medium text-slate-500 mb-1.5">Product Name</label>
                         <input type="text" wire:model="form.description" class="w-full rounded-lg bg-white border-slate-300 text-slate-900 text-sm focus:border-accent" />
                         @error('form.description') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                     </div>

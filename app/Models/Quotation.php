@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasFriendlyId;
 use App\Services\PricingEngine;
+use App\Services\ProductStockService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -203,6 +204,10 @@ class Quotation extends Model
                 'sort_order' => $index,
             ]);
         }
+
+        // A confirmed sale (this bypasses Invoices\Create::save() entirely, so
+        // it needs its own copy of the same stock decrement).
+        app(ProductStockService::class)->decrement($this->items);
 
         if ($this->deal) {
             $this->deal->markWon();

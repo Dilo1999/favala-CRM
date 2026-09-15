@@ -26,7 +26,7 @@
                     <input type="text" wire:model="form.brand" placeholder="e.g., Tokyo Cement" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
                 </div>
                 <div class="col-span-1 sm:col-span-2">
-                    <label class="block text-xs font-semibold uppercase tracking-wide text-zinc-500 mb-1.5">Description <span class="text-red-400">*</span></label>
+                    <label class="block text-xs font-semibold uppercase tracking-wide text-zinc-500 mb-1.5">Product Name <span class="text-red-400">*</span></label>
                     <input type="text" wire:model="form.description" placeholder="e.g., Portland Cement (50kg Bag)" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
                     @error('form.description') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
                 </div>
@@ -68,7 +68,7 @@
 
         <div class="relative mb-4 max-w-md">
             <x-heroicon-o-search class="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input type="text" wire:model.debounce.400ms="search" placeholder="Search by description, code, or brand…"
+            <input type="text" wire:model.debounce.400ms="search" placeholder="Search by product name, code, or brand…"
                 class="w-full pl-9 rounded-lg bg-zinc-900 border-white/10 text-white text-sm" />
         </div>
 
@@ -77,7 +77,7 @@
                 <thead>
                     <tr class="text-left text-zinc-500 text-xs uppercase border-b border-white/10">
                         <th class="px-5 py-3">Product Code</th>
-                        <th class="px-5 py-3">Description</th>
+                        <th class="px-5 py-3">Product Name</th>
                         <th class="px-5 py-3">Category</th>
                         <th class="px-5 py-3">Brand</th>
                         <th class="px-5 py-3">Source</th>

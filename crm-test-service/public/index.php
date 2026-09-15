@@ -55,12 +55,26 @@ if ($path === '/products' && $method === 'GET') {
         return;
     }
 
-    $pdo = crm_test_service_db();
-    $rows = $pdo->query(
-        'SELECT source_product_id, code, legacy_code, description, category, brand, unit_of_measure, quantity FROM products ORDER BY description'
-    )->fetchAll(PDO::FETCH_ASSOC);
+    // Optional ?search= filters by product name (description), code, or
+    // brand — case-insensitive, matching how the main app's own product
+    // searches work.
+    $search = trim((string) ($_GET['search'] ?? ''));
 
-    echo json_encode($rows);
+    $sql = 'SELECT source_product_id, code, legacy_code, description, category, brand, unit_of_measure, quantity FROM products';
+    $params = [];
+
+    if ($search !== '') {
+        $sql .= ' WHERE description ILIKE :term OR code ILIKE :term OR brand ILIKE :term';
+        $params['term'] = '%'.$search.'%';
+    }
+
+    $sql .= ' ORDER BY description';
+
+    $pdo = crm_test_service_db();
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+
+    echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
 
     return;
 }
@@ -96,6 +110,47 @@ if (preg_match('#^/products/(\d+)/quantity$#', $path, $m) && $method === 'POST')
     }
 
     echo json_encode(['source_product_id' => $sourceProductId, 'quantity' => (int) $quantity]);
+
+    return;
+}
+
+// Atomic increment/decrement — used by favala_CRM's invoice creation (stock
+// leaves on sale) and refunded returns (stock comes back), instead of the
+// read-then-set /quantity endpoint above, to avoid a lost-update race when
+// two requests adjust the same product's quantity at once. Clamped at 0
+// rather than rejected, since this app has no stock-availability check
+// before a sale is made.
+if (preg_match('#^/products/(\d+)/quantity/adjust$#', $path, $m) && $method === 'POST') {
+    if (! require_valid_api_key()) {
+        return;
+    }
+
+    $sourceProductId = (int) $m[1];
+    $body = json_decode(file_get_contents('php://input') ?: '[]', true) ?? [];
+    $delta = $body['delta'] ?? null;
+
+    if (! is_numeric($delta) || (float) $delta != (int) $delta) {
+        http_response_code(422);
+        echo json_encode(['error' => 'delta must be an integer']);
+
+        return;
+    }
+
+    $pdo = crm_test_service_db();
+    $stmt = $pdo->prepare(
+        'UPDATE products SET quantity = GREATEST(quantity + :delta, 0) WHERE source_product_id = :id RETURNING quantity'
+    );
+    $stmt->execute(['delta' => (int) $delta, 'id' => $sourceProductId]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (! $row) {
+        http_response_code(404);
+        echo json_encode(['error' => 'Product not found']);
+
+        return;
+    }
+
+    echo json_encode(['source_product_id' => $sourceProductId, 'quantity' => (int) $row['quantity']]);
 
     return;
 }

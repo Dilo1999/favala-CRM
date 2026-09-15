@@ -8,6 +8,7 @@ use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\ProductVendorPrice;
 use App\Services\PricingEngine;
+use App\Services\ProductStockService;
 use Livewire\Component;
 
 class Create extends Component
@@ -113,7 +114,7 @@ class Create extends Component
         ];
     }
 
-    public function save()
+    public function save(ProductStockService $stock)
     {
         $this->validate();
 
@@ -150,6 +151,9 @@ class Create extends Component
                 'sort_order' => $i,
             ]);
         }
+
+        // A confirmed sale — the one point that actually consumes stock.
+        $stock->decrement($this->items);
 
         session()->flash('status', 'Invoice created.');
 
