@@ -45,7 +45,14 @@
                                 <x-product-search :index="$i" :label="$item['product_label'] ?? null"
                                     :open-row="$productSearchRow" :search-term="$productSearch" :results="$this->productSearchResults" />
                             </td>
-                            <td class="py-2 pr-2 w-20"><input type="number" step="0.01" wire:model.lazy="items.{{ $i }}.qty" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" /></td>
+                            <td class="py-2 pr-2 w-20">
+                                <input type="number" step="0.01" @if($item['max_qty'] !== null) max="{{ $item['max_qty'] }}" @endif
+                                    wire:model.lazy="items.{{ $i }}.qty" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
+                                @if ($item['max_qty'] !== null)
+                                    <p class="text-[11px] text-zinc-500 mt-1">Max: {{ $item['max_qty'] }}</p>
+                                @endif
+                                @error("items.{$i}.qty") <span class="block text-red-400 text-xs mt-1">{{ $message }}</span> @enderror
+                            </td>
                             <td class="py-2 pr-2 w-24"><input type="number" step="0.01" wire:model.lazy="items.{{ $i }}.markup_percent" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" /></td>
                             <td class="py-2 text-right text-white font-medium">MVR {{ number_format($line['line_amount'], 2) }}</td>
                             <td class="py-2 pl-2">@if (count($items) > 1)<button type="button" wire:click="removeItem({{ $i }})" class="text-red-400"><x-heroicon-o-trash class="w-4 h-4" /></button>@endif</td>

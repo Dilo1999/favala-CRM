@@ -30,7 +30,7 @@ class Create extends Component
 
     public ?string $additional_details = null;
 
-    public array $products = [['product_id' => null, 'product_label' => null, 'qty' => 1]];
+    public array $products = [['product_id' => null, 'product_label' => null, 'qty' => 1, 'max_qty' => null]];
 
     public function mount(): void
     {
@@ -47,7 +47,7 @@ class Create extends Component
 
     protected function rules(): array
     {
-        return [
+        $rules = [
             'customer_id' => 'required|exists:customers,id',
             'deal_date' => 'required|date',
             'request_source' => 'nullable|string',
@@ -55,13 +55,31 @@ class Create extends Component
             'stage' => 'required|in:potential,hot,lost',
             'additional_details' => 'nullable|string',
             'products.*.product_id' => 'required|exists:products,id',
-            'products.*.qty' => 'required|numeric|min:0.01',
+        ];
+
+        // Per-row max — capped at the vendor's available quantity for a
+        // Source: CRM product (whichever vendor was picked in the search),
+        // uncapped for Shop Catalog (not tracked there).
+        foreach ($this->products as $i => $row) {
+            $max = $row['max_qty'] ?? null;
+            $rules["products.{$i}.qty"] = $max !== null
+                ? ['required', 'numeric', 'min:0.01', "max:{$max}"]
+                : ['required', 'numeric', 'min:0.01'];
+        }
+
+        return $rules;
+    }
+
+    protected function messages(): array
+    {
+        return [
+            'products.*.qty.max' => 'Only :max available from this vendor for this product.',
         ];
     }
 
     public function addProductRow(): void
     {
-        $this->products[] = ['product_id' => null, 'product_label' => null, 'qty' => 1];
+        $this->products[] = ['product_id' => null, 'product_label' => null, 'qty' => 1, 'max_qty' => null];
     }
 
     public function removeProductRow(int $index): void
@@ -70,13 +88,24 @@ class Create extends Component
         $this->products = array_values($this->products);
     }
 
-    /** Called by the <x-product-search> picker. */
+    /**
+     * Called by the <x-product-search> picker. Uses resolveProductSelection()
+     * (not the simpler resolveProductId()) purely to know which vendor was
+     * picked, so the qty cap below matches that vendor's available quantity —
+     * DealProduct itself has no vendor_id column, so it isn't persisted.
+     */
     public function pickProduct(int $index, string $key): void
     {
-        $productId = $this->resolveProductId($key);
+        $selection = $this->resolveProductSelection($key);
 
-        $this->products[$index]['product_id'] = $productId;
-        $this->products[$index]['product_label'] = Product::find($productId)?->description;
+        $this->products[$index]['product_id'] = $selection->product_id;
+        $this->products[$index]['product_label'] = Product::find($selection->product_id)?->description;
+        $this->products[$index]['max_qty'] = $this->resolveMaxQty((string) $selection->product_id, $selection->vendor_id);
+
+        if ($this->products[$index]['max_qty'] !== null && (float) $this->products[$index]['qty'] > $this->products[$index]['max_qty']) {
+            $this->products[$index]['qty'] = $this->products[$index]['max_qty'];
+        }
+
         $this->closeProductSearch();
     }
 

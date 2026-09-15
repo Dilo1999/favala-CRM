@@ -201,4 +201,27 @@ trait HasProductSearch
             'price' => $price !== null ? (float) $price : null,
         ];
     }
+
+    /**
+     * The most a line can be quantified at — that vendor's available quantity
+     * for this product, for a Source: CRM product priced at a specific vendor.
+     * Null (no cap) for a Shop Catalog product (quantity isn't tracked there)
+     * or a line with no vendor resolved yet.
+     */
+    protected function resolveMaxQty(?string $productId, ?int $vendorId): ?float
+    {
+        if (! $productId || ! $vendorId) {
+            return null;
+        }
+
+        $product = Product::find($productId);
+
+        if (! $product || $product->shop_catalog_product_id) {
+            return null;
+        }
+
+        $vendorQuantities = app(CrmTestProductsClient::class)->vendorQuantities((int) $productId);
+
+        return (float) ($vendorQuantities->get($vendorId)['quantity'] ?? 0);
+    }
 }

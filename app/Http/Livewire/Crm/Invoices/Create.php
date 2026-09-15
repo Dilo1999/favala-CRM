@@ -51,6 +51,7 @@ class Create extends Component
         $this->items[] = [
             'product_id' => null, 'product_label' => null, 'vendor_id' => null, 'cost' => 0, 'qty' => 1,
             'markup_percent' => (float) config('crm.default_markup_percent'), 'discount_type' => 'flat', 'discount_value' => 0,
+            'max_qty' => null,
         ];
     }
 
@@ -80,6 +81,13 @@ class Create extends Component
         $this->items[$index]['product_label'] = $product?->description;
         $this->items[$index]['vendor_id'] = $vendorId;
         $this->items[$index]['cost'] = (float) ($cost ?? 0);
+        $this->items[$index]['max_qty'] = $this->resolveMaxQty($productId, $vendorId);
+
+        // Clamp an already-entered qty down to the new max — e.g. switching
+        // to a lower-stock vendor after typing a qty that vendor can't cover.
+        if ($this->items[$index]['max_qty'] !== null && (float) $this->items[$index]['qty'] > $this->items[$index]['max_qty']) {
+            $this->items[$index]['qty'] = $this->items[$index]['max_qty'];
+        }
     }
 
     /** Called by the <x-product-search> picker. */
@@ -105,12 +113,29 @@ class Create extends Component
 
     protected function rules(): array
     {
-        return [
+        $rules = [
             'customer_id' => 'required|exists:customers,id',
             'invoice_date' => 'required|date',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
-            'items.*.qty' => 'required|numeric|min:0.01',
+        ];
+
+        // Per-line max — capped at the vendor's available quantity for a
+        // Source: CRM product, uncapped for Shop Catalog (not tracked there).
+        foreach ($this->items as $i => $item) {
+            $max = $item['max_qty'] ?? null;
+            $rules["items.{$i}.qty"] = $max !== null
+                ? ['required', 'numeric', 'min:0.01', "max:{$max}"]
+                : ['required', 'numeric', 'min:0.01'];
+        }
+
+        return $rules;
+    }
+
+    protected function messages(): array
+    {
+        return [
+            'items.*.qty.max' => 'Only :max available from this vendor for this product.',
         ];
     }
 

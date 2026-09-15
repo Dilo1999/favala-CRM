@@ -73,7 +73,12 @@
                                     :open-row="$productSearchRow" :search-term="$productSearch" :results="$this->productSearchResults" />
                             </div>
                             <div>
-                                <input type="number" step="1" min="1" wire:model="products.{{ $i }}.qty" placeholder="Qty" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
+                                <input type="number" step="1" min="1" @if($row['max_qty'] !== null) max="{{ $row['max_qty'] }}" @endif
+                                    wire:model="products.{{ $i }}.qty" placeholder="Qty" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
+                                @if ($row['max_qty'] !== null)
+                                    <p class="text-[11px] text-zinc-500 mt-1">Max: {{ $row['max_qty'] }}</p>
+                                @endif
+                                @error("products.{$i}.qty") <span class="block text-red-400 text-xs mt-1">{{ $message }}</span> @enderror
                             </div>
                             <div>
                                 @if (count($products) > 1)

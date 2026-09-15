@@ -88,6 +88,7 @@ class Formulate extends Component
                 'product_id' => $i->product_id, 'product_label' => $i->product?->description, 'vendor_id' => $i->vendor_id, 'cost' => (float) $i->cost,
                 'qty' => (float) $i->qty, 'markup_percent' => (float) $i->markup_percent,
                 'discount_type' => $i->discount_type, 'discount_value' => (float) $i->discount_value,
+                'max_qty' => $this->resolveMaxQty((string) $i->product_id, $i->vendor_id),
             ])->all();
 
             return;
@@ -127,6 +128,7 @@ class Formulate extends Component
                 'product_id' => $dp->product_id, 'product_label' => $dp->product?->description, 'vendor_id' => $best?->vendor_id, 'cost' => (float) ($best?->price ?? 0),
                 'qty' => (float) $dp->qty, 'markup_percent' => (float) config('crm.default_markup_percent'),
                 'discount_type' => 'flat', 'discount_value' => 0,
+                'max_qty' => $this->resolveMaxQty((string) $dp->product_id, $best?->vendor_id),
             ];
         })->all();
 
@@ -172,6 +174,7 @@ class Formulate extends Component
         $this->items[] = [
             'product_id' => null, 'product_label' => null, 'vendor_id' => null, 'cost' => 0, 'qty' => 1,
             'markup_percent' => (float) config('crm.default_markup_percent'), 'discount_type' => 'flat', 'discount_value' => 0,
+            'max_qty' => null,
         ];
     }
 
@@ -201,6 +204,13 @@ class Formulate extends Component
         $this->items[$index]['product_label'] = $product?->description;
         $this->items[$index]['vendor_id'] = $vendorId;
         $this->items[$index]['cost'] = (float) ($cost ?? 0);
+        $this->items[$index]['max_qty'] = $this->resolveMaxQty($productId, $vendorId);
+
+        // Clamp an already-entered qty down to the new max — e.g. switching
+        // to a lower-stock vendor after typing a qty that vendor can't cover.
+        if ($this->items[$index]['max_qty'] !== null && (float) $this->items[$index]['qty'] > $this->items[$index]['max_qty']) {
+            $this->items[$index]['qty'] = $this->items[$index]['max_qty'];
+        }
     }
 
     /** Called by the <x-product-search> picker (spec §6.7: "Product (searchable)"). */
@@ -226,6 +236,11 @@ class Formulate extends Component
 
         $this->items[$index]['vendor_id'] = $vendorId;
         $this->items[$index]['cost'] = (float) ($price?->price ?? 0);
+        $this->items[$index]['max_qty'] = $this->resolveMaxQty($productId, $vendorId ? (int) $vendorId : null);
+
+        if ($this->items[$index]['max_qty'] !== null && (float) $this->items[$index]['qty'] > $this->items[$index]['max_qty']) {
+            $this->items[$index]['qty'] = $this->items[$index]['max_qty'];
+        }
     }
 
     public function getVendorOptionsProperty(): array
@@ -255,15 +270,32 @@ class Formulate extends Component
 
     protected function rules(): array
     {
-        return [
+        $rules = [
             'customer_id' => 'required|exists:customers,id',
             'quotation_date' => 'required|date',
             'expiry_date' => 'nullable|date',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
-            'items.*.qty' => 'required|numeric|min:0.01',
             'discount_value' => 'nullable|numeric|min:0',
             'gst_percent' => 'nullable|numeric|min:0',
+        ];
+
+        // Per-line max — capped at the vendor's available quantity for a
+        // Source: CRM product, uncapped for Shop Catalog (not tracked there).
+        foreach ($this->items as $i => $item) {
+            $max = $item['max_qty'] ?? null;
+            $rules["items.{$i}.qty"] = $max !== null
+                ? ['required', 'numeric', 'min:0.01', "max:{$max}"]
+                : ['required', 'numeric', 'min:0.01'];
+        }
+
+        return $rules;
+    }
+
+    protected function messages(): array
+    {
+        return [
+            'items.*.qty.max' => 'Only :max available from this vendor for this product.',
         ];
     }
 
