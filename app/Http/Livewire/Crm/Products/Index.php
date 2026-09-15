@@ -35,12 +35,6 @@ class Index extends Component
 
     public $importFile;
 
-    /** Source: CRM only — quantity lives in crm-test-service's own database. */
-    public ?int $quantityProductId = null;
-
-    /** Untyped — wire:model syncs this as a raw string before validation casts it. */
-    public $quantityValue = 0;
-
     protected function rules(): array
     {
         return [
@@ -138,37 +132,6 @@ class Index extends Component
             $message .= " Skipped {$skipped} row(s) with an unexpected number of columns.";
         }
         session()->flash('status', $message);
-    }
-
-    public function openQuantityModal(int $productId, CrmTestProductsClient $crmTestProducts): void
-    {
-        $product = Product::findOrFail($productId);
-
-        if ($product->shop_catalog_product_id) {
-            return; // Quantity only applies to Source: CRM products.
-        }
-
-        $this->quantityProductId = $productId;
-        $this->quantityValue = (int) ($crmTestProducts->all()->get($productId)['quantity'] ?? 0);
-    }
-
-    public function closeQuantityModal(): void
-    {
-        $this->quantityProductId = null;
-        $this->quantityValue = 0;
-    }
-
-    public function saveQuantity(CrmTestProductsClient $crmTestProducts): void
-    {
-        $this->validate(['quantityValue' => 'required|integer|min:0']);
-
-        if ($crmTestProducts->updateQuantity($this->quantityProductId, $this->quantityValue)) {
-            session()->flash('status', 'Quantity updated.');
-        } else {
-            session()->flash('status', 'Could not reach crm-test-service to update quantity.');
-        }
-
-        $this->closeQuantityModal();
     }
 
     public function render(CrmTestProductsClient $crmTestProducts)
