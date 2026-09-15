@@ -1,5 +1,12 @@
 <div>
-    <h1 class="text-2xl font-bold text-white mb-6">Update Pricing for {{ $product->description }}</h1>
+    <div class="flex items-center gap-3 mb-6">
+        <h1 class="text-2xl font-bold text-white">Update Pricing for {{ $product->description }}</h1>
+        @if ($quantity !== null)
+            <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-zinc-800 border border-white/10 text-zinc-300 whitespace-nowrap">
+                Total Quantity: <span class="text-white font-semibold">{{ $quantity }}</span>
+            </span>
+        @endif
+    </div>
 
     <div class="rounded-xl border border-white/10 bg-zinc-800 p-5">
         <h2 class="text-lg font-bold text-white">Vendor Pricing</h2>
@@ -22,32 +29,18 @@
                             <input type="number" step="0.01" min="0" wire:model="rows.{{ $index }}.price" placeholder="0.00" class="w-full rounded-lg bg-zinc-900 border-white/10 text-white text-sm" />
                             @error("rows.{$index}.price") <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
                         </div>
-                        <button type="button" wire:click="toggleHistory({{ $row['vendor_id'] ?? 'null' }})"
-                            @if(! $row['vendor_id']) disabled @endif
-                            class="h-9 w-9 shrink-0 flex items-center justify-center rounded-lg border border-white/10 text-zinc-300 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed"
-                            title="Price history">
-                            <x-heroicon-o-clock class="w-4 h-4" />
-                        </button>
+                        @if ($row['vendor_id'] && $vendorQuantities->has($row['vendor_id']))
+                            <div class="w-28 shrink-0">
+                                <label class="block text-xs font-semibold uppercase tracking-wide text-zinc-500 mb-1.5">Quantity</label>
+                                <p class="h-9 flex items-center text-sm font-medium text-zinc-200">{{ $vendorQuantities->get($row['vendor_id']) }}</p>
+                            </div>
+                        @endif
                         <button type="button" wire:click="removeRow({{ $index }})" wire:confirm="Remove this vendor's pricing for this product?"
                             class="h-9 w-9 shrink-0 flex items-center justify-center rounded-lg bg-red-600 hover:bg-red-500 text-white"
                             title="Delete">
                             <x-heroicon-o-trash class="w-4 h-4" />
                         </button>
                     </div>
-
-                    @if ($row['vendor_id'] && $historyVendorId === $row['vendor_id'])
-                        <div class="mt-3 rounded-lg bg-zinc-900 border border-white/10 p-3">
-                            <p class="text-xs font-semibold text-zinc-400 uppercase tracking-wide mb-2">Price History</p>
-                            @forelse ($this->history as $entry)
-                                <div class="flex items-center justify-between text-xs py-1 {{ !$loop->last ? 'border-b border-white/5' : '' }}">
-                                    <span class="text-zinc-400">{{ $entry->created_at->format('d M Y, g:i A') }} · {{ $entry->addedBy?->name ?? 'Unknown' }}</span>
-                                    <span class="text-white font-medium">MVR {{ number_format($entry->price, 2) }}</span>
-                                </div>
-                            @empty
-                                <p class="text-xs text-zinc-500">No price history yet.</p>
-                            @endforelse
-                        </div>
-                    @endif
                 </div>
             @endforeach
         </div>

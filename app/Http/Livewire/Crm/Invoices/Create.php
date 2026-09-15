@@ -143,6 +143,7 @@ class Create extends Component
         foreach ($this->items as $i => $item) {
             $invoice->items()->create([
                 'product_id' => $item['product_id'],
+                'vendor_id' => $item['vendor_id'],
                 'qty' => $item['qty'],
                 'rate' => $lines[$i]['unit_price'],
                 'discount_type' => $item['discount_type'],

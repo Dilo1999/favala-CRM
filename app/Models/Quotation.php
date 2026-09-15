@@ -196,6 +196,7 @@ class Quotation extends Model
         foreach ($this->items as $index => $item) {
             $invoice->items()->create([
                 'product_id' => $item->product_id,
+                'vendor_id' => $item->vendor_id,
                 'qty' => $item->qty,
                 'rate' => $item->unit_price,
                 'discount_type' => $item->discount_type,

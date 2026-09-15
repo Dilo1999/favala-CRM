@@ -19,6 +19,9 @@
                             @if ($product->origin)
                                 &middot; <span class="text-accent">{{ $product->origin }}</span>
                             @endif
+                            @if (($product->quantity ?? null) !== null)
+                                &middot; <span class="{{ $product->quantity > 0 ? 'text-zinc-400' : 'text-red-400' }}">Qty available: {{ $product->quantity }}</span>
+                            @endif
                         </span>
                     </button>
                 @empty

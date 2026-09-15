@@ -42,5 +42,20 @@ function crm_test_service_db(): PDO
         )
         SQL);
 
+    // Quantity actually lives here, per vendor — a product carried by several
+    // vendors can have a different quantity with each one. `products.quantity`
+    // above is legacy/unused now; GET /products reports the sum of this table
+    // instead. `vendor_id` refers to the main app's `vendors.id` — this service
+    // doesn't need the vendor's own details, just enough to key a quantity by.
+    $pdo->exec(<<<'SQL'
+        CREATE TABLE IF NOT EXISTS product_vendor_quantities (
+            id SERIAL PRIMARY KEY,
+            source_product_id INTEGER NOT NULL,
+            vendor_id INTEGER NOT NULL,
+            quantity INTEGER NOT NULL DEFAULT 0,
+            UNIQUE (source_product_id, vendor_id)
+        )
+        SQL);
+
     return $pdo;
 }

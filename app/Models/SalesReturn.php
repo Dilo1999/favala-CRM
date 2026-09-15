@@ -120,7 +120,24 @@ class SalesReturn extends Model
         // Outside the DB transaction above (which locks the invoice row) since
         // this is a network call to crm-test-service — stock coming back is
         // the mirror of the decrement Invoice creation applied.
-        app(ProductStockService::class)->restore($this->items);
+        app(ProductStockService::class)->restore($this->stockLines());
+    }
+
+    /**
+     * ReturnItem doesn't store which vendor a return's product was sold at —
+     * only InvoiceItem does (populated at invoice-creation time). Derive it
+     * here by matching on product_id against this return's own invoice, so
+     * stock comes back to the same vendor it left from.
+     */
+    private function stockLines(): \Illuminate\Support\Collection
+    {
+        $vendorByProduct = $this->invoice?->items->keyBy('product_id') ?? collect();
+
+        return $this->items->map(fn (ReturnItem $item) => (object) [
+            'product_id' => $item->product_id,
+            'vendor_id' => $vendorByProduct->get($item->product_id)?->vendor_id,
+            'qty' => $item->qty,
+        ]);
     }
 
     /** Undoes applyRefundToInvoice() — restores the invoice total and removes the refund payment. */
@@ -152,7 +169,7 @@ class SalesReturn extends Model
         });
 
         // Undoes the restore applyRefundToInvoice() applied.
-        app(ProductStockService::class)->decrement($this->items);
+        app(ProductStockService::class)->decrement($this->stockLines());
     }
 
     /**

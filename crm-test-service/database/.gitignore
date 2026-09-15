@@ -1,2 +1,3 @@
 *.sqlite*
 seed-products.json
+seed-vendor-links.json

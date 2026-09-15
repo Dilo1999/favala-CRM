@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\ProductVendorPrice;
 use App\Models\ShopCatalog\Product as ShopProduct;
 use App\Models\Vendor;
+use App\Services\CrmTestProductsClient;
 use App\Services\ShopCatalogSync;
 use Illuminate\Support\Collection;
 
@@ -65,10 +66,21 @@ trait HasProductSearch
             ->limit(20)
             ->get();
 
-        $catalog = $catalogProducts->flatMap(function (Product $product) {
+        // Quantity only exists for Source: CRM products (Shop Catalog carries
+        // none) and is tracked per vendor, so a result priced at a specific
+        // vendor shows that vendor's own quantity, not the product's total.
+        // Fetched once for every matched CRM product here (not per price row,
+        // not per keystroke-triggered result), rather than one HTTP call each.
+        $crmTestProducts = app(CrmTestProductsClient::class);
+        $crmProductIds = $catalogProducts->filter(fn (Product $p) => ! $p->shop_catalog_product_id)->pluck('id')->all();
+        $vendorQtyByProduct = $crmTestProducts->vendorQuantitiesForProducts($crmProductIds);
+        $totalQtyByProduct = $crmProductIds ? $crmTestProducts->all() : collect();
+
+        $catalog = $catalogProducts->flatMap(function (Product $product) use ($vendorQtyByProduct, $totalQtyByProduct) {
             $prices = $product->currentPrices(); // one row per vendor, most recent price
 
             $source = $product->source_label;
+            $isCrm = ! $product->shop_catalog_product_id;
 
             if ($prices->isEmpty()) {
                 return [(object) [
@@ -77,8 +89,11 @@ trait HasProductSearch
                     'code' => $product->code,
                     'origin' => null,
                     'source' => $source,
+                    'quantity' => $isCrm ? (int) ($totalQtyByProduct->get($product->id)['quantity'] ?? 0) : null,
                 ]];
             }
+
+            $vendorQuantities = $vendorQtyByProduct->get($product->id, collect());
 
             return $prices->map(fn (ProductVendorPrice $price) => (object) [
                 'key' => "p{$product->id}v{$price->vendor_id}",
@@ -86,6 +101,7 @@ trait HasProductSearch
                 'code' => $product->code,
                 'origin' => "via {$price->vendor->company_name} — ".number_format($price->price, 2),
                 'source' => $source,
+                'quantity' => $isCrm ? (int) $vendorQuantities->get($price->vendor_id, 0) : null,
             ]);
         });
 
@@ -111,6 +127,7 @@ trait HasProductSearch
                         'code' => $product->code,
                         'origin' => null,
                         'source' => 'Shop Catalog',
+                        'quantity' => null, // Not tracked for Shop Catalog products.
                     ]];
                 }
 
@@ -120,6 +137,7 @@ trait HasProductSearch
                     'code' => $product->code,
                     'origin' => "via {$price->shop->name} — ".number_format($price->price, 2),
                     'source' => 'Shop Catalog',
+                    'quantity' => null,
                 ]);
             });
 

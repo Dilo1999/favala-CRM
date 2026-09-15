@@ -5,6 +5,7 @@ namespace App\Http\Livewire\Crm\Products;
 use App\Models\Product;
 use App\Models\ProductVendorPrice;
 use App\Models\Vendor;
+use App\Services\CrmTestProductsClient;
 use App\Services\ShopCatalogSync;
 use Livewire\Component;
 
@@ -13,8 +14,6 @@ class Pricing extends Component
     public Product $product;
 
     public array $rows = [];
-
-    public ?int $historyVendorId = null;
 
     public function mount(): void
     {
@@ -52,28 +51,6 @@ class Pricing extends Component
 
         unset($this->rows[$index]);
         $this->rows = array_values($this->rows);
-
-        if ($this->historyVendorId === ($row['vendor_id'] ?? null)) {
-            $this->historyVendorId = null;
-        }
-    }
-
-    public function toggleHistory(?int $vendorId): void
-    {
-        $this->historyVendorId = $this->historyVendorId === $vendorId ? null : $vendorId;
-    }
-
-    public function getHistoryProperty()
-    {
-        if (! $this->historyVendorId) {
-            return collect();
-        }
-
-        return $this->product->prices()
-            ->where('vendor_id', $this->historyVendorId)
-            ->with('addedBy')
-            ->latest('id')
-            ->get();
     }
 
     protected function rules(): array
@@ -127,10 +104,25 @@ class Pricing extends Component
         return redirect()->route('crm.products');
     }
 
-    public function render()
+    public function render(CrmTestProductsClient $crmTestProducts)
     {
+        // View-only here — quantity lives in crm-test-service's own database,
+        // per vendor (the same product can have a different quantity with
+        // each vendor carrying it), and is only ever changed by a real sale
+        // or return, not edited from this page.
+        $quantity = null;
+        $vendorQuantities = collect();
+
+        if (! $this->product->shop_catalog_product_id) {
+            $quantity = (int) ($crmTestProducts->all()->get($this->product->id)['quantity'] ?? 0);
+            $vendorQuantities = $crmTestProducts->vendorQuantities($this->product->id)
+                ->map(fn ($row) => (int) $row['quantity']);
+        }
+
         return view('crm.products.pricing', [
             'vendors' => Vendor::orderBy('company_name')->pluck('company_name', 'id'),
+            'quantity' => $quantity,
+            'vendorQuantities' => $vendorQuantities,
         ])->layout('layouts.crm');
     }
 }
