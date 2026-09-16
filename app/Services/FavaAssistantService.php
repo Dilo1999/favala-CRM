@@ -33,6 +33,7 @@ class FavaAssistantService
     public function __construct(
         private Client $client,
         private DashboardMetricsService $metrics,
+        private CrmTestProductsClient $crmTestProducts,
     ) {}
 
     public function reply(User $user, string $userMessage): AiChatMessage
@@ -144,7 +145,7 @@ class FavaAssistantService
             new BetaRunnableTool(
                 definition: [
                     'name' => 'query_records',
-                    'description' => 'Search or count records from one whitelisted Favala CRM data table. Returns at most 20 rows. Use this for anything about customers, deals, invoices, quotations, deliveries, products, vendor pricing, vendors, tasks, activities, sales queries, sales returns, payments, targets, or staff.',
+                    'description' => 'Search or count records from one whitelisted Favala CRM data table. Returns at most 20 rows. Use this for anything about customers, deals, invoices, quotations, deliveries, products (including stock quantity), vendor pricing, vendors, tasks, activities, sales queries, sales returns, payments, targets, or staff.',
                     'input_schema' => [
                         'type' => 'object',
                         'properties' => [
@@ -268,6 +269,22 @@ class FavaAssistantService
 
             $rows = $query->select($config['columns'])->latest('id')->limit($limit)->get();
 
+            // Stock quantity lives in crm-test-service's own database, not this
+            // app's `products` table — fetch it over HTTP the same way the
+            // Products list page does, keyed by source_product_id (== our id).
+            // Only Source: CRM products (shop_catalog_product_id null) go
+            // through that service; Shop Catalog products carry no quantity.
+            if ($entity === 'products' && $rows->isNotEmpty()) {
+                $quantities = $this->crmTestProducts->all();
+                $rows = $rows->map(function ($row) use ($quantities) {
+                    $row->source = $row->shop_catalog_product_id ? 'shop_catalog' : 'crm';
+                    $row->quantity = $row->shop_catalog_product_id ? null : ($quantities->get($row->id)['quantity'] ?? null);
+                    unset($row->shop_catalog_product_id);
+
+                    return $row;
+                });
+            }
+
             return json_encode(['results' => $rows->toArray()], JSON_PARTIAL_OUTPUT_ON_ERROR);
         } catch (\Throwable $e) {
             Log::warning('Fava query_records tool failed', ['entity' => $entity, 'error' => $e->getMessage()]);
@@ -322,7 +339,7 @@ class FavaAssistantService
             ],
             'products' => [
                 'model' => Product::class,
-                'columns' => ['id', 'code', 'description', 'category', 'brand', 'unit_of_measure'],
+                'columns' => ['id', 'code', 'description', 'category', 'brand', 'unit_of_measure', 'shop_catalog_product_id'],
                 'search' => ['code', 'description'],
                 'filters' => ['category', 'brand'],
                 'with' => [],
