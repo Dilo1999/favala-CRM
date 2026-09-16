@@ -3,6 +3,8 @@
 namespace App\Http\Livewire\Crm\Vendors;
 
 use App\Http\Livewire\Concerns\WithBasicTable;
+use App\Models\InvoiceItem;
+use App\Models\QuotationItem;
 use App\Models\Vendor;
 use App\Services\ShopCatalogSync;
 use Livewire\Component;
@@ -63,9 +65,35 @@ class Index extends Component
         session()->flash('status', 'Vendor saved.');
     }
 
+    /**
+     * invoice_items.vendor_id / quotation_items.vendor_id are nullOnDelete —
+     * deleting a vendor that's referenced there doesn't fail, it silently
+     * blanks those lines' vendor instead. That's harmless for the document
+     * itself, but a return against a blanked line can no longer tell which
+     * vendor's stock to restore (SalesReturn::stockLines()), so the restore
+     * is quietly skipped when that return is later approved. Blocking the
+     * delete here is what actually prevents that, rather than a foreign-key
+     * error the database was never set up to raise.
+     */
     public function delete(int $id): void
     {
-        Vendor::findOrFail($id)->delete();
+        $vendor = Vendor::findOrFail($id);
+
+        $invoiceLines = InvoiceItem::where('vendor_id', $id)->count();
+        $quotationLines = QuotationItem::where('vendor_id', $id)->count();
+
+        if ($invoiceLines > 0 || $quotationLines > 0) {
+            $parts = array_filter([
+                $invoiceLines > 0 ? "{$invoiceLines} invoice line(s)" : null,
+                $quotationLines > 0 ? "{$quotationLines} quotation line(s)" : null,
+            ]);
+
+            session()->flash('error', "Can't delete {$vendor->company_name} — it's still referenced by ".implode(' and ', $parts).'. Returns against those sales need this vendor to restore stock correctly.');
+
+            return;
+        }
+
+        $vendor->delete();
         session()->flash('status', 'Vendor deleted.');
     }
 

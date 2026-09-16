@@ -76,6 +76,8 @@ class Detail extends Component
 
     public function delete()
     {
+        abort_unless(auth()->user()->canManageAllRecords() || $this->record->assigned_staff_id === auth()->id(), 403);
+
         $this->record->delete();
 
         session()->flash('status', 'Query deleted.');

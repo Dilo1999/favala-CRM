@@ -14,10 +14,16 @@ class Show extends Component
         $this->record = $record->load(['items.product', 'customer', 'invoice', 'createdBy', 'approvedBy']);
     }
 
-    /** Pending/Processed only — reaching Refunded goes through approve() below. */
+    /**
+     * Pending/Processed only — reaching Refunded goes through approve() below.
+     * Leaving Refunded needs the same management gate as reaching it: it
+     * un-does approve()'s refund (invoice credit, payment, restored stock),
+     * so it can't be left open to anyone who can merely view the return.
+     */
     public function updateStatus(string $status): void
     {
         abort_if($status === SalesReturn::STATUS_REFUNDED, 403);
+        abort_if($this->record->status === SalesReturn::STATUS_REFUNDED && ! auth()->user()->canApproveReturns(), 403);
 
         $this->record->transitionTo($status);
         $this->record->refresh();

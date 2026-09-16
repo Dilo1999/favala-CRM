@@ -64,7 +64,9 @@
                                     </select>
                                     <x-row-menu>
                                         <a href="{{ route('crm.queries.show', $query) }}" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Edit</a>
-                                        <button wire:click="delete({{ $query->id }})" wire:confirm="Delete this query? This cannot be undone." class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete</button>
+                                        @if (auth()->user()->canManageAllRecords() || $query->assigned_staff_id === auth()->id())
+                                            <button wire:click="delete({{ $query->id }})" wire:confirm="Delete this query? This cannot be undone." class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete</button>
+                                        @endif
                                     </x-row-menu>
                                 </div>
                             </div>

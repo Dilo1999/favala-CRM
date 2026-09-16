@@ -41,7 +41,9 @@
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="text-sm font-bold text-white">Edit Query</h3>
                     <x-row-menu>
-                        <button wire:click="delete" wire:confirm="Delete this query? This cannot be undone." class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete Query</button>
+                        @if (auth()->user()->canManageAllRecords() || $record->assigned_staff_id === auth()->id())
+                            <button wire:click="delete" wire:confirm="Delete this query? This cannot be undone." class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete Query</button>
+                        @endif
                     </x-row-menu>
                 </div>
 

@@ -7,6 +7,7 @@ use App\Models\Customer;
 use App\Models\Deal;
 use App\Models\SettingOption;
 use App\Models\User;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class Index extends Component
@@ -88,12 +89,20 @@ class Index extends Component
 
     protected function editRules(): array
     {
+        // "won" is reached only through Quotation::convertToInvoice() ->
+        // markWon(), which also stamps converted_at — not a value this form
+        // should ever be able to submit for a deal that isn't won yet.
+        $current = Deal::find($this->editingId)?->stage;
+        $allowedStages = $current === Deal::STAGE_WON
+            ? [Deal::STAGE_WON, 'potential', 'hot', 'lost']
+            : ['potential', 'hot', 'lost'];
+
         return [
             'editForm.customer_id' => 'required|exists:customers,id',
             'editForm.deal_date' => 'required|date',
             'editForm.request_source' => 'nullable|string',
             'editForm.assigned_staff_id' => 'nullable|exists:users,id',
-            'editForm.stage' => 'required|in:potential,hot,lost,won',
+            'editForm.stage' => ['required', Rule::in($allowedStages)],
             'editForm.additional_details' => 'nullable|string',
         ];
     }
@@ -102,7 +111,14 @@ class Index extends Component
     {
         $this->validate($this->editRules());
 
-        Deal::findOrFail($this->editingId)->update($this->editForm);
+        $deal = Deal::findOrFail($this->editingId);
+
+        // Belt-and-braces alongside the rule above: once a deal is won, its
+        // stage can't be edited away from here either — see Deals\Edit::save().
+        $data = $this->editForm;
+        $data['stage'] = $deal->stage === Deal::STAGE_WON ? Deal::STAGE_WON : $data['stage'];
+
+        $deal->update($data);
 
         $this->editingId = null;
         session()->flash('status', 'Deal updated.');
@@ -110,7 +126,12 @@ class Index extends Component
 
     public function deleteDeal(int $id): void
     {
-        Deal::findOrFail($id)->delete();
+        $deal = Deal::findOrFail($id);
+
+        $isOwner = $deal->assigned_staff_id === auth()->id() || $deal->created_by === auth()->id();
+        abort_unless(auth()->user()->canManageAllRecords() || $isOwner, 403);
+
+        $deal->delete();
 
         $this->viewingId = null;
         $this->editingId = null;

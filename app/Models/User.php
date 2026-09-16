@@ -98,8 +98,19 @@ class User extends Authenticatable implements FilamentUser
         return $this->role === self::ROLE_MANAGEMENT;
     }
 
-    /** Management reviews pending sales returns; Admin retains override authority everywhere. */
+    /** Only Management may approve/reject a requested refund — Admin no longer overrides this one. */
     public function canApproveReturns(): bool
+    {
+        return $this->isManagement();
+    }
+
+    /**
+     * Admin/Management can act on any deal, task, query, or activity in the
+     * pipeline regardless of who it's assigned to; a regular member is
+     * limited to their own — see ownership checks in Deals/Tasks/Queries/
+     * Activities' delete() methods.
+     */
+    public function canManageAllRecords(): bool
     {
         return $this->isAdmin() || $this->isManagement();
     }

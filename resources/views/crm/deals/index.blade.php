@@ -63,7 +63,9 @@
                                 <x-row-menu>
                                     <button wire:click="view({{ $deal->id }})" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">View</button>
                                     <button wire:click="edit({{ $deal->id }})" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Edit</button>
-                                    <button wire:click="deleteDeal({{ $deal->id }})" wire:confirm="Delete this deal? This cannot be undone." class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete</button>
+                                    @if (auth()->user()->canManageAllRecords() || $deal->assigned_staff_id === auth()->id() || $deal->created_by === auth()->id())
+                                        <button wire:click="deleteDeal({{ $deal->id }})" wire:confirm="Delete this deal? This cannot be undone." class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete</button>
+                                    @endif
                                 </x-row-menu>
                             </div>
                         </div>
@@ -106,7 +108,9 @@
                                     <x-row-menu>
                                         <button wire:click="view({{ $deal->id }})" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">View</button>
                                         <button wire:click="edit({{ $deal->id }})" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Edit</button>
+                                        @if (auth()->user()->canManageAllRecords() || $deal->assigned_staff_id === auth()->id() || $deal->created_by === auth()->id())
                                         <button wire:click="deleteDeal({{ $deal->id }})" wire:confirm="Delete this deal? This cannot be undone." class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete</button>
+                                    @endif
                                     </x-row-menu>
                                 </td>
                             </tr>
@@ -251,10 +255,14 @@
                     </div>
 
                     <div class="flex items-center justify-between gap-2 pt-2 border-t border-white/10">
+                        @if (auth()->user()->canManageAllRecords() || $editForm['assigned_staff_id'] === auth()->id())
                         <button type="button" wire:click="deleteDeal({{ $editingId }})" wire:confirm="Delete this deal? This cannot be undone."
                             class="flex items-center gap-2 px-4 py-2 rounded-lg border border-red-800 text-red-400 text-sm font-medium hover:bg-red-500/10 transition-colors">
                             <x-heroicon-o-trash class="w-4 h-4" /> Delete Deal
                         </button>
+                        @else
+                            <span></span>
+                        @endif
                         <div class="flex gap-2">
                             <button type="button" wire:click="closeEdit" class="px-4 py-2 rounded-lg border border-white/10 text-zinc-300 text-sm font-medium hover:bg-zinc-700 transition-colors">Cancel</button>
                             <button type="submit" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-semibold">

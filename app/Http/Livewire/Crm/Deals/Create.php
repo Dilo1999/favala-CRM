@@ -54,17 +54,22 @@ class Create extends Component
             'assigned_staff_id' => 'nullable|exists:users,id',
             'stage' => 'required|in:potential,hot,lost',
             'additional_details' => 'nullable|string',
+            // The per-row rules below only ever fire for rows that exist —
+            // an emptied-out $this->products would otherwise pass validation
+            // with zero rules to check, saving a deal with nothing attached.
+            'products' => 'required|array|min:1',
             'products.*.product_id' => 'required|exists:products,id',
         ];
 
         // Per-row max — capped at the vendor's available quantity for a
         // Source: CRM product (whichever vendor was picked in the search),
-        // uncapped for Shop Catalog (not tracked there).
+        // uncapped for Shop Catalog (not tracked there). Whole units only —
+        // products are counted, not measured, so "2.5" is never a real qty.
         foreach ($this->products as $i => $row) {
             $max = $row['max_qty'] ?? null;
             $rules["products.{$i}.qty"] = $max !== null
-                ? ['required', 'numeric', 'min:0.01', "max:{$max}"]
-                : ['required', 'numeric', 'min:0.01'];
+                ? ['required', 'integer', 'min:1', "max:{$max}"]
+                : ['required', 'integer', 'min:1'];
         }
 
         return $rules;
@@ -84,6 +89,14 @@ class Create extends Component
 
     public function removeProductRow(int $index): void
     {
+        // A deal with zero product rows still saves fine at the database
+        // level, but has nothing for its auto-spawned query to describe —
+        // keeping at least one row here is what actually prevents that,
+        // as a backstop alongside the 'products' => 'min:1' rule below.
+        if (count($this->products) <= 1) {
+            return;
+        }
+
         unset($this->products[$index]);
         $this->products = array_values($this->products);
     }

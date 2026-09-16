@@ -61,7 +61,8 @@ class Create extends Component
                 preg_match('/^lines\.(\d+)\.delivery_qty$/', $attribute, $m);
                 $max = (float) ($this->lines[(int) $m[1]]['balance_qty'] ?? 0);
 
-                return ['required', 'numeric', 'min:0', 'max:'.$max];
+                // Whole units only — products are counted, not measured.
+                return ['required', 'integer', 'min:0', 'max:'.$max];
             }),
         ];
     }

@@ -35,7 +35,9 @@
                                 <x-row-menu>
                                     <button wire:click="edit({{ $task->id }})" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Edit</button>
                                     <button wire:click="complete({{ $task->id }})" class="block w-full text-left px-3 py-1.5 text-green-400 hover:bg-zinc-700">Mark Complete</button>
-                                    <button wire:click="delete({{ $task->id }})" wire:confirm="Delete this task?" class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete</button>
+                                    @if (auth()->user()->canManageAllRecords() || $task->assigned_to === auth()->id())
+                                        <button wire:click="delete({{ $task->id }})" wire:confirm="Delete this task?" class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete</button>
+                                    @endif
                                 </x-row-menu>
                             </td>
                         </tr>
@@ -69,7 +71,9 @@
                             <td class="p-3 text-right">
                                 <x-row-menu>
                                     <button wire:click="edit({{ $task->id }})" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Edit</button>
-                                    <button wire:click="delete({{ $task->id }})" wire:confirm="Delete this task?" class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete</button>
+                                    @if (auth()->user()->canManageAllRecords() || $task->assigned_to === auth()->id())
+                                        <button wire:click="delete({{ $task->id }})" wire:confirm="Delete this task?" class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete</button>
+                                    @endif
                                 </x-row-menu>
                             </td>
                         </tr>

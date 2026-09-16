@@ -78,7 +78,7 @@
                                         :open-row="$productSearchRow" :search-term="$productSearch" :results="$this->productSearchResults" />
                                 </td>
                                 <td class="py-3 pr-4 w-24">
-                                    <input type="number" step="0.01" @if($item['max_qty'] !== null) max="{{ $item['max_qty'] }}" @endif
+                                    <input type="number" step="1" min="1" @if($item['max_qty'] !== null) max="{{ $item['max_qty'] }}" @endif
                                         wire:model.lazy="items.{{ $i }}.qty" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
                                     @if ($item['max_qty'] !== null)
                                         <p class="text-[11px] text-zinc-500 mt-1">Max: {{ $item['max_qty'] }}</p>

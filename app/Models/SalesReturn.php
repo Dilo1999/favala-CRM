@@ -97,10 +97,18 @@ class SalesReturn extends Model
             }
 
             $value = round((float) $this->value, 2);
+            [$taxablePortion, $gstPortion] = self::splitGstInclusiveAmount($value, (float) $invoice->gst_percent);
+
             $newGrandTotal = max(round($invoice->grand_total - $value, 2), 0);
+            $newSubtotal = max(round($invoice->subtotal - $taxablePortion, 2), 0);
+            $newGstAmount = max(round($invoice->gst_amount - $gstPortion, 2), 0);
             $cashRefund = round(max(0, $invoice->amount_paid - $newGrandTotal), 2);
 
-            $invoice->forceFill(['grand_total' => $newGrandTotal])->save();
+            $invoice->forceFill([
+                'subtotal' => $newSubtotal,
+                'gst_amount' => $newGstAmount,
+                'grand_total' => $newGrandTotal,
+            ])->save();
 
             if ($cashRefund > 0) {
                 $invoice->payments()->create([
@@ -121,6 +129,25 @@ class SalesReturn extends Model
         // this is a network call to crm-test-service — stock coming back is
         // the mirror of the decrement Invoice creation applied.
         app(ProductStockService::class)->restore($this->stockLines());
+    }
+
+    /**
+     * Splits a GST-inclusive amount (e.g. this return's refunded value, which
+     * already has GST folded in — see Returns\Create::getTotalValueProperty())
+     * back into its pre-GST and GST components, using the invoice's own GST
+     * rate. This is what keeps subtotal + gst_amount = grand_total true on the
+     * invoice after a refund: whatever gets subtracted from (or added back to)
+     * grand_total is subtracted from (or added back to) subtotal/gst_amount in
+     * the same proportion, instead of grand_total moving on its own.
+     *
+     * @return array{0: float, 1: float} [taxablePortion, gstPortion]
+     */
+    private static function splitGstInclusiveAmount(float $amount, float $gstPercent): array
+    {
+        $taxablePortion = $gstPercent > 0 ? round($amount / (1 + $gstPercent / 100), 2) : $amount;
+        $gstPortion = round($amount - $taxablePortion, 2);
+
+        return [$taxablePortion, $gstPortion];
     }
 
     /**
@@ -155,8 +182,13 @@ class SalesReturn extends Model
             }
 
             $value = round((float) $this->value, 2);
+            [$taxablePortion, $gstPortion] = self::splitGstInclusiveAmount($value, (float) $invoice->gst_percent);
 
-            $invoice->forceFill(['grand_total' => round($invoice->grand_total + $value, 2)])->save();
+            $invoice->forceFill([
+                'subtotal' => round($invoice->subtotal + $taxablePortion, 2),
+                'gst_amount' => round($invoice->gst_amount + $gstPortion, 2),
+                'grand_total' => round($invoice->grand_total + $value, 2),
+            ])->save();
 
             $invoice->payments()
                 ->where('method', Payment::METHOD_REFUND)

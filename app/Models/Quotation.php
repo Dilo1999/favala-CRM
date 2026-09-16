@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class Quotation extends Model
 {
@@ -172,56 +173,81 @@ class Quotation extends Model
         ]);
     }
 
-    /** Convert to Invoice (spec §5): inherits number, items, GST and totals; starts fully unpaid. */
+    /**
+     * Convert to Invoice (spec §5): inherits number, items, GST and totals; starts fully unpaid.
+     *
+     * Guarded against double-conversion: two near-simultaneous calls (a slow
+     * request re-clicked, two open tabs) would otherwise both see "not yet
+     * converted" and both create an invoice + decrement stock. Locking this
+     * row and re-checking its status inside that lock makes the check-and-set
+     * atomic — the second call blocks until the first commits, then finds the
+     * status already "converted" and returns the invoice already made,
+     * instead of creating a duplicate.
+     */
     public function convertToInvoice(?User $staff = null): Invoice
     {
-        $invoice = Invoice::create([
-            'quotation_id' => $this->id,
-            'customer_id' => $this->customer_id,
-            'staff_id' => $staff?->id ?? $this->staff_id,
-            'invoice_date' => now()->toDateString(),
-            'expiry_date' => now()->addDays(config('crm.document_expiry_days'))->toDateString(),
-            'bill_to_name' => $this->bill_to_name,
-            'bill_to_phone' => $this->bill_to_phone,
-            'bill_to_address' => $this->bill_to_address,
-            'subtotal' => $this->subtotal,
-            'discount_type' => $this->discount_type,
-            'discount_value' => $this->discount_value,
-            'gst_percent' => $this->gst_percent,
-            'gst_amount' => $this->gst_amount,
-            'grand_total' => $this->grand_total,
-            'amount_paid' => 0,
-            'balance_due' => $this->grand_total,
-            'payment_status' => 'pending',
-        ]);
+        $invoice = DB::transaction(function () use ($staff) {
+            $locked = self::whereKey($this->id)->lockForUpdate()->first();
 
-        foreach ($this->items as $index => $item) {
-            $invoice->items()->create([
-                'product_id' => $item->product_id,
-                'vendor_id' => $item->vendor_id,
-                'qty' => $item->qty,
-                'rate' => $item->unit_price,
-                'discount_type' => $item->discount_type,
-                'discount_value' => $item->discount_value,
-                'amount' => $item->line_amount,
-                'sort_order' => $index,
+            if (! $locked || $locked->status === self::STATUS_CONVERTED) {
+                return $this->invoices()->first();
+            }
+
+            $invoice = Invoice::create([
+                'quotation_id' => $this->id,
+                'customer_id' => $this->customer_id,
+                'staff_id' => $staff?->id ?? $this->staff_id,
+                'invoice_date' => now()->toDateString(),
+                'expiry_date' => now()->addDays(config('crm.document_expiry_days'))->toDateString(),
+                'bill_to_name' => $this->bill_to_name,
+                'bill_to_phone' => $this->bill_to_phone,
+                'bill_to_address' => $this->bill_to_address,
+                'subtotal' => $this->subtotal,
+                'discount_type' => $this->discount_type,
+                'discount_value' => $this->discount_value,
+                'gst_percent' => $this->gst_percent,
+                'gst_amount' => $this->gst_amount,
+                'grand_total' => $this->grand_total,
+                'amount_paid' => 0,
+                'balance_due' => $this->grand_total,
+                'payment_status' => 'pending',
             ]);
-        }
 
-        // A confirmed sale (this bypasses Invoices\Create::save() entirely, so
-        // it needs its own copy of the same stock decrement).
-        app(ProductStockService::class)->decrement($this->items);
+            foreach ($this->items as $index => $item) {
+                $invoice->items()->create([
+                    'product_id' => $item->product_id,
+                    'vendor_id' => $item->vendor_id,
+                    'qty' => $item->qty,
+                    'rate' => $item->unit_price,
+                    'discount_type' => $item->discount_type,
+                    'discount_value' => $item->discount_value,
+                    'amount' => $item->line_amount,
+                    'sort_order' => $index,
+                ]);
+            }
 
-        $this->update(['status' => self::STATUS_CONVERTED]);
+            $this->update(['status' => self::STATUS_CONVERTED]);
 
-        if ($this->deal) {
-            $this->deal->markWon();
-        }
+            if ($this->deal) {
+                $this->deal->markWon();
+            }
 
-        $linkedQuery = $this->salesQueries()->first() ?? $this->deal?->salesQuery;
+            $linkedQuery = $this->salesQueries()->first() ?? $this->deal?->salesQuery;
 
-        if ($linkedQuery) {
-            $linkedQuery->update(['status' => SalesQuery::STATUS_COMPLETED, 'quotation_id' => $this->id]);
+            if ($linkedQuery) {
+                $linkedQuery->update(['status' => SalesQuery::STATUS_COMPLETED, 'quotation_id' => $this->id]);
+            }
+
+            return $invoice;
+        });
+
+        if ($invoice->wasRecentlyCreated) {
+            // A confirmed sale (this bypasses Invoices\Create::save() entirely, so
+            // it needs its own copy of the same stock decrement). Kept outside the
+            // transaction above since it's a network call to crm-test-service, and
+            // only runs when this call actually created the invoice — a blocked,
+            // already-converted call must not decrement stock a second time.
+            app(ProductStockService::class)->decrement($this->items);
         }
 
         return $invoice;

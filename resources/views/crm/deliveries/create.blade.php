@@ -38,7 +38,7 @@
                         <tr>
                             <td class="py-2 text-white">{{ $line['label'] }}</td>
                             <td class="py-2 text-right text-zinc-400">{{ $line['balance_qty'] }}</td>
-                            <td class="py-2 text-right"><input type="number" step="0.01" wire:model="lines.{{ $i }}.delivery_qty" class="w-24 rounded-lg bg-zinc-700 border-white/10 text-white text-sm text-right" /></td>
+                            <td class="py-2 text-right"><input type="number" step="1" min="0" wire:model="lines.{{ $i }}.delivery_qty" class="w-24 rounded-lg bg-zinc-700 border-white/10 text-white text-sm text-right" /></td>
                         </tr>
                     @endforeach
                 </tbody>

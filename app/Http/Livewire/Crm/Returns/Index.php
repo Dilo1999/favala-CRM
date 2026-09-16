@@ -10,12 +10,21 @@ class Index extends Component
 {
     use WithBasicTable;
 
-    /** Pending/Processed only — reaching Refunded goes through approve() below. */
+    /**
+     * Pending/Processed only — reaching Refunded goes through approve() below.
+     * Leaving Refunded needs the same management gate as reaching it: it
+     * un-does approve()'s refund (invoice credit, payment, restored stock),
+     * so it can't be left open to anyone who can merely view the list.
+     */
     public function updateStatus(int $id, string $status): void
     {
         abort_if($status === SalesReturn::STATUS_REFUNDED, 403);
 
-        SalesReturn::findOrFail($id)->transitionTo($status);
+        $return = SalesReturn::findOrFail($id);
+
+        abort_if($return->status === SalesReturn::STATUS_REFUNDED && ! auth()->user()->canApproveReturns(), 403);
+
+        $return->transitionTo($status);
 
         session()->flash('status', 'Return status updated.');
     }

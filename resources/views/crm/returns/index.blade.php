@@ -37,7 +37,7 @@
                                     <x-heroicon-o-eye class="w-4 h-4" /> View
                                 </a>
                                 @foreach (\App\Models\SalesReturn::STATUSES as $val => $label)
-                                    @if ($val !== 'refunded')
+                                    @if ($val !== 'refunded' && ($return->status !== 'refunded' || auth()->user()->canApproveReturns()))
                                         <button wire:click="updateStatus({{ $return->id }}, '{{ $val }}')" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Mark {{ $label }}</button>
                                     @endif
                                 @endforeach

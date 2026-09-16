@@ -96,7 +96,11 @@ class Board extends Component
 
     public function delete(int $queryId): void
     {
-        SalesQuery::whereKey($queryId)->delete();
+        $query = SalesQuery::findOrFail($queryId);
+
+        abort_unless(auth()->user()->canManageAllRecords() || $query->assigned_staff_id === auth()->id(), 403);
+
+        $query->delete();
         session()->flash('status', 'Query deleted.');
     }
 

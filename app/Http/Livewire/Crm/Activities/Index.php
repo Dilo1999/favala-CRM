@@ -83,7 +83,11 @@ class Index extends Component
 
     public function delete(int $id): void
     {
-        Activity::findOrFail($id)->delete();
+        $activity = Activity::findOrFail($id);
+
+        abort_unless(auth()->user()->canManageAllRecords() || $activity->done_by === auth()->id(), 403);
+
+        $activity->delete();
         session()->flash('status', 'Activity deleted.');
     }
 

@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\Deal;
 use App\Models\SettingOption;
 use App\Models\User;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class Edit extends Component
@@ -48,12 +49,21 @@ class Edit extends Component
 
     protected function rules(): array
     {
+        // "won" is reached only through Quotation::convertToInvoice() ->
+        // markWon(), which also stamps converted_at — this form's stage
+        // field is display-only ("Won (automatic)") once a deal is already
+        // won, so it's not a value this form should ever be able to submit
+        // for a deal that isn't won yet.
+        $allowedStages = $this->record->stage === Deal::STAGE_WON
+            ? [Deal::STAGE_WON, 'potential', 'hot', 'lost']
+            : ['potential', 'hot', 'lost'];
+
         return [
             'customer_id' => 'required|exists:customers,id',
             'deal_date' => 'required|date',
             'request_source' => 'nullable|string',
             'assigned_staff_id' => 'nullable|exists:users,id',
-            'stage' => 'required|in:potential,hot,lost,won',
+            'stage' => ['required', Rule::in($allowedStages)],
             'additional_details' => 'nullable|string',
         ];
     }
@@ -62,12 +72,18 @@ class Edit extends Component
     {
         $this->validate();
 
+        // Belt-and-braces alongside the rule above: once a deal is won, its
+        // stage can't be edited away from here either — that would desync it
+        // from the invoice that actually won it, the same way editing a
+        // converted quotation after the fact would.
+        $stage = $this->record->stage === Deal::STAGE_WON ? Deal::STAGE_WON : $this->stage;
+
         $this->record->update([
             'customer_id' => $this->customer_id,
             'deal_date' => $this->deal_date,
             'request_source' => $this->request_source,
             'assigned_staff_id' => $this->assigned_staff_id !== null ? (int) $this->assigned_staff_id : null,
-            'stage' => $this->stage,
+            'stage' => $stage,
             'additional_details' => $this->additional_details,
         ]);
 

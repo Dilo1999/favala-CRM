@@ -282,11 +282,12 @@ class Formulate extends Component
 
         // Per-line max — capped at the vendor's available quantity for a
         // Source: CRM product, uncapped for Shop Catalog (not tracked there).
+        // Whole units only — products are counted, not measured.
         foreach ($this->items as $i => $item) {
             $max = $item['max_qty'] ?? null;
             $rules["items.{$i}.qty"] = $max !== null
-                ? ['required', 'numeric', 'min:0.01', "max:{$max}"]
-                : ['required', 'numeric', 'min:0.01'];
+                ? ['required', 'integer', 'min:1', "max:{$max}"]
+                : ['required', 'integer', 'min:1'];
         }
 
         return $rules;

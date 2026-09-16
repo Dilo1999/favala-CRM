@@ -20,7 +20,7 @@
                 </a>
             @endif
             @foreach (\App\Models\SalesReturn::STATUSES as $val => $label)
-                @if ($val !== $record->status && $val !== \App\Models\SalesReturn::STATUS_REFUNDED)
+                @if ($val !== $record->status && $val !== \App\Models\SalesReturn::STATUS_REFUNDED && ($record->status !== \App\Models\SalesReturn::STATUS_REFUNDED || auth()->user()->canApproveReturns()))
                     <button wire:click="updateStatus('{{ $val }}')"
                             class="px-4 py-2 rounded-lg border border-white/10 text-zinc-200 text-sm font-medium hover:bg-zinc-700">
                         Mark {{ $label }}

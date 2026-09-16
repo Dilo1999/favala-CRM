@@ -26,7 +26,7 @@
                         <tr>
                             <td class="py-2 text-white">{{ $line['label'] }}</td>
                             <td class="py-2 text-right text-zinc-400">{{ $line['max_qty'] }}</td>
-                            <td class="py-2 text-right"><input type="number" step="0.01" max="{{ $line['max_qty'] }}" wire:model="lines.{{ $i }}.qty" class="w-24 rounded-lg bg-zinc-700 border-white/10 text-white text-sm text-right" /></td>
+                            <td class="py-2 text-right"><input type="number" step="1" min="0" max="{{ $line['max_qty'] }}" wire:model="lines.{{ $i }}.qty" class="w-24 rounded-lg bg-zinc-700 border-white/10 text-white text-sm text-right" /></td>
                             <td class="py-2 text-right text-zinc-400">MVR {{ number_format($line['rate'], 2) }}</td>
                         </tr>
                     @endforeach

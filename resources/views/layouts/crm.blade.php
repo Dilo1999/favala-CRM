@@ -125,6 +125,9 @@
                 @if (session('status'))
                     <div class="mb-4 rounded-lg bg-green-500/10 text-green-400 text-sm px-4 py-3">{{ session('status') }}</div>
                 @endif
+                @if (session('error'))
+                    <div class="mb-4 rounded-lg bg-red-500/10 text-red-400 text-sm px-4 py-3">{{ session('error') }}</div>
+                @endif
 
                 {{ $slot }}
             </main>

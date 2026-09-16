@@ -22,13 +22,30 @@ class Create extends Component
         $this->invoice = Invoice::with('items.product')->findOrFail(request()->query('invoiceId'));
         $this->date = now()->toDateString();
 
-        $this->lines = $this->invoice->items->map(fn ($item) => [
-            'product_id' => $item->product_id,
-            'label' => $item->product?->description,
-            'max_qty' => $item->qty,
-            'rate' => $item->rate,
-            'qty' => 0,
-        ])->all();
+        // A rejected return never actually happened, so it doesn't hold any
+        // quantity back — anything still pending or already approved does,
+        // so the same units can't be signed up for a second return before
+        // the first is resolved. Mirrors Deliveries\Create's balance pattern.
+        $alreadyReturnedByProduct = $this->invoice->returns()
+            ->where('approval_status', '!=', SalesReturn::APPROVAL_REJECTED)
+            ->with('items')
+            ->get()
+            ->flatMap->items
+            ->groupBy('product_id')
+            ->map->sum('qty');
+
+        $this->lines = $this->invoice->items->map(function ($item) use ($alreadyReturnedByProduct) {
+            $alreadyReturned = (float) $alreadyReturnedByProduct->get($item->product_id, 0);
+            $maxQty = max((float) $item->qty - $alreadyReturned, 0);
+
+            return [
+                'product_id' => $item->product_id,
+                'label' => $item->product?->description,
+                'max_qty' => $maxQty,
+                'rate' => $item->rate,
+                'qty' => 0,
+            ];
+        })->all();
     }
 
     protected function rules(): array
@@ -45,7 +62,8 @@ class Create extends Component
                 preg_match('/^lines\.(\d+)\.qty$/', $attribute, $m);
                 $max = (float) ($this->lines[(int) $m[1]]['max_qty'] ?? 0);
 
-                return ['required', 'numeric', 'min:0', 'max:'.$max];
+                // Whole units only — products are counted, not measured.
+                return ['required', 'integer', 'min:0', 'max:'.$max];
             }),
         ];
     }

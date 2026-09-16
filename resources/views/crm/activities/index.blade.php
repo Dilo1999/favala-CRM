@@ -54,7 +54,9 @@
                             <td class="px-6 py-3 text-right">
                                 <x-row-menu>
                                     <button wire:click="edit({{ $activity->id }})" class="block w-full text-left px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Edit</button>
-                                    <button wire:click="delete({{ $activity->id }})" wire:confirm="Delete this activity?" class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete</button>
+                                    @if (auth()->user()->canManageAllRecords() || $activity->done_by === auth()->id())
+                                        <button wire:click="delete({{ $activity->id }})" wire:confirm="Delete this activity?" class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete</button>
+                                    @endif
                                 </x-row-menu>
                             </td>
                         </tr>

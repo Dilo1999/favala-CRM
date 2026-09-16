@@ -88,7 +88,11 @@ class Index extends Component
 
     public function delete(int $id): void
     {
-        Task::findOrFail($id)->delete();
+        $task = Task::findOrFail($id);
+
+        abort_unless(auth()->user()->canManageAllRecords() || $task->assigned_to === auth()->id(), 403);
+
+        $task->delete();
         session()->flash('status', 'Task deleted.');
     }
 

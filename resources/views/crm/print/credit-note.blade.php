@@ -67,8 +67,25 @@
             </tbody>
         </table>
 
+        @php
+            // Items are stored pre-GST (mirroring InvoiceItem::amount), but
+            // $record->value is the GST-inclusive amount actually refunded —
+            // showing the gap as its own line (rather than only the total)
+            // is what makes the printed rows add up to the printed total.
+            $itemsSubtotal = round($record->items->sum('amount'), 2);
+            $adjustment = round($record->value - $itemsSubtotal, 2);
+            $gstPercent = $record->invoice?->gst_percent;
+            $hasOrderDiscount = (float) ($record->invoice?->discount_value ?? 0) > 0;
+        @endphp
         <div class="flex justify-end mb-8">
             <div class="w-64 space-y-1.5">
+                <div class="flex justify-between"><span class="text-gray-700">Items Subtotal:</span><span class="text-blue-800">MVR {{ number_format($itemsSubtotal, 2) }}</span></div>
+                @if ($adjustment != 0)
+                    <div class="flex justify-between">
+                        <span class="text-gray-700">{{ $hasOrderDiscount ? 'GST & Discount Adjustment:' : 'GST'.($gstPercent !== null ? ' ('.rtrim(rtrim(number_format($gstPercent, 2), '0'), '.').'%)' : '').':' }}</span>
+                        <span class="text-blue-800">MVR {{ number_format($adjustment, 2) }}</span>
+                    </div>
+                @endif
                 <div class="flex justify-between font-bold text-base border-t-2 border-gray-900 pt-1.5"><span>Total Credited:</span><span>MVR {{ number_format($record->value, 2) }}</span></div>
             </div>
         </div>
