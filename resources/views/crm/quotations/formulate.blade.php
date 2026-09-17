@@ -106,6 +106,9 @@
                                         </select>
                                         <input type="number" step="0.01" wire:model.lazy="items.{{ $i }}.discount_value" class="w-16 rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
                                     </div>
+                                    @if (($line['discount_amount'] ?? 0) > 0)
+                                        <p class="text-[10px] text-accent mt-1">Excluded from overall discount</p>
+                                    @endif
                                 </td>
                                 <td class="py-3 pr-4 text-right text-white font-medium whitespace-nowrap">MVR {{ number_format($line['line_amount'], 2) }}</td>
                                 <td class="py-3 pl-2 w-14">
@@ -148,14 +151,15 @@
                     <span class="text-zinc-400 shrink-0">Discount</span>
                     <div class="flex items-center gap-3">
                         <label class="flex items-center gap-1.5 text-xs text-zinc-300 cursor-pointer">
-                            <input type="radio" wire:model="discount_type" value="flat" /> Flat
+                            <input type="radio" name="discount_type" wire:model="discount_type" value="flat" /> Flat
                         </label>
                         <label class="flex items-center gap-1.5 text-xs text-zinc-300 cursor-pointer">
-                            <input type="radio" wire:model="discount_type" value="percent" /> %
+                            <input type="radio" name="discount_type" wire:model="discount_type" value="percent" /> %
                         </label>
                         <input type="number" step="0.01" wire:model.lazy="discount_value" class="w-20 rounded-lg bg-zinc-700 border-white/10 text-white text-sm text-right" />
                     </div>
                 </div>
+                <p class="text-[11px] text-zinc-500 -mt-2">Applies only to products without their own discount above.</p>
 
                 <div class="flex justify-between items-center">
                     <span class="text-zinc-400">GST (%)</span>

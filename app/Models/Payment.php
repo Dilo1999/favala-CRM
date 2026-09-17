@@ -16,7 +16,7 @@ class Payment extends Model
     /** Not user-selectable on the Receive Payment form — used only for system-generated refund entries. */
     public const METHOD_REFUND = 'Refund';
 
-    protected $fillable = ['invoice_id', 'date', 'method', 'reference', 'received_by', 'amount'];
+    protected $fillable = ['invoice_id', 'date', 'method', 'reference', 'receipt_path', 'received_by', 'amount'];
 
     protected $casts = [
         'date' => 'date',

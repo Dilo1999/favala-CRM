@@ -44,7 +44,11 @@ class PricingEngine
     /**
      * Roll a set of priced lines up to order level: order discount, GST, grand total, profit margin.
      *
-     * @param  array<int, array{line_amount: float, profit: float}>  $lines
+     * A line that already carries its own discount (discount_amount > 0) is
+     * excluded from the base the order-level discount applies to — it isn't
+     * discounted a second time on top of whatever was already taken off it.
+     *
+     * @param  array<int, array{line_amount: float, profit: float, discount_amount?: float}>  $lines
      * @return array{subtotal: float, order_discount_amount: float, taxable_amount: float, gst_amount: float, grand_total: float, total_profit: float, profit_margin: float}
      */
     public static function order(array $lines, string $discountType = 'flat', float $discountValue = 0, float $gstPercent = 8): array
@@ -52,10 +56,15 @@ class PricingEngine
         $subtotal = round(array_sum(array_column($lines, 'line_amount')), 2);
         $totalProfit = round(array_sum(array_column($lines, 'profit')), 2);
 
+        $undiscountedSubtotal = round(array_sum(array_map(
+            fn (array $line) => ($line['discount_amount'] ?? 0) > 0 ? 0 : $line['line_amount'],
+            $lines
+        )), 2);
+
         $orderDiscount = $discountType === 'percent'
-            ? $subtotal * ($discountValue / 100)
+            ? $undiscountedSubtotal * ($discountValue / 100)
             : $discountValue;
-        $orderDiscount = min($orderDiscount, $subtotal);
+        $orderDiscount = min(max($orderDiscount, 0), $undiscountedSubtotal);
 
         $taxableAmount = round($subtotal - $orderDiscount, 2);
         $gstAmount = round($taxableAmount * ($gstPercent / 100), 2);

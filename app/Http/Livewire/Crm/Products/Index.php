@@ -14,6 +14,12 @@ class Index extends Component
 {
     use WithBasicTable, WithFileUploads;
 
+    /** render() below sorts by 'description' whenever sortField is 'created_at' — the only other real column it's prepared to sort by. */
+    protected function sortableFields(): array
+    {
+        return ['created_at', 'description'];
+    }
+
     /**
      * Pull every Shop Catalog product (and its current prices) into the local
      * catalog on every visit to this page, so the list here always reflects

@@ -27,7 +27,7 @@
                         <td class="p-3 text-zinc-300">{{ $invoice->customer?->company_name }}</td>
                         <td class="p-3 text-zinc-400">{{ $last ? $last->date->format('d M Y') : 'N/A' }}</td>
                         <td class="p-3">
-                            <x-badge :color="$invoice->payment_status === 'paid' ? 'green' : ($invoice->payment_status === 'partial' ? 'orange' : 'gray')">
+                            <x-badge :color="match($invoice->payment_status) { 'paid' => 'green', 'partial' => 'orange', 'refunded' => 'blue', default => 'gray' }">
                                 {{ ucfirst($invoice->payment_status) }}
                             </x-badge>
                         </td>

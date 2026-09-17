@@ -15,6 +15,12 @@ class Index extends Component
 {
     use WithBasicTable, WithFileUploads;
 
+    /** render() below sorts by 'description' whenever sortField is 'created_at' — the only other real column it's prepared to sort by. */
+    protected function sortableFields(): array
+    {
+        return ['created_at', 'description'];
+    }
+
     public bool $showForm = false;
 
     public ?int $editingId = null;

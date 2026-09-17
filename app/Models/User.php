@@ -98,10 +98,10 @@ class User extends Authenticatable implements FilamentUser
         return $this->role === self::ROLE_MANAGEMENT;
     }
 
-    /** Only Management may approve/reject a requested refund — Admin no longer overrides this one. */
+    /** Management or Admin may approve/reject a requested refund. */
     public function canApproveReturns(): bool
     {
-        return $this->isManagement();
+        return $this->isManagement() || $this->isAdmin();
     }
 
     /**

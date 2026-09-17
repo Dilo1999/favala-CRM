@@ -5,6 +5,7 @@ namespace App\Http\Livewire\Crm\Quotations;
 use App\Http\Livewire\Concerns\HasProductSearch;
 use App\Models\Customer;
 use App\Models\Deal;
+use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\ProductVendorPrice;
 use App\Models\Quotation;
@@ -84,12 +85,26 @@ class Formulate extends Component
             $this->discount_type = $record->discount_type;
             $this->discount_value = (float) $record->discount_value;
             $this->gst_percent = (float) $record->gst_percent;
-            $this->items = $record->items->map(fn ($i) => [
-                'product_id' => $i->product_id, 'product_label' => $i->product?->description, 'vendor_id' => $i->vendor_id, 'cost' => (float) $i->cost,
-                'qty' => (float) $i->qty, 'markup_percent' => (float) $i->markup_percent,
-                'discount_type' => $i->discount_type, 'discount_value' => (float) $i->discount_value,
-                'max_qty' => $this->resolveMaxQty((string) $i->product_id, $i->vendor_id),
-            ])->all();
+            $this->items = $record->items->map(function ($i) {
+                $maxQty = $this->resolveMaxQty((string) $i->product_id, $i->vendor_id);
+
+                // This quotation's own invoice (if any) already decremented
+                // the vendor's stock by this exact line's qty, so the vendor's
+                // *current* available no longer reflects that this line
+                // already "owns" those units — add them back, or even
+                // reducing the qty here would be wrongly blocked by a max
+                // that's short by the amount this very line already took.
+                if ($maxQty !== null && $this->hasInvoice) {
+                    $maxQty += (float) $i->qty;
+                }
+
+                return [
+                    'product_id' => $i->product_id, 'product_label' => $i->product?->description, 'vendor_id' => $i->vendor_id, 'cost' => (float) $i->cost,
+                    'qty' => (float) $i->qty, 'markup_percent' => (float) $i->markup_percent,
+                    'discount_type' => $i->discount_type, 'discount_value' => (float) $i->discount_value,
+                    'max_qty' => $maxQty,
+                ];
+            })->all();
 
             return;
         }
@@ -344,9 +359,59 @@ class Formulate extends Component
         $quotation->recalculateTotals();
         $quotation->syncLinkedQuery();
 
-        session()->flash('status', 'Quotation saved.');
+        session()->flash('status', $this->syncInvoiceIfPending($quotation)
+            ? 'Quotation saved — its invoice was updated to match.'
+            : 'Quotation saved.');
 
         return redirect()->route('crm.quotations.show', $quotation);
+    }
+
+    /**
+     * A converted quotation's invoice previously never saw a later edit at
+     * all — the two documents could show different totals for the same
+     * sale. Once money has actually moved against the invoice, rewriting
+     * its items out from under that would corrupt the payment/balance math
+     * (the customer paid against the old total), so this only re-syncs an
+     * invoice that's still fully unpaid — its items and totals still exist
+     * purely because the quotation created them, so a further quotation
+     * edit re-applying them is the same operation.
+     *
+     * @return bool Whether an invoice was actually re-synced.
+     */
+    private function syncInvoiceIfPending(Quotation $quotation): bool
+    {
+        $invoice = $quotation->invoices()->first();
+
+        if (! $invoice || $invoice->payment_status !== Invoice::STATUS_PENDING) {
+            return false;
+        }
+
+        $invoice->items()->delete();
+
+        foreach ($quotation->items as $index => $item) {
+            $invoice->items()->create([
+                'product_id' => $item->product_id,
+                'vendor_id' => $item->vendor_id,
+                'qty' => $item->qty,
+                'rate' => $item->unit_price,
+                'discount_type' => $item->discount_type,
+                'discount_value' => $item->discount_value,
+                'amount' => $item->line_amount,
+                'sort_order' => $index,
+            ]);
+        }
+
+        $invoice->forceFill([
+            'subtotal' => $quotation->subtotal,
+            'discount_type' => $quotation->discount_type,
+            'discount_value' => $quotation->discount_value,
+            'gst_percent' => $quotation->gst_percent,
+            'gst_amount' => $quotation->gst_amount,
+            'grand_total' => $quotation->grand_total,
+            'balance_due' => $quotation->grand_total,
+        ])->save();
+
+        return true;
     }
 
     public function convert()

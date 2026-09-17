@@ -41,7 +41,7 @@
             @if (auth()->user()->canApproveReturns())
                 This return is awaiting your review. Approve to process the refund, or reject to decline it.
             @else
-                This return is pending approval from Management before it can be refunded.
+                This return is pending approval from Management or Admin before it can be refunded.
             @endif
         </div>
     @elseif ($record->approval_status === 'rejected')

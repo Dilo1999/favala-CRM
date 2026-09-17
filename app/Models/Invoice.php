@@ -18,6 +18,8 @@ class Invoice extends Model
 
     public const STATUS_PAID = 'paid';
 
+    public const STATUS_REFUNDED = 'refunded';
+
     protected $fillable = [
         'quotation_id', 'customer_id', 'staff_id', 'reference_number', 'invoice_date', 'expiry_date',
         'bill_to_name', 'bill_to_phone', 'bill_to_address',
@@ -94,12 +96,13 @@ class Invoice extends Model
     }
 
     /** Receive a payment (spec §6.8) and recompute paid/balance/status. */
-    public function receivePayment(float $amount, string $method, ?string $reference, ?User $receivedBy): Payment
+    public function receivePayment(float $amount, string $method, ?string $reference, ?User $receivedBy, ?string $receiptPath = null): Payment
     {
         $payment = $this->payments()->create([
             'date' => now()->toDateString(),
             'method' => $method,
             'reference' => $reference,
+            'receipt_path' => $receiptPath,
             'received_by' => $receivedBy?->id,
             'amount' => $amount,
         ]);
@@ -114,11 +117,20 @@ class Invoice extends Model
         $paid = round((float) $this->payments()->sum('amount'), 2);
         $balance = round((float) $this->grand_total - $paid, 2);
 
+        // A full return refunds every cent paid, netting `paid` back to ~0
+        // alongside a grand_total reduced to ~0 by the same return — that
+        // also satisfies "balance <= 0", so without requiring paid > 0 first,
+        // a fully-refunded invoice (holding no money at all) was wrongly
+        // showing as Paid. Distinguished from a genuinely-just-created,
+        // never-paid invoice (also paid = 0) by whether a refund actually
+        // happened here.
         $status = self::STATUS_PENDING;
         if ($paid > 0 && $balance > 0.001) {
             $status = self::STATUS_PARTIAL;
-        } elseif ($balance <= 0.001) {
+        } elseif ($paid > 0 && $balance <= 0.001) {
             $status = self::STATUS_PAID;
+        } elseif ($balance <= 0.001 && $this->payments()->where('method', Payment::METHOD_REFUND)->exists()) {
+            $status = self::STATUS_REFUNDED;
         }
 
         $this->forceFill([

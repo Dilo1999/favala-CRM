@@ -24,6 +24,9 @@
                         <td class="p-3 text-white">MVR {{ number_format($payment->amount, 2) }}</td>
                         <td class="p-3 text-zinc-500">MVR {{ number_format($payment->invoice?->grand_total, 2) }}</td>
                         <td class="p-3 text-right">
+                            @if ($payment->receipt_path)
+                                <a href="{{ asset('storage/'.$payment->receipt_path) }}" target="_blank" class="text-accent text-sm hover:underline mr-3">Receipt</a>
+                            @endif
                             <a href="{{ route('crm.invoices.show', $payment->invoice) }}" class="text-accent text-sm hover:underline">View Invoice</a>
                         </td>
                     </tr>

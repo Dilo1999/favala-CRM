@@ -11,6 +11,12 @@ class Index extends Component
 {
     use WithBasicTable;
 
+    /** render() below sorts by 'name' whenever sortField is 'created_at' — the only other real column it's prepared to sort by. */
+    protected function sortableFields(): array
+    {
+        return ['created_at', 'name'];
+    }
+
     public bool $showForm = false;
 
     public ?int $editingId = null;
