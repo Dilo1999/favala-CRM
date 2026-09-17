@@ -149,11 +149,7 @@
                     <div>
                         <label class="block text-xs text-zinc-400 mb-1">Amount to Pay</label>
                         <p class="w-full rounded-lg bg-zinc-900 border border-white/10 px-3 py-2 text-white text-sm font-medium">MVR {{ number_format($this->payableAmount, 2) }}</p>
-                        @if ($this->payableAmount > $record->balance_due)
-                            <p class="text-[11px] text-accent mt-1">Includes a previously refunded return — paying this un-refunds it.</p>
-                        @else
-                            <p class="text-[11px] text-zinc-500 mt-1">Always the full balance due — not editable here.</p>
-                        @endif
+                        <p class="text-[11px] text-zinc-500 mt-1">Always the full balance due — not editable here.</p>
                     </div>
                     <div>
                         <label class="block text-xs text-zinc-400 mb-1">Payment Method</label>
@@ -161,15 +157,16 @@
                             @foreach (\App\Models\Payment::METHODS as $method) <option value="{{ $method }}">{{ $method }}</option> @endforeach
                         </select>
                     </div>
-                    @if ($paymentMethod !== 'Cash')
-                        <div>
-                            <label class="block text-xs text-zinc-400 mb-1">Reference Number <span class="text-red-400">*</span></label>
-                            <input type="text" wire:model="paymentReference" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
-                            @error('paymentReference') <span class="block text-red-400 text-xs mt-1">{{ $message }}</span> @enderror
-                        </div>
-                    @endif
+                    <div @if ($paymentMethod === 'Cash') style="display:none" @endif>
+                        <label class="block text-xs text-zinc-400 mb-1">Reference Number <span class="text-red-400">*</span></label>
+                        <input type="text" wire:model="paymentReference" class="w-full rounded-lg bg-zinc-700 border-white/10 text-white text-sm" />
+                        @error('paymentReference') <span class="block text-red-400 text-xs mt-1">{{ $message }}</span> @enderror
+                    </div>
                     <div>
-                        <label class="block text-xs text-zinc-400 mb-1">Receipt (optional)</label>
+                        <label class="block text-xs text-zinc-400 mb-1">
+                            Receipt
+                            @if ($paymentMethod !== 'Cash') <span class="text-red-400">*</span> @else <span class="text-zinc-500">(optional)</span> @endif
+                        </label>
                         <input type="file" wire:model="receiptFile" accept=".pdf,image/*" class="w-full text-sm text-zinc-300" />
                         <div wire:loading wire:target="receiptFile" class="text-xs text-zinc-500 mt-1">Uploading…</div>
                         @if ($receiptFile)
@@ -177,9 +174,21 @@
                         @endif
                         @error('receiptFile') <span class="block text-red-400 text-xs mt-1">{{ $message }}</span> @enderror
                     </div>
+                    @if ($referenceMismatchWarning)
+                        <div class="rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2">
+                            <p class="text-xs text-amber-300">{{ $referenceMismatchWarning }}</p>
+                        </div>
+                    @endif
                     <div class="flex justify-end gap-2">
                         <button type="button" wire:click="$set('showPaymentForm', false)" class="px-4 py-2 rounded-lg border border-white/10 text-zinc-300 text-sm">Cancel</button>
-                        <button type="submit" class="px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-semibold">Receive Payment</button>
+                        @if ($referenceMismatchWarning)
+                            <button type="button" wire:click="receivePayment(true)" wire:loading.attr="disabled" wire:target="receivePayment" class="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold">Receive Anyway</button>
+                        @else
+                            <button type="submit" wire:loading.attr="disabled" wire:target="receivePayment" class="px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-semibold">
+                                <span wire:loading.remove wire:target="receivePayment">Receive Payment</span>
+                                <span wire:loading wire:target="receivePayment">Verifying…</span>
+                            </button>
+                        @endif
                     </div>
                 </form>
             </div>

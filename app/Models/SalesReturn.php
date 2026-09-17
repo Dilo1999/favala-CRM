@@ -76,12 +76,15 @@ class SalesReturn extends Model
     }
 
     /**
-     * Credit the return's value against the invoice (spec §6.10 open question —
-     * resolved as: reduce the invoice's grand total by the returned value; any
-     * portion the customer had already paid beyond the new, smaller total is
-     * recorded as a system-generated negative "Refund" payment so the invoice's
-     * amount_paid/balance_due/payment_status all stay derived the normal way.
-     * Idempotent via refund_applied_at — safe to call even if already applied.
+     * Credit the return's value against the invoice. An invoice's own
+     * subtotal/gst/grand_total are what was actually billed and never
+     * change after the fact — a return only ever affects what's been paid,
+     * via a system-generated negative "Refund" payment, so balance_due
+     * (derived the normal way in Invoice::recalculatePaymentStatus()) comes
+     * back up to reflect that the invoice is unpaid again. Capped at what
+     * was actually paid — there's no cash to hand back beyond that, even if
+     * the return itself is worth more. Idempotent via refund_applied_at —
+     * safe to call even if already applied.
      */
     public function applyRefundToInvoice(): void
     {
@@ -96,19 +99,7 @@ class SalesReturn extends Model
                 return;
             }
 
-            $value = round((float) $this->value, 2);
-            [$taxablePortion, $gstPortion] = self::splitGstInclusiveAmount($value, (float) $invoice->gst_percent);
-
-            $newGrandTotal = max(round($invoice->grand_total - $value, 2), 0);
-            $newSubtotal = max(round($invoice->subtotal - $taxablePortion, 2), 0);
-            $newGstAmount = max(round($invoice->gst_amount - $gstPortion, 2), 0);
-            $cashRefund = round(max(0, $invoice->amount_paid - $newGrandTotal), 2);
-
-            $invoice->forceFill([
-                'subtotal' => $newSubtotal,
-                'gst_amount' => $newGstAmount,
-                'grand_total' => $newGrandTotal,
-            ])->save();
+            $cashRefund = round(min((float) $this->value, max(0, $invoice->amount_paid)), 2);
 
             if ($cashRefund > 0) {
                 $invoice->payments()->create([
@@ -132,25 +123,6 @@ class SalesReturn extends Model
     }
 
     /**
-     * Splits a GST-inclusive amount (e.g. this return's refunded value, which
-     * already has GST folded in — see Returns\Create::getTotalValueProperty())
-     * back into its pre-GST and GST components, using the invoice's own GST
-     * rate. This is what keeps subtotal + gst_amount = grand_total true on the
-     * invoice after a refund: whatever gets subtracted from (or added back to)
-     * grand_total is subtracted from (or added back to) subtotal/gst_amount in
-     * the same proportion, instead of grand_total moving on its own.
-     *
-     * @return array{0: float, 1: float} [taxablePortion, gstPortion]
-     */
-    private static function splitGstInclusiveAmount(float $amount, float $gstPercent): array
-    {
-        $taxablePortion = $gstPercent > 0 ? round($amount / (1 + $gstPercent / 100), 2) : $amount;
-        $gstPortion = round($amount - $taxablePortion, 2);
-
-        return [$taxablePortion, $gstPortion];
-    }
-
-    /**
      * ReturnItem doesn't store which vendor a return's product was sold at —
      * only InvoiceItem does (populated at invoice-creation time). Derive it
      * here by matching on product_id against this return's own invoice, so
@@ -167,7 +139,12 @@ class SalesReturn extends Model
         ]);
     }
 
-    /** Undoes applyRefundToInvoice() — restores the invoice total and removes the refund payment. */
+    /**
+     * Undoes applyRefundToInvoice() — removes the refund payment, so the
+     * invoice's balance comes back down to what it actually was before this
+     * return was refunded (the invoice's own subtotal/gst/grand_total were
+     * never touched to begin with, so there's nothing to restore there).
+     */
     public function reverseRefundFromInvoice(): void
     {
         if (! $this->refund_applied_at || ! $this->invoice_id) {
@@ -180,15 +157,6 @@ class SalesReturn extends Model
             if (! $invoice) {
                 return;
             }
-
-            $value = round((float) $this->value, 2);
-            [$taxablePortion, $gstPortion] = self::splitGstInclusiveAmount($value, (float) $invoice->gst_percent);
-
-            $invoice->forceFill([
-                'subtotal' => round($invoice->subtotal + $taxablePortion, 2),
-                'gst_amount' => round($invoice->gst_amount + $gstPortion, 2),
-                'grand_total' => round($invoice->grand_total + $value, 2),
-            ])->save();
 
             $invoice->payments()
                 ->where('method', Payment::METHOD_REFUND)
