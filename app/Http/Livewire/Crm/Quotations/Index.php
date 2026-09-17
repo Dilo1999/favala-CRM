@@ -3,7 +3,9 @@
 namespace App\Http\Livewire\Crm\Quotations;
 
 use App\Http\Livewire\Concerns\WithBasicTable;
+use App\Models\Invoice;
 use App\Models\Quotation;
+use App\Services\ProductStockService;
 use Livewire\Component;
 
 class Index extends Component
@@ -27,9 +29,32 @@ class Index extends Component
         return redirect()->route('crm.invoices.show', $invoice);
     }
 
+    /**
+     * A quotation's invoice(s) with any payment activity (partial/paid/refunded)
+     * block the delete outright — cascading past them would destroy real
+     * Payment records (payments.invoice_id is cascadeOnDelete). A still-pending
+     * invoice (no payments at all) is safe to remove along with the quotation,
+     * and since it represents stock that was decremented at invoice creation
+     * but never actually sold, that stock is restored.
+     */
     public function delete(int $id): void
     {
-        Quotation::findOrFail($id)->delete();
+        $quotation = Quotation::with('invoices.items')->findOrFail($id);
+
+        $blocking = $quotation->invoices->firstWhere('payment_status', '!=', Invoice::STATUS_PENDING);
+
+        if ($blocking) {
+            session()->flash('error', "Can't delete this quotation — its invoice {$blocking->friendly_id} has payment activity ({$blocking->payment_status}). Only quotations with no paid invoice can be deleted.");
+
+            return;
+        }
+
+        foreach ($quotation->invoices as $invoice) {
+            app(ProductStockService::class)->restore($invoice->items);
+            $invoice->delete();
+        }
+
+        $quotation->delete();
         session()->flash('status', 'Quotation deleted.');
     }
 
