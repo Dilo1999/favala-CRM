@@ -17,13 +17,13 @@
             </div>
         @else
             <div class="flex items-start gap-2">
-                <img src="{{ asset('images/zaha/bot/head_assembly.svg') }}" alt="" class="w-6 h-6 shrink-0 mt-0.5 object-contain" />
+                <img src="{{ asset('images/bot/head_assembly.svg') }}" alt="" class="w-6 h-6 shrink-0 mt-0.5 object-contain" />
                 <div class="fava-markdown bg-zinc-700/60 rounded-lg rounded-tl-none px-3 py-2 text-zinc-200 max-w-[85%] break-words">{!! $m->rendered_html !!}</div>
             </div>
         @endif
     @empty
         <div class="flex items-start gap-2">
-            <img src="{{ asset('images/zaha/bot/head_assembly.svg') }}" alt="" class="w-6 h-6 shrink-0 mt-0.5 object-contain" />
+            <img src="{{ asset('images/bot/head_assembly.svg') }}" alt="" class="w-6 h-6 shrink-0 mt-0.5 object-contain" />
             <div class="bg-zinc-700/60 rounded-lg rounded-tl-none px-3 py-2 text-zinc-200 max-w-[85%]">
                 Hi, I'm Fava! How can I help you today?
             </div>
@@ -31,7 +31,7 @@
     @endforelse
 
     <div wire:loading wire:target="sendMessage,generateReply" class="flex items-start gap-2">
-        <img src="{{ asset('images/zaha/bot/head_assembly.svg') }}" alt="" class="w-6 h-6 shrink-0 mt-0.5 object-contain" />
+        <img src="{{ asset('images/bot/head_assembly.svg') }}" alt="" class="w-6 h-6 shrink-0 mt-0.5 object-contain" />
         <div class="bg-zinc-700/60 rounded-lg rounded-tl-none px-3 py-2 text-zinc-400 text-xs italic">
             Fava is thinking…
         </div>

@@ -1,0 +1,132 @@
+{
+  "source": "Cute Robot Mascot Component Pack(1).png",
+  "format": "Favala female FChatbot reduced web rig",
+  "parts": [
+    {
+      "name": "head_assembly",
+      "width": 528,
+      "height": 527,
+      "source_box": [
+        66,
+        33,
+        594,
+        560
+      ]
+    },
+    {
+      "name": "body_core",
+      "width": 455,
+      "height": 378,
+      "source_box": [
+        651,
+        144,
+        1106,
+        522
+      ]
+    },
+    {
+      "name": "floating_base",
+      "width": 317,
+      "height": 210,
+      "source_box": [
+        1156,
+        306,
+        1473,
+        516
+      ]
+    },
+    {
+      "name": "right_shoulder_module",
+      "width": 168,
+      "height": 168,
+      "source_box": [
+        932,
+        548,
+        1100,
+        716
+      ]
+    },
+    {
+      "name": "left_shoulder_module",
+      "width": 169,
+      "height": 166,
+      "source_box": [
+        434,
+        549,
+        603,
+        715
+      ]
+    },
+    {
+      "name": "left_forearm_hand",
+      "width": 395,
+      "height": 276,
+      "source_box": [
+        71,
+        684,
+        466,
+        960
+      ]
+    },
+    {
+      "name": "right_forearm_hand",
+      "width": 399,
+      "height": 274,
+      "source_box": [
+        1067,
+        685,
+        1466,
+        959
+      ]
+    },
+    {
+      "name": "left_eye",
+      "width": 337,
+      "height": 206,
+      "source": "facial_parts_sheet",
+      "source_box": [
+        935,
+        157,
+        1272,
+        363
+      ]
+    },
+    {
+      "name": "right_eye",
+      "width": 334,
+      "height": 206,
+      "source": "facial_parts_sheet",
+      "source_box": [
+        1392,
+        159,
+        1726,
+        365
+      ]
+    },
+    {
+      "name": "nose",
+      "width": 199,
+      "height": 233,
+      "source": "facial_parts_sheet",
+      "source_box": [
+        1223,
+        385,
+        1422,
+        618
+      ]
+    },
+    {
+      "name": "mouth",
+      "width": 349,
+      "height": 130,
+      "source": "facial_parts_sheet",
+      "source_box": [
+        1147,
+        667,
+        1496,
+        797
+      ]
+    }
+  ],
+  "facial_parts_source": "a_clean_compositing_asset_sheet_style_image_on_a_t.png"
+}

@@ -25,7 +25,7 @@
                 </div>
                 <div class="relative h-80 w-80 flex items-center justify-center">
                     <div class="absolute inset-0 rounded-full bg-accent/20 blur-2xl"></div>
-                    <img src="{{ asset('images/zaha/bot-idle.svg') }}" alt="Fava" class="zaha-dynamic-bot animate-idle relative w-80 h-80 object-contain" />
+                    <img src="{{ asset('images/bot/bot-idle.svg') }}" alt="Fava" class="zaha-dynamic-bot animate-idle relative w-80 h-80 object-contain" />
                 </div>
             </div>
 
@@ -36,7 +36,7 @@
                 </div>
                 <div class="relative h-[28rem] w-[28rem] flex items-center justify-center shrink-0">
                     <div class="absolute inset-0 rounded-full bg-accent/20 blur-2xl"></div>
-                    <img src="{{ asset('images/zaha/bot-idle.svg') }}" alt="Fava" class="zaha-dynamic-bot animate-idle relative w-[28rem] h-[28rem] object-contain" />
+                    <img src="{{ asset('images/bot/bot-idle.svg') }}" alt="Fava" class="zaha-dynamic-bot animate-idle relative w-[28rem] h-[28rem] object-contain" />
                 </div>
             </div>
 

@@ -16,7 +16,7 @@
             @click.outside="open = false" @keydown.escape.window="open = false"
             class="absolute bottom-[4.5rem] right-0 w-80 max-w-[calc(100vw-3rem)] h-[28rem] max-h-[calc(100vh-8rem)] rounded-2xl bg-zinc-800 border border-white/10 shadow-2xl shadow-black/50 overflow-hidden flex flex-col">
             <div class="flex items-center gap-3 p-4 border-b border-white/10 bg-zinc-900/60 shrink-0">
-                <img src="{{ asset('images/zaha/bot/head_assembly.svg') }}" alt="Fava" class="w-9 h-9 object-contain shrink-0" />
+                <img src="{{ asset('images/bot/head_assembly.svg') }}" alt="Fava" class="w-9 h-9 object-contain shrink-0" />
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-bold text-white">Fava</p>
                     <p class="text-xs text-zinc-500">Your Favala assistant</p>
@@ -32,7 +32,7 @@
         <button type="button" @click="open = !open" title="Chat with Fava"
             :class="{ 'zaha-launcher-btn': !open }"
             class="h-14 w-14 rounded-full bg-accent hover:bg-accent-hover shadow-lg shadow-black/40 flex items-center justify-center transition-transform hover:scale-105">
-            <img src="{{ asset('images/zaha/bot/head_assembly.svg') }}" alt="Fava" class="w-9 h-9 object-contain" />
+            <img src="{{ asset('images/bot/head_assembly.svg') }}" alt="Fava" class="w-9 h-9 object-contain" />
             <span x-show="!open" x-cloak class="zaha-launcher-dot" aria-hidden="true"></span>
         </button>
     </div>
@@ -54,8 +54,8 @@
                     {{-- <object>, not <img>: an <img>-embedded SVG can't receive mouse
                          hover internally, so the head/hand parts inside bot-idle.svg
                          (its own :hover rules) would never fire. --}}
-                    <object type="image/svg+xml" :data="'{{ asset('images/zaha') }}/' + getCurrentSvg()" :class="'animate-' + getMoodCategory()"
-                        aria-label="Fava" class="zaha-dynamic-bot w-36 h-36 object-contain animate-idle" data="{{ asset('images/zaha/bot-idle.svg') }}"></object>
+                    <object type="image/svg+xml" :data="'{{ asset('images/bot') }}/' + getCurrentSvg()" :class="'animate-' + getMoodCategory()"
+                        aria-label="Fava" class="zaha-dynamic-bot w-36 h-36 object-contain animate-idle" data="{{ asset('images/bot/bot-idle.svg') }}"></object>
                     <div class="zaha-speech-bubble" aria-hidden="true">
                         <span class="zaha-speech-bubble__spark" aria-hidden="true">✨</span>
                         <span class="zaha-speech-bubble__text">I love to help you!</span>

@@ -2,7 +2,7 @@
 @php($compact = $compact ?? false)
 
 <div class="flex items-start justify-between {{ $compact ? 'mb-1.5' : 'mb-4' }}">
-    <img src="{{ asset('images/logo/Favala-1.png') }}" alt="{{ $company['name'] }}" class="{{ $compact ? 'h-6' : 'h-10' }} w-auto object-contain" />
+    <img src="{{ asset('images/logo/Favala-1.png') }}" alt="{{ $company['name'] }}" class="h-10 w-auto object-contain" />
     <div class="text-right">
         <h1 class="{{ $compact ? 'text-sm' : 'text-3xl' }} font-bold tracking-tight text-gray-900">{{ $company['name'] }}</h1>
         @foreach ($company['address_lines'] as $line)
