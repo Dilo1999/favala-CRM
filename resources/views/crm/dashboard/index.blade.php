@@ -67,14 +67,16 @@
                         </thead>
                         <tbody class="divide-y divide-white/10">
                             @forelse ($o['recent_sales'] as $sale)
+                                @php($saleTotals = $sale->adjustedTotals())
+                                @php($saleStatus = $saleTotals['balance_due'] <= 0 && $sale->payment_status !== 'refunded' ? 'paid' : $sale->payment_status)
                                 <tr>
                                     <td class="py-2 text-white">{{ $sale->customer?->company_name }}</td>
                                     <td class="py-2">
-                                        <x-badge :color="$sale->payment_status === 'paid' ? 'green' : ($sale->payment_status === 'partial' ? 'orange' : 'gray')">
-                                            {{ ucfirst($sale->payment_status) }}
+                                        <x-badge :color="$saleStatus === 'paid' ? 'green' : ($saleStatus === 'partial' ? 'orange' : 'gray')">
+                                            {{ ucfirst($saleStatus) }}
                                         </x-badge>
                                     </td>
-                                    <td class="py-2 text-right text-white">MVR {{ number_format($sale->grand_total, 2) }}</td>
+                                    <td class="py-2 text-right text-white">MVR {{ number_format($saleTotals['grand_total'], 2) }}</td>
                                 </tr>
                             @empty
                                 <tr><td colspan="3" class="py-4 text-center text-zinc-500">No sales yet.</td></tr>

@@ -15,6 +15,8 @@
             </thead>
             <tbody class="divide-y divide-white/10">
                 @forelse ($payments as $payment)
+                    @php($invoiceTotals = $payment->invoice?->adjustedTotals())
+                    @php($refundReturn = $payment->method === \App\Models\Payment::METHOD_REFUND ? $payment->invoice?->returns->keyBy('friendly_id')->get(str_replace('Return #', '', $payment->reference ?? '')) : null)
                     <tr class="hover:bg-zinc-700/40">
                         <td class="p-3 text-white font-medium">{{ $payment->friendly_id }}</td>
                         <td class="p-3 text-zinc-400">{{ $payment->date->format('d M Y') }}</td>
@@ -22,10 +24,17 @@
                         <td class="p-3 text-zinc-300">{{ $payment->invoice?->customer?->company_name }}</td>
                         <td class="p-3 text-zinc-400">{{ $payment->method }}</td>
                         <td class="p-3 text-white">MVR {{ number_format($payment->amount, 2) }}</td>
-                        <td class="p-3 text-zinc-500">MVR {{ number_format($payment->invoice?->grand_total, 2) }}</td>
+                        <td class="p-3 text-zinc-500">
+                            MVR {{ number_format($invoiceTotals['grand_total'] ?? 0, 2) }}
+                            @if (($invoiceTotals['refunded_value'] ?? 0) > 0)
+                                <span class="block text-[11px] text-zinc-600 line-through">MVR {{ number_format($payment->invoice?->grand_total, 2) }}</span>
+                            @endif
+                        </td>
                         <td class="p-3 text-right">
                             @if ($payment->receipt_path)
                                 <a href="{{ asset('storage/'.$payment->receipt_path) }}" target="_blank" class="text-accent text-sm hover:underline mr-3">Receipt</a>
+                            @elseif ($refundReturn)
+                                <a href="{{ route('print.credit-note', $refundReturn) }}" target="_blank" class="text-accent text-sm hover:underline mr-3">Credit Note</a>
                             @endif
                             <a href="{{ route('crm.invoices.show', $payment->invoice) }}" class="text-accent text-sm hover:underline">View Invoice</a>
                         </td>

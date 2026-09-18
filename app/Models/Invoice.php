@@ -139,6 +139,17 @@ class Invoice extends Model
         $subtotal = round((float) $this->subtotal - $refundedSubtotal, 2);
         $grandTotal = max(round((float) $this->grand_total - $refundedValue, 2), 0);
 
+        // A later payment recorded after a return was refunded (e.g. the
+        // customer bought again on the same invoice) can leave more actually
+        // paid than this return-adjusted total — never show a total smaller
+        // than what's genuinely been paid, capped at what was originally
+        // billed so it can't inflate past the real invoice.
+        $paidFloor = min((float) $this->amount_paid, (float) $this->grand_total);
+        if ($paidFloor > $grandTotal) {
+            $subtotal = round($subtotal + ($paidFloor - $grandTotal), 2);
+            $grandTotal = $paidFloor;
+        }
+
         $gstPercent = (float) $this->gst_percent;
         $taxable = $gstPercent > 0 ? round($grandTotal / (1 + $gstPercent / 100), 2) : $grandTotal;
         $gst = round($grandTotal - $taxable, 2);

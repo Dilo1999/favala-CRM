@@ -13,7 +13,7 @@ class Index extends Component
 
     public function render()
     {
-        $payments = Payment::with(['invoice.customer', 'receivedBy'])
+        $payments = Payment::with(['invoice.customer', 'invoice.returns.items', 'receivedBy'])
             ->when($this->search, function ($q) {
                 $paymentId = Payment::idFromFriendlyId($this->search);
                 $invoiceId = Invoice::idFromFriendlyId($this->search);

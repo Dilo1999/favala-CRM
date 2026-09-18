@@ -36,7 +36,7 @@ class DashboardMetricsService
             'customers' => Customer::count(),
             'hot_deals' => Deal::where('stage', Deal::STAGE_HOT)->count(),
             'total_queries' => \App\Models\SalesQuery::count(),
-            'recent_sales' => Invoice::with('customer')->latest()->limit(5)->get(),
+            'recent_sales' => Invoice::with(['customer', 'returns.items'])->latest()->limit(5)->get(),
             'recent_customers' => Customer::latest()->limit(5)->get(),
             'customers_this_month' => Customer::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count(),
         ];
