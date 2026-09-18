@@ -96,7 +96,9 @@
                 <table class="w-full text-sm">
                     <thead><tr class="text-left text-zinc-500 text-xs uppercase"><th class="pb-2">Date</th><th class="pb-2">Method</th><th class="pb-2">Reference</th><th class="pb-2">Receipt</th><th class="pb-2">Received By</th><th class="pb-2 text-right">Amount</th></tr></thead>
                     <tbody class="divide-y divide-white/10">
+                        @php($returnsByFriendlyId = $record->returns->keyBy('friendly_id'))
                         @forelse ($record->payments as $payment)
+                            @php($refundReturn = $payment->method === \App\Models\Payment::METHOD_REFUND ? $returnsByFriendlyId->get(str_replace('Return #', '', $payment->reference ?? '')) : null)
                             <tr>
                                 <td class="py-2 text-zinc-300">{{ $payment->date->format('F jS, Y') }}</td>
                                 <td class="py-2"><span class="inline-flex items-center px-2.5 py-1 rounded-md bg-zinc-700 text-white text-xs font-semibold">{{ $payment->method }}</span></td>
@@ -104,6 +106,8 @@
                                 <td class="py-2">
                                     @if ($payment->receipt_path)
                                         <a href="{{ asset('storage/'.$payment->receipt_path) }}" target="_blank" class="text-accent hover:underline">View</a>
+                                    @elseif ($refundReturn)
+                                        <a href="{{ route('print.credit-note', $refundReturn) }}" target="_blank" class="text-accent hover:underline">Credit Note</a>
                                     @else
                                         <span class="text-zinc-500">—</span>
                                     @endif
