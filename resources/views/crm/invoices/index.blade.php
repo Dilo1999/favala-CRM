@@ -19,17 +19,24 @@
             <tbody class="divide-y divide-white/10">
                 @forelse ($invoices as $invoice)
                     @php($last = $invoice->payments->sortByDesc('date')->first())
+                    @php($totals = $invoice->adjustedTotals())
+                    @php($displayStatus = $totals['balance_due'] <= 0 && $invoice->payment_status !== 'refunded' ? 'paid' : $invoice->payment_status)
                     <tr onclick="window.location='{{ route('crm.invoices.show', $invoice) }}'" class="hover:bg-zinc-700/40 cursor-pointer">
                         <td class="p-3 text-white font-medium">{{ $invoice->friendly_id }}</td>
                         <td class="p-3 text-zinc-300">{{ $invoice->customer?->company_name }}</td>
                         <td class="p-3 text-zinc-400">{{ $last ? $last->date->format('d M Y') : 'N/A' }}</td>
                         <td class="p-3">
-                            <x-badge :color="match($invoice->payment_status) { 'paid' => 'green', 'partial' => 'orange', 'refunded' => 'blue', default => 'gray' }">
-                                {{ ucfirst($invoice->payment_status) }}
+                            <x-badge :color="match($displayStatus) { 'paid' => 'green', 'partial' => 'orange', 'refunded' => 'blue', default => 'gray' }">
+                                {{ ucfirst($displayStatus) }}
                             </x-badge>
                         </td>
-                        <td class="p-3 text-white">MVR {{ number_format($invoice->grand_total, 2) }}</td>
-                        <td class="p-3 text-zinc-300">MVR {{ number_format($invoice->balance_due, 2) }}</td>
+                        <td class="p-3 text-white">
+                            MVR {{ number_format($totals['grand_total'], 2) }}
+                            @if ($totals['refunded_value'] > 0)
+                                <span class="block text-[11px] text-zinc-500 line-through">MVR {{ number_format($invoice->grand_total, 2) }}</span>
+                            @endif
+                        </td>
+                        <td class="p-3 text-zinc-300">MVR {{ number_format($totals['balance_due'], 2) }}</td>
                         <td class="p-3 text-right" onclick="event.stopPropagation()">
                             <x-row-menu>
                                 <a href="{{ route('crm.invoices.show', $invoice) }}" class="block px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">View Details</a>

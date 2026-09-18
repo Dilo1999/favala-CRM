@@ -173,6 +173,12 @@
                     @endforeach
                 </div>
             @endif
+            @if ($totals['balance_due'] <= 0)
+                <div class="rounded-xl bg-zinc-800 border border-white/10 p-5 flex items-center justify-between">
+                    <span class="font-bold text-white">Payment Status</span>
+                    <span class="inline-flex items-center px-4 py-1.5 rounded-full font-bold text-sm bg-green-600 text-white">Paid</span>
+                </div>
+            @endif
         </div>
     </div>
 
