@@ -95,6 +95,67 @@ class Invoice extends Model
         return $totalOrdered > 0 && $totalDelivered >= $totalOrdered;
     }
 
+    /**
+     * Qty/amount actually refunded back per product — only returns that
+     * reached STATUS_REFUNDED took stock back and paid cash out (see
+     * SalesReturn::applyRefundToInvoice()), so a still-pending/processed
+     * return doesn't yet reduce what the customer is shown as holding.
+     * Expects `returns.items` to be loaded (or lazy-loads it on first use).
+     */
+    public function refundedByProduct(): \Illuminate\Support\Collection
+    {
+        return $this->returns
+            ->where('status', SalesReturn::STATUS_REFUNDED)
+            ->flatMap->items
+            ->groupBy('product_id')
+            ->map(fn ($items) => [
+                'qty' => (float) $items->sum('qty'),
+                'amount' => (float) $items->sum('amount'),
+            ]);
+    }
+
+    /** Total credited back across every return that actually reached STATUS_REFUNDED on this invoice. */
+    public function refundedValue(): float
+    {
+        return (float) $this->returns->where('status', SalesReturn::STATUS_REFUNDED)->sum('value');
+    }
+
+    /**
+     * The invoice's totals net of whatever's actually been refunded — what
+     * the customer owes today, not what was billed before any of it came
+     * back. Subtotal is reduced by the refunded lines' own (pre-GST,
+     * post-line-discount) amount; grand total is reduced by the return's
+     * `value`, which already folds in GST and any order-level discount at
+     * the same ratio the whole invoice carries (see
+     * Returns\Create::getTotalValueProperty()) — the same figure that was
+     * actually credited back, capped or not. Discount/GST are then derived
+     * backwards from that so the three numbers stay internally consistent.
+     */
+    public function adjustedTotals(): array
+    {
+        $refundedValue = $this->refundedValue();
+        $refundedSubtotal = $this->refundedByProduct()->sum('amount');
+
+        $subtotal = round((float) $this->subtotal - $refundedSubtotal, 2);
+        $grandTotal = max(round((float) $this->grand_total - $refundedValue, 2), 0);
+
+        $gstPercent = (float) $this->gst_percent;
+        $taxable = $gstPercent > 0 ? round($grandTotal / (1 + $gstPercent / 100), 2) : $grandTotal;
+        $gst = round($grandTotal - $taxable, 2);
+        $discount = round($subtotal - $taxable, 2);
+
+        $balanceDue = max(round($grandTotal - (float) $this->amount_paid, 2), 0);
+
+        return [
+            'subtotal' => $subtotal,
+            'discount' => $discount,
+            'gst' => $gst,
+            'grand_total' => $grandTotal,
+            'balance_due' => $balanceDue,
+            'refunded_value' => $refundedValue,
+        ];
+    }
+
     /** Receive a payment (spec §6.8) and recompute paid/balance/status. */
     public function receivePayment(float $amount, string $method, ?string $reference, ?User $receivedBy, ?string $receiptPath = null): Payment
     {

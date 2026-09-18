@@ -19,7 +19,7 @@ class PrintController extends Controller
 
     public function invoice(Invoice $record)
     {
-        $record->load(['items.product', 'customer', 'payments']);
+        $record->load(['items.product', 'customer', 'payments', 'returns.items']);
 
         return view('crm.print.invoice', ['record' => $record]);
     }

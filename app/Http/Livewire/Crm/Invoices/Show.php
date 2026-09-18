@@ -27,7 +27,17 @@ class Show extends Component
 
     public function mount(Invoice $record): void
     {
-        $this->record = $record->load(['items.product', 'customer', 'payments.receivedBy', 'quotation', 'deliveries', 'returns']);
+        $this->record = $record->load(['items.product', 'customer', 'payments.receivedBy', 'quotation', 'deliveries', 'returns.items']);
+    }
+
+    public function getRefundedByProductProperty(): \Illuminate\Support\Collection
+    {
+        return $this->record->refundedByProduct();
+    }
+
+    public function getAdjustedTotalsProperty(): array
+    {
+        return $this->record->adjustedTotals();
     }
 
     public function openPaymentForm(): void
@@ -51,16 +61,16 @@ class Show extends Component
     }
 
     /**
-     * What Receive Payment will actually charge. An invoice's own total
-     * never changes once billed (see SalesReturn::applyRefundToInvoice()) —
-     * a refund only ever affects what's been paid, via an offsetting
-     * "Refund" payment, so balance_due already reflects the truth: it comes
-     * back up to the full total on its own once a return is refunded, with
-     * nothing special to account for here.
+     * What Receive Payment will actually charge — the balance net of any
+     * refunded returns (see getAdjustedTotalsProperty()), not the invoice's
+     * raw balance_due. Raw balance_due comes back up after a refund because
+     * it's computed against the invoice's original, never-changing total;
+     * left unadjusted here, a customer who returned goods could be charged
+     * again for the very items already handed back.
      */
     public function getPayableAmountProperty(): float
     {
-        return round((float) $this->record->balance_due, 2);
+        return $this->adjustedTotals['balance_due'];
     }
 
     protected function rules(): array
@@ -98,7 +108,7 @@ class Show extends Component
         $this->referenceMismatchWarning = null;
 
         $this->record->refresh();
-        $amount = round((float) $this->record->balance_due, 2);
+        $amount = $this->payableAmount;
 
         if ($amount <= 0) {
             $this->showPaymentForm = false;

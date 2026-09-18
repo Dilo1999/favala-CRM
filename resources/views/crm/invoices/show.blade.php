@@ -63,13 +63,28 @@
                         @foreach ($record->items as $i => $item)
                             @php($gross = round($item->qty * $item->rate, 2))
                             @php($discountAmount = $item->discount_type === 'percent' ? round($gross * ($item->discount_value / 100), 2) : min($item->discount_value, $gross))
+                            @php($refunded = $this->refundedByProduct->get($item->product_id))
+                            @php($refundedQty = $refunded['qty'] ?? 0)
+                            @php($refundedAmount = $refunded['amount'] ?? 0)
+                            @php($remainingQty = $item->qty - $refundedQty)
+                            @php($remainingAmount = $item->amount - $refundedAmount)
                             <tr>
                                 <td class="py-2 text-zinc-500">{{ $i + 1 }}</td>
                                 <td class="py-2 text-white font-medium">{{ $item->product?->description }} <span class="block text-zinc-500 text-xs font-normal">{{ $item->product?->code }}</span></td>
-                                <td class="py-2 text-right text-zinc-300">{{ $item->qty }} pcs</td>
+                                <td class="py-2 text-right text-zinc-300">
+                                    {{ rtrim(rtrim(number_format($remainingQty, 2), '0'), '.') }} pcs
+                                    @if ($refundedQty > 0)
+                                        <span class="block text-[11px] text-amber-400">{{ rtrim(rtrim(number_format($item->qty, 2), '0'), '.') }} sold, {{ rtrim(rtrim(number_format($refundedQty, 2), '0'), '.') }} returned</span>
+                                    @endif
+                                </td>
                                 <td class="py-2 text-right text-zinc-300">MVR {{ number_format($item->rate, 2) }}</td>
                                 <td class="py-2 text-right text-red-400">-MVR {{ number_format($discountAmount, 2) }}</td>
-                                <td class="py-2 text-right text-white">MVR {{ number_format($item->amount, 2) }}</td>
+                                <td class="py-2 text-right text-white">
+                                    MVR {{ number_format($remainingAmount, 2) }}
+                                    @if ($refundedQty > 0)
+                                        <span class="block text-[11px] text-zinc-500 line-through">MVR {{ number_format($item->amount, 2) }}</span>
+                                    @endif
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -107,17 +122,37 @@
         <div class="space-y-6">
             <div class="rounded-xl bg-zinc-800 border border-white/10 p-5">
                 <h3 class="text-lg font-bold text-white mb-4">Summary</h3>
+                @php($totals = $this->adjustedTotals)
                 <div class="space-y-3 text-sm">
-                    <div class="flex justify-between"><span class="text-zinc-400">Subtotal</span><span class="text-white font-semibold">MVR {{ number_format($record->subtotal, 2) }}</span></div>
-                    @if ($record->discount_value > 0)
-                        <div class="flex justify-between"><span class="text-zinc-400">Discount</span><span class="text-red-400 font-semibold">-MVR {{ number_format($record->subtotal - ($record->grand_total - $record->gst_amount), 2) }}</span></div>
+                    <div class="flex justify-between">
+                        <span class="text-zinc-400">Subtotal</span>
+                        <span class="text-right">
+                            <span class="text-white font-semibold block">MVR {{ number_format($totals['subtotal'], 2) }}</span>
+                            @if ($totals['refunded_value'] > 0)
+                                <span class="block text-[11px] text-zinc-500 line-through">MVR {{ number_format($record->subtotal, 2) }}</span>
+                            @endif
+                        </span>
+                    </div>
+                    @if ($totals['discount'] > 0)
+                        <div class="flex justify-between"><span class="text-zinc-400">Discount</span><span class="text-red-400 font-semibold">-MVR {{ number_format($totals['discount'], 2) }}</span></div>
                     @endif
-                    <div class="flex justify-between"><span class="text-zinc-400">GST ({{ $record->gst_percent }}%)</span><span class="text-white font-semibold">MVR {{ number_format($record->gst_amount, 2) }}</span></div>
-                    <div class="flex justify-between pt-3 border-t border-white/10"><span class="text-white font-bold">Invoice Total</span><span class="text-white font-bold text-lg">MVR {{ number_format($record->grand_total, 2) }}</span></div>
+                    <div class="flex justify-between"><span class="text-zinc-400">GST ({{ $record->gst_percent }}%)</span><span class="text-white font-semibold">MVR {{ number_format($totals['gst'], 2) }}</span></div>
+                    @if ($totals['refunded_value'] > 0)
+                        <div class="flex justify-between"><span class="text-zinc-400">Refunded</span><span class="text-red-400 font-semibold">-MVR {{ number_format($totals['refunded_value'], 2) }}</span></div>
+                    @endif
+                    <div class="flex justify-between pt-3 border-t border-white/10">
+                        <span class="text-white font-bold">Invoice Total</span>
+                        <span class="text-right">
+                            <span class="text-white font-bold text-lg block">MVR {{ number_format($totals['grand_total'], 2) }}</span>
+                            @if ($totals['refunded_value'] > 0)
+                                <span class="block text-[11px] text-zinc-500 line-through">MVR {{ number_format($record->grand_total, 2) }}</span>
+                            @endif
+                        </span>
+                    </div>
                     <div class="flex justify-between"><span class="text-zinc-400">Total Paid</span><span class="text-green-400 font-semibold">MVR {{ number_format($record->amount_paid, 2) }}</span></div>
                     <div class="flex justify-between items-center pt-2">
                         <span class="text-white font-bold">Balance Due</span>
-                        <span class="inline-flex items-center px-4 py-1.5 rounded-full font-bold text-sm {{ $record->balance_due > 0 ? 'bg-red-600 text-white' : 'bg-green-600 text-white' }}">MVR {{ number_format($record->balance_due, 2) }}</span>
+                        <span class="inline-flex items-center px-4 py-1.5 rounded-full font-bold text-sm {{ $totals['balance_due'] > 0 ? 'bg-red-600 text-white' : 'bg-green-600 text-white' }}">MVR {{ number_format($totals['balance_due'], 2) }}</span>
                     </div>
                 </div>
             </div>
