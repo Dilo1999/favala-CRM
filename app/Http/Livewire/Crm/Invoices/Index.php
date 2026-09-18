@@ -12,6 +12,8 @@ class Index extends Component
 
     public function delete(int $id): void
     {
+        abort_unless(auth()->user()->canManageAllRecords(), 403);
+
         Invoice::findOrFail($id)->delete();
         session()->flash('status', 'Invoice deleted.');
     }
@@ -19,8 +21,15 @@ class Index extends Component
     public function render()
     {
         $invoices = Invoice::with(['customer', 'payments'])
-            ->when($this->search, fn ($q) => $q->where('id', 'like', "%{$this->search}%")
-                ->orWhereHas('customer', fn ($c) => $c->where('company_name', 'like', "%{$this->search}%")))
+            ->when($this->search, function ($q) {
+                $id = Invoice::idFromFriendlyId($this->search);
+
+                $q->where(function ($q) use ($id) {
+                    $q->when($id, fn ($q) => $q->orWhere('id', $id))
+                        ->orWhere('id', 'like', "%{$this->search}%")
+                        ->orWhereHas('customer', fn ($c) => $c->where('company_name', 'like', "%{$this->search}%"));
+                });
+            })
             ->orderByDesc('created_at')
             ->paginate(15);
 

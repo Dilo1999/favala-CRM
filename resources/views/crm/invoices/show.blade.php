@@ -184,7 +184,7 @@
                         @if ($referenceMismatchWarning)
                             <button type="button" wire:click="receivePayment(true)" wire:loading.attr="disabled" wire:target="receivePayment" class="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold">Receive Anyway</button>
                         @else
-                            <button type="submit" wire:loading.attr="disabled" wire:target="receivePayment" class="px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-semibold">
+                            <button type="submit" wire:loading.attr="disabled" wire:target="receivePayment" @if ($paymentMethod !== 'Cash' && ! $receiptFile) disabled @endif class="px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
                                 <span wire:loading.remove wire:target="receivePayment">Receive Payment</span>
                                 <span wire:loading wire:target="receivePayment">Verifying…</span>
                             </button>

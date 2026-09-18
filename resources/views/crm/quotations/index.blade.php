@@ -55,9 +55,11 @@
                                         <x-heroicon-o-currency-dollar class="w-4 h-4" /> Convert to Invoice
                                     </button>
                                 @endif
-                                <button wire:click="delete({{ $q->id }})" wire:confirm="Delete this quotation?" class="flex items-center gap-2 w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">
-                                    <x-heroicon-o-trash class="w-4 h-4" /> Delete
-                                </button>
+                                @if (auth()->user()->canManageAllRecords())
+                                    <button wire:click="delete({{ $q->id }})" wire:confirm="Delete this quotation?" class="flex items-center gap-2 w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">
+                                        <x-heroicon-o-trash class="w-4 h-4" /> Delete
+                                    </button>
+                                @endif
                             </x-row-menu>
                         </td>
                     </tr>

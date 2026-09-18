@@ -39,6 +39,8 @@ class Index extends Component
      */
     public function delete(int $id): void
     {
+        abort_unless(auth()->user()->canManageAllRecords(), 403);
+
         $quotation = Quotation::with('invoices.items')->findOrFail($id);
 
         $blocking = $quotation->invoices->firstWhere('payment_status', '!=', Invoice::STATUS_PENDING);

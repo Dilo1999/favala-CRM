@@ -107,7 +107,11 @@ class Show extends Component
             return;
         }
 
-        $receiptPath = $this->receiptFile ? $this->receiptFile->store('payments/receipts', 'public') : null;
+        // Grouped by the payment's month (same `now()` used for the Payment's
+        // own `date` below) so each month's receipts land in their own folder.
+        $receiptPath = $this->receiptFile
+            ? $this->receiptFile->store('payments/receipts/'.now()->format('Y-m'), 'public')
+            : null;
 
         $this->record->receivePayment($amount, $this->paymentMethod, $this->paymentReference, auth()->user(), $receiptPath);
         $this->record->refresh();

@@ -34,7 +34,9 @@
                             <x-row-menu>
                                 <a href="{{ route('crm.invoices.show', $invoice) }}" class="block px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">View Details</a>
                                 <a href="{{ route('print.invoice', $invoice) }}" target="_blank" class="block px-3 py-1.5 text-zinc-200 hover:bg-zinc-700">Print</a>
-                                <button wire:click="delete({{ $invoice->id }})" wire:confirm="Delete this invoice?" class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete</button>
+                                @if (auth()->user()->canManageAllRecords())
+                                    <button wire:click="delete({{ $invoice->id }})" wire:confirm="Delete this invoice?" class="block w-full text-left px-3 py-1.5 text-red-400 hover:bg-zinc-700">Delete</button>
+                                @endif
                             </x-row-menu>
                         </td>
                     </tr>
